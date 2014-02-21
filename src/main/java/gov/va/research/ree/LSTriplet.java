@@ -16,28 +16,63 @@
  */
 package gov.va.research.ree;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.List;
-
-import gov.nih.nlm.nls.vtt.Model.VttDocument;
-
 /**
  * @author vhaislreddd
  *
  */
-public class VTTReader {
+public class LSTriplet {
 
-	public VttDocument read(final File vttFile) throws IOException {
-		VttDocument vttDoc = new VttDocument();
-		boolean valid = vttDoc.ReadFromFile(vttFile);
-		if (!valid) {
-			throw new IOException("Not a valid VTT file: " + vttFile);
-		}
-		return vttDoc;
+	private String LS;
+	private String BLS;
+	private String ALS;
+	
+	public LSTriplet(String LS, String BLS, String ALS) {
+		this.LS = LS;
+		this.BLS = BLS;
+		this.ALS = ALS;
 	}
 
-	public List<LSTriplet> extractLSTriplets(final File vttFile) {
-		return null;
+	/**
+	 * @return the lS
+	 */
+	public String getLS() {
+		return LS;
 	}
+
+	/**
+	 * @param lS the lS to set
+	 */
+	public void setLS(String lS) {
+		LS = lS;
+	}
+
+	/**
+	 * @return the bLS
+	 */
+	public String getBLS() {
+		return BLS;
+	}
+
+	/**
+	 * @param bLS the bLS to set
+	 */
+	public void setBLS(String bLS) {
+		BLS = bLS;
+	}
+
+	/**
+	 * @return the aLS
+	 */
+	public String getALS() {
+		return ALS;
+	}
+
+	/**
+	 * @param aLS the aLS to set
+	 */
+	public void setALS(String aLS) {
+		ALS = aLS;
+	}
+	
+	
 }
