@@ -14,21 +14,26 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License. 
  */
-package gov.va.research;
+package gov.va.research.ree;
 
-import java.util.List;
+import java.io.File;
+import java.io.IOException;
+
+import gov.nih.nlm.nls.vtt.Model.VttDocument;
 
 /**
- * Interface for Information Extractors
+ * @author vhaislreddd
  *
  */
-public interface Extractor {
+public class VTTReader {
 
-	/**
-	 * Extracts information from target strings.
-	 * @param targets Strings from which to extract information.
-	 * @return List of extracted information, one string for each target in the same order as the targets.
-	 */
-	public List<String> extract(final List<String> targets);
+	public VttDocument read(final File vttFile) throws IOException {
+		VttDocument vttDoc = new VttDocument();
+		boolean valid = vttDoc.ReadFromFile(vttFile);
+		if (!valid) {
+			throw new IOException("Not a valid VTT file: " + vttFile);
+		}
+		return vttDoc;
+	}
 
 }

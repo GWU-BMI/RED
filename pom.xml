@@ -4,7 +4,6 @@
   <artifactId>REE</artifactId>
   <version>0.0.1-SNAPSHOT</version>
   <build>
-    <sourceDirectory>src</sourceDirectory>
     <plugins>
       <plugin>
         <artifactId>maven-compiler-plugin</artifactId>
@@ -16,4 +15,11 @@
       </plugin>
     </plugins>
   </build>
+  <dependencies>
+  	<dependency>
+  		<groupId>gov.nih.nlm.nls</groupId>
+  		<artifactId>vtt</artifactId>
+  		<version>2013.09.0</version>
+  	</dependency>
+  </dependencies>
 </project>
