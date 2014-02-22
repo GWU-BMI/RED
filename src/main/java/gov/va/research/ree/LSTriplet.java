@@ -17,61 +17,56 @@
 package gov.va.research.ree;
 
 /**
- * @author vhaislreddd
- *
+ * Value Class for storing Labeled Segments and the surrounding textual context
  */
 public class LSTriplet {
 
+	// labeled segment
 	private String LS;
+	// before labeled segment
 	private String BLS;
+	// after labeled segment
 	private String ALS;
 	
-	public LSTriplet(String LS, String BLS, String ALS) {
-		this.LS = LS;
+	public LSTriplet(String BLS, String LS, String ALS) {
 		this.BLS = BLS;
+		this.LS = LS;
 		this.ALS = ALS;
 	}
 
-	/**
-	 * @return the lS
+	/* (non-Javadoc)
+	 * @see java.lang.Object#toString()
 	 */
-	public String getLS() {
-		return LS;
+	@Override
+	public String toString() {
+		return "" + BLS + "|" + LS  + "|" + ALS;
 	}
 
-	/**
-	 * @param lS the lS to set
-	 */
-	public void setLS(String lS) {
-		LS = lS;
-	}
+	/////
+	// Getters and Setters
 
-	/**
-	 * @return the bLS
-	 */
 	public String getBLS() {
 		return BLS;
 	}
 
-	/**
-	 * @param bLS the bLS to set
-	 */
-	public void setBLS(String bLS) {
-		BLS = bLS;
+	public void setBLS(String BLS) {
+		this.BLS = BLS;
 	}
 
-	/**
-	 * @return the aLS
-	 */
+	public String getLS() {
+		return LS;
+	}
+
+	public void setLS(String LS) {
+		this.LS = LS;
+	}
+
 	public String getALS() {
 		return ALS;
 	}
 
-	/**
-	 * @param aLS the aLS to set
-	 */
-	public void setALS(String aLS) {
-		ALS = aLS;
+	public void setALS(String ALS) {
+		this.ALS = ALS;
 	}
 	
 	
