@@ -101,21 +101,21 @@ public class VTTReader {
 		replaceDigits(ls3list);
 		replaceWhiteSpaces(ls3list);
 		Map<String,List<LSTriplet>> snippetGroups = groupSnippets(ls3list);
-		processSnippetGroups(snippetGroups, true);
+		processSnippetGroups(snippetGroups);
 		return regExpressions;
 	}
 	
 	/**
-	 * Finds out all the groups that have sizes greater than 1. Call findAndReplaceMFT on those groups.
+	 * Finds out all the groups that have sizes greater than 1. Calls processGroup on those groups.
 	 * @param snippetGroups A hashmap containing the groups. Key is LS and the value is a list of LSTriplet's.
 	 * @param blsProcessing If true the method does processing on BLS otherwise on ALS.
 	 */
-	private void processSnippetGroups(Map<String,List<LSTriplet>> snippetGroups, boolean blsProcessing){
+	private void processSnippetGroups(Map<String,List<LSTriplet>> snippetGroups){
 		Iterator<List<LSTriplet>> iteratorSnippetGroups = snippetGroups.values().iterator();
 		while(iteratorSnippetGroups.hasNext()){
 			List<LSTriplet> group = iteratorSnippetGroups.next();
 			if(group.size() > 1){
-				
+				processGroup(group);
 			}
 		}
 	}
