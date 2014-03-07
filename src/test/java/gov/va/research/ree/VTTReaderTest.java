@@ -82,5 +82,21 @@ public class VTTReaderTest {
 		Assert.assertNotNull(ls3List);
 		Assert.assertTrue("List of 'weight' labeled segment triplets was empty", ls3List.size() > 0);
 	}
+	
+	/**
+	 * Test method for {@link gov.va.research.ree.VTTReader#extractRegexExpressions(java.io.File, java.lang.String)}.
+	 */
+	@Test
+	public void testExtractRegexExpressions(){
+		VTTReader vttr = new VTTReader();
+		List<String> regExpList = null;
+		try {
+			regExpList = vttr.extractRegexExpressions(new File(TEST_VTT_FILENAME), "weight");
+		} catch (IOException e) {
+			throw new AssertionError("Failed extract 'weight' labeled regular expressions from VTT file: " + TEST_VTT_FILENAME, e);
+		}
+		for(String regExp : regExpList)
+			System.out.println(regExp);
+	}
 
 }

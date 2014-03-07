@@ -24,6 +24,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import gov.nih.nlm.nls.vtt.Model.Markup;
@@ -98,59 +99,129 @@ public class VTTReader {
 	public List<String> extractRegexExpressions(final File vttFile, final String label) throws IOException{
 		List<String> regExpressions = new ArrayList<String>();
 		List<LSTriplet> ls3list = extractLSTriplets(vttFile, label);
-		replaceDigits(ls3list);
-		replaceWhiteSpaces(ls3list);
-		Map<String,List<LSTriplet>> snippetGroups = groupSnippets(ls3list);
-		processSnippetGroups(snippetGroups);
+		if(ls3list != null && !ls3list.isEmpty()){
+			replaceDigits(ls3list);
+			replaceWhiteSpaces(ls3list);
+			Map<String,List<LSTriplet>> snippetGroups = groupSnippets(ls3list);
+			processSnippetGroups(snippetGroups);
+			for(List<LSTriplet> tripletList : snippetGroups.values()){
+				replaceDigitsBLSALS(tripletList);
+				replacePunct(tripletList);
+				for(LSTriplet triplet : tripletList)
+					regExpressions.add(triplet.toString());
+			}
+		}
 		return regExpressions;
 	}
 	
 	/**
 	 * Finds out all the groups that have sizes greater than 1. Calls processGroup on those groups.
+	 * Keeps on doing so till there are no groups having size greater than one.
 	 * @param snippetGroups A hashmap containing the groups. Key is LS and the value is a list of LSTriplet's.
 	 * @param blsProcessing If true the method does processing on BLS otherwise on ALS.
 	 */
 	private void processSnippetGroups(Map<String,List<LSTriplet>> snippetGroups){
-		Iterator<List<LSTriplet>> iteratorSnippetGroups = snippetGroups.values().iterator();
-		while(iteratorSnippetGroups.hasNext()){
-			List<LSTriplet> group = iteratorSnippetGroups.next();
-			if(group.size() > 1){
-				processGroup(group);
+		boolean repeatBLS = true, repeatALS = true;
+		while(repeatALS || repeatBLS){
+			repeatALS = false;
+			repeatBLS = false;
+			Iterator<List<LSTriplet>> iteratorSnippetGroups = snippetGroups.values().iterator();
+			Map<String, List<LSTriplet>> tempGroupMap = new HashMap<String, List<LSTriplet>>();
+			while(iteratorSnippetGroups.hasNext()){
+				List<LSTriplet> group = iteratorSnippetGroups.next();
+				if(group.size() > 1){
+					processGroup(group, tempGroupMap, true);
+					repeatBLS = true;
+				}
 			}
+			copyMaps(snippetGroups,tempGroupMap);
+			iteratorSnippetGroups = snippetGroups.values().iterator();
+			tempGroupMap = new HashMap<String, List<LSTriplet>>();
+			while(iteratorSnippetGroups.hasNext()){
+				List<LSTriplet> group = iteratorSnippetGroups.next();
+				if(group.size() > 1){
+					processGroup(group, tempGroupMap, false);
+					repeatALS = true;
+				}
+			}
+			copyMaps(snippetGroups,tempGroupMap);
 		}
-	}
-	
-	private void processGroup(List<LSTriplet> group){
-		
 	}
 	
 	/**
-	 * Finds the most frequent term in a phrase. Before doing so it removes all the punctuation marks in a string.
-	 * @param phrase The string in which the MFT has to be found out.
-	 * @return A the most frequent term if its freq is > 1 or else null.
+	 * takes all the values from one map and puts into the another map.
+	 * @param snippetGroups the map to which all the values are inserted.
+	 * @param tempGroupMap that map from which all the values are taken and inserted into the other map.
 	 */
-	private String getMFT(String phrase){
-		String[] termArray = phrase.replaceAll("[^a-zA-Z ]", "").split("\\s+");
-		Map<String, Integer> freqMap = new HashMap<String,Integer>();
-		for(String term : termArray){
-			if(freqMap.containsKey(term)){
-				int count = freqMap.get(term);
-				freqMap.put(term, ++count);
+	private void copyMaps(Map<String, List<LSTriplet>> snippetGroups, Map<String, List<LSTriplet>> tempGroupMap){
+		for(Entry<String, List<LSTriplet>> entry : tempGroupMap.entrySet()){
+			String key = entry.getKey();
+			List<LSTriplet> value = entry.getValue();
+			if(snippetGroups.containsKey(key)){
+				List<LSTriplet> temp = snippetGroups.get(key);
+				temp.addAll(value);
+				snippetGroups.put(key, temp);
 			}else
-				freqMap.put(term, 1);
+				snippetGroups.put(key, value);
 		}
-		String mftStr = null;
-		int mftCount = -1;
-		for(String term : freqMap.keySet()){
-			int freq = freqMap.get(term);
-			if(freq > mftCount){
-				mftCount = freq;
-				mftStr = term;
+	}
+	
+	/**
+	 * For every group it determines the MFT. It then replaces the MFT by the regular expression. Creates a new
+	 * group for all the snippets containing the MFT.
+	 * @param group The group of LSTriplets on which we are performing the operation.
+	 * @param snippetGroups The group of all snippets.
+	 */
+	private void processGroup(List<LSTriplet> group, Map<String,List<LSTriplet>> tempGroupMap, boolean processBLS){
+		Map<String, List<LSTriplet>> freqMap = new HashMap<String, List<LSTriplet>>();
+		for(LSTriplet triplet : group)
+			updateMFTMap(triplet, processBLS, freqMap);
+		int maxSize = 1;
+		List<LSTriplet> tripletListContainingMFT = null;
+		String MFT = "";
+		for(Entry<String, List<LSTriplet>> entry : freqMap.entrySet()){
+			List<LSTriplet> temptripletListContainingMFT = entry.getValue();
+			String tempMFT = entry.getKey();
+			if(temptripletListContainingMFT.size() > maxSize){
+				maxSize = temptripletListContainingMFT.size();
+				MFT = entry.getKey();
+				tripletListContainingMFT = temptripletListContainingMFT;
 			}
 		}
-		if(mftCount > 1)
-			return mftStr;
-		return null;
+		if(tripletListContainingMFT != null){
+			for(LSTriplet triplet : tripletListContainingMFT){
+				if(processBLS)
+					triplet.getBLS().replaceAll(MFT, "?:"+MFT);
+				else
+					triplet.getALS().replaceAll(MFT, "?:"+MFT);
+				group.remove(triplet);
+			}
+			tempGroupMap.put(MFT, tripletListContainingMFT);
+		}
+	}
+	
+	/**
+	 * Creates a map of triplets according to the terms contained inside their BLS/ALS.
+	 * @param triplet The triplet on which the processing is being performed.
+	 * @param processingBLS Specifies whether the processing is to be performed on BLS/ALS
+	 * @param freqMap a map containing a term as the key and a list of triplets containing that term as the value.
+	 */
+	private void updateMFTMap(LSTriplet triplet, boolean processingBLS, Map<String, List<LSTriplet>> freqMap){
+		String phrase = "";
+		if(processingBLS)
+			phrase = triplet.getBLS();
+		else
+			phrase = triplet.getALS();
+		String[] termArray = phrase.replaceAll("[^a-zA-Z ]", "").split("\\s+");
+		List<LSTriplet> termContainingTriplets = null;
+		for(String term : termArray){
+			if(freqMap.containsKey(term))
+				termContainingTriplets = freqMap.get(term);
+			else
+				termContainingTriplets = new ArrayList<LSTriplet>();
+			termContainingTriplets.add(triplet);
+			freqMap.put(term, termContainingTriplets);
+		}
 	}
 	
 	/**
@@ -183,6 +254,22 @@ public class VTTReader {
 		return ls3list;
 	}
 	
+	//replace digits with '\d+'
+		public List<LSTriplet> replaceDigitsBLSALS(List<LSTriplet> ls3list)
+		{
+			String s;
+			for(LSTriplet x : ls3list)
+			{
+				s=x.getBLS();
+				s=s.replaceAll("\\d+.*","\\d+");
+				x.setBLS(s);
+				s=x.getALS();
+				s=s.replaceAll("\\d+.*","\\d+");
+				x.setALS(s);
+			}
+			return ls3list;
+		}
+	
 	//replace white spaces with 's{1,10}'
 	public List<LSTriplet> replaceWhiteSpaces(List<LSTriplet> ls3list)
 	{
@@ -210,6 +297,12 @@ public class VTTReader {
 			s=x.getLS();
 			s=s.replaceAll("\\p{Punct}","\\p{Punct}");
 			x.setLS(s);
+			s=x.getBLS();
+			s=s.replaceAll("\\p{Punct}","\\p{Punct}");
+			x.setBLS(s);
+			s=x.getALS();
+			s=s.replaceAll("\\p{Punct}","\\p{Punct}");
+			x.setALS(s);
 		}
 		return ls3list;
 	}
