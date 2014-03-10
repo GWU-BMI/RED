@@ -100,13 +100,13 @@ public class VTTReader {
 		List<String> regExpressions = new ArrayList<String>();
 		List<LSTriplet> ls3list = extractLSTriplets(vttFile, label);
 		if(ls3list != null && !ls3list.isEmpty()){
+			replacePunct(ls3list);
 			replaceDigits(ls3list);
-			replaceWhiteSpaces(ls3list);
 			Map<String,List<LSTriplet>> snippetGroups = groupSnippets(ls3list);
 			processSnippetGroups(snippetGroups);
 			for(List<LSTriplet> tripletList : snippetGroups.values()){
 				replaceDigitsBLSALS(tripletList);
-				replacePunct(tripletList);
+				replaceWhiteSpaces(tripletList);
 				for(LSTriplet triplet : tripletList)
 					regExpressions.add(triplet.toString());
 			}
@@ -121,31 +121,31 @@ public class VTTReader {
 	 * @param blsProcessing If true the method does processing on BLS otherwise on ALS.
 	 */
 	private void processSnippetGroups(Map<String,List<LSTriplet>> snippetGroups){
-		boolean repeatBLS = true, repeatALS = true;
-		while(repeatALS || repeatBLS){
-			repeatALS = false;
-			repeatBLS = false;
+		//boolean repeatBLS = true, repeatALS = true;
+		//while(repeatALS || repeatBLS){
+		//	repeatALS = false;
+		//	repeatBLS = false;
 			Iterator<List<LSTriplet>> iteratorSnippetGroups = snippetGroups.values().iterator();
 			Map<String, List<LSTriplet>> tempGroupMap = new HashMap<String, List<LSTriplet>>();
 			while(iteratorSnippetGroups.hasNext()){
 				List<LSTriplet> group = iteratorSnippetGroups.next();
 				if(group.size() > 1){
 					processGroup(group, tempGroupMap, true);
-					repeatBLS = true;
+		//			repeatBLS = true;
 				}
 			}
-			copyMaps(snippetGroups,tempGroupMap);
+		//	copyMaps(snippetGroups,tempGroupMap);
 			iteratorSnippetGroups = snippetGroups.values().iterator();
 			tempGroupMap = new HashMap<String, List<LSTriplet>>();
 			while(iteratorSnippetGroups.hasNext()){
 				List<LSTriplet> group = iteratorSnippetGroups.next();
 				if(group.size() > 1){
 					processGroup(group, tempGroupMap, false);
-					repeatALS = true;
+		//			repeatALS = true;
 				}
 			}
-			copyMaps(snippetGroups,tempGroupMap);
-		}
+		//	copyMaps(snippetGroups,tempGroupMap);
+		//}
 	}
 	
 	/**
@@ -176,7 +176,7 @@ public class VTTReader {
 		Map<String, List<LSTriplet>> freqMap = new HashMap<String, List<LSTriplet>>();
 		for(LSTriplet triplet : group)
 			updateMFTMap(triplet, processBLS, freqMap);
-		int maxSize = 1;
+		/*int maxSize = 1;
 		List<LSTriplet> tripletListContainingMFT = null;
 		String MFT = "";
 		for(Entry<String, List<LSTriplet>> entry : freqMap.entrySet()){
@@ -197,6 +197,18 @@ public class VTTReader {
 				group.remove(triplet);
 			}
 			tempGroupMap.put(MFT, tripletListContainingMFT);
+		}*/
+		for(Entry<String, List<LSTriplet>> entry : freqMap.entrySet()){
+			List<LSTriplet> value = entry.getValue();
+			String key = entry.getKey();
+			if(value.size() > 1){
+				for(LSTriplet triplet : value){
+					if(processBLS)
+						triplet.getBLS().replaceAll(key, "(?:"+key+")");
+					else
+						triplet.getALS().replaceAll(key, "(?:"+key+")");
+				}
+			}
 		}
 	}
 	
@@ -212,7 +224,7 @@ public class VTTReader {
 			phrase = triplet.getBLS();
 		else
 			phrase = triplet.getALS();
-		String[] termArray = phrase.replaceAll("[^a-zA-Z ]", "").split("\\s+");
+		String[] termArray = phrase.replaceAll("[^a-zA-Z ]", "").split("\\s+|\\n");
 		List<LSTriplet> termContainingTriplets = null;
 		for(String term : termArray){
 			if(freqMap.containsKey(term))
@@ -248,8 +260,27 @@ public class VTTReader {
 		for(LSTriplet x : ls3list)
 		{
 			s=x.getLS();
-			s=s.replaceAll("\\d+.*","\\d+");
+			s=s.replaceAll("\\d+","\\d+");
 			x.setLS(s);
+		}
+		return ls3list;
+	}
+	
+	//replace newlines
+	public List<LSTriplet> replaceNewLines(List<LSTriplet> ls3list)
+	{
+		String s;
+		for(LSTriplet x : ls3list)
+		{
+			s=x.getBLS();
+			s=s.replace("\n","");
+			x.setBLS(s);
+			s=x.getLS();
+			s=s.replace("\n","");
+			x.setLS(s);
+			s=x.getALS();
+			s=s.replace("\n","");
+			x.setALS(s);
 		}
 		return ls3list;
 	}
@@ -261,10 +292,10 @@ public class VTTReader {
 			for(LSTriplet x : ls3list)
 			{
 				s=x.getBLS();
-				s=s.replaceAll("\\d+.*","\\d+");
+				s=s.replaceAll("\\d+","\\d+");
 				x.setBLS(s);
 				s=x.getALS();
-				s=s.replaceAll("\\d+.*","\\d+");
+				s=s.replaceAll("\\d+","\\d+");
 				x.setALS(s);
 			}
 			return ls3list;
@@ -280,10 +311,10 @@ public class VTTReader {
 			s=s.replaceAll("\\s+","\\s{1,10}");
 			x.setBLS(s);
 			s=x.getLS();
-			s=s.replaceAll("\\s+","");
+			s=s.replaceAll("\\s+","\\s{1,10}");
 			x.setLS(s);
 			s=x.getALS();
-			s=s.replaceAll("\\s+"," ");
+			s=s.replaceAll("\\s+","\\s{1,10}");
 			x.setALS(s);
 		}
 		return ls3list;
