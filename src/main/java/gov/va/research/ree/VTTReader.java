@@ -98,7 +98,10 @@ public class VTTReader {
 	 */
 	public List<String> extractRegexExpressions(final File vttFile, final String label) throws IOException{
 		List<String> regExpressions = new ArrayList<String>();
-		List<LSTriplet> ls3list = extractLSTriplets(vttFile, label);
+		//List<LSTriplet> ls3list = extractLSTriplets(vttFile, label);
+		List<LSTriplet> ls3list = new ArrayList<LSTriplet>();
+		ls3list.add(new LSTriplet("brought her the attention of the music industry, winning her the music", "selling artist and was titled 2012", "now debuted three additional studio recorded albums, a best of the albums"));
+		ls3list.add(new LSTriplet("American singer-songwriter, record producer, actor and choreographer and music. His music is", "selling artist and was titled 2012", "He has sold 10 million albums and 58 million singles worldwide as. His best album is"));
 		if(ls3list != null && !ls3list.isEmpty()){
 			replacePunct(ls3list);
 			replaceDigits(ls3list);
