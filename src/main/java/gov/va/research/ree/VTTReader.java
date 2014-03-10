@@ -103,13 +103,14 @@ public class VTTReader {
 		ls3list.add(new LSTriplet("brought her the attention of the music industry, winning her the music", "selling artist and was titled 2012", "now debuted three additional studio recorded albums, a best of the albums"));
 		ls3list.add(new LSTriplet("American singer-songwriter, record producer, actor and choreographer and music. His music is", "selling artist and was titled 2012", "He has sold 10 million albums and 58 million singles worldwide as. His best album is"));
 		if(ls3list != null && !ls3list.isEmpty()){
-			replacePunct(ls3list);
+			//replacePunct(ls3list);
 			replaceDigits(ls3list);
 			Map<String,List<LSTriplet>> snippetGroups = groupSnippets(ls3list);
 			processSnippetGroups(snippetGroups);
 			for(List<LSTriplet> tripletList : snippetGroups.values()){
 				replaceDigitsBLSALS(tripletList);
 				replaceWhiteSpaces(tripletList);
+				//replacePunct(ls3list);
 				for(LSTriplet triplet : tripletList)
 					regExpressions.add(triplet.toString());
 			}
@@ -207,9 +208,9 @@ public class VTTReader {
 			if(value.size() > 1){
 				for(LSTriplet triplet : value){
 					if(processBLS)
-						triplet.getBLS().replaceAll(key, "(?:"+key+")");
+						triplet.setBLS(triplet.getBLS().replaceAll("\\b"+key+"\\b", "\\\\b"+key+"\\\\b"));//triplet.getBLS().replaceAll("?:"+key, "(?:"+key+")");
 					else
-						triplet.getALS().replaceAll(key, "(?:"+key+")");
+						triplet.setALS(triplet.getALS().replaceAll("\\b"+key+"\\b", "\\\\b"+key+"\\\\b"));//triplet.getALS().replaceAll("?:"+key, "(?:"+key+")");
 				}
 			}
 		}
@@ -263,7 +264,7 @@ public class VTTReader {
 		for(LSTriplet x : ls3list)
 		{
 			s=x.getLS();
-			s=s.replaceAll("\\d+","\\d+");
+			s=s.replaceAll("\\d+","\\\\d+");
 			x.setLS(s);
 		}
 		return ls3list;
@@ -295,10 +296,10 @@ public class VTTReader {
 			for(LSTriplet x : ls3list)
 			{
 				s=x.getBLS();
-				s=s.replaceAll("\\d+","\\d+");
+				s=s.replaceAll("\\d+","\\\\d+");
 				x.setBLS(s);
 				s=x.getALS();
-				s=s.replaceAll("\\d+","\\d+");
+				s=s.replaceAll("\\d+","\\\\d+");
 				x.setALS(s);
 			}
 			return ls3list;
@@ -311,13 +312,13 @@ public class VTTReader {
 		for(LSTriplet x : ls3list)
 		{
 			s=x.getBLS();
-			s=s.replaceAll("\\s+","\\s{1,10}");
+			s=s.replaceAll("\\s+","\\\\s{1,10}");
 			x.setBLS(s);
 			s=x.getLS();
-			s=s.replaceAll("\\s+","\\s{1,10}");
+			s=s.replaceAll("\\s+","\\\\s{1,10}");
 			x.setLS(s);
 			s=x.getALS();
-			s=s.replaceAll("\\s+","\\s{1,10}");
+			s=s.replaceAll("\\s+","\\\\s{1,10}");
 			x.setALS(s);
 		}
 		return ls3list;
@@ -329,13 +330,13 @@ public class VTTReader {
 		for(LSTriplet x : ls3list)
 		{
 			s=x.getLS();
-			s=s.replaceAll("\\p{Punct}","\\p{Punct}");
+			s=s.replaceAll("\\p{Punct}","\\\\p{Punct}");
 			x.setLS(s);
 			s=x.getBLS();
-			s=s.replaceAll("\\p{Punct}","\\p{Punct}");
+			s=s.replaceAll("\\p{Punct}","\\\\p{Punct}");
 			x.setBLS(s);
 			s=x.getALS();
-			s=s.replaceAll("\\p{Punct}","\\p{Punct}");
+			s=s.replaceAll("\\p{Punct}","\\\\p{Punct}");
 			x.setALS(s);
 		}
 		return ls3list;
