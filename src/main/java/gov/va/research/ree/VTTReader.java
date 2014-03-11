@@ -98,10 +98,10 @@ public class VTTReader {
 	 */
 	public List<String> extractRegexExpressions(final File vttFile, final String label) throws IOException{
 		List<String> regExpressions = new ArrayList<String>();
-		//List<LSTriplet> ls3list = extractLSTriplets(vttFile, label);
-		List<LSTriplet> ls3list = new ArrayList<LSTriplet>();
-		ls3list.add(new LSTriplet("brought her the attention of the music industry, winning her the music", "selling artist and was titled 2012", "now debuted three additional studio recorded albums, a best of the albums"));
-		ls3list.add(new LSTriplet("American singer-songwriter, record producer, actor and choreographer and music. His music is", "selling artist and was titled 2012", "He has sold 10 million albums and 58 million singles worldwide as. His best album is"));
+		List<LSTriplet> ls3list = extractLSTriplets(vttFile, label);
+		//List<LSTriplet> ls3list = new ArrayList<LSTriplet>();
+		//ls3list.add(new LSTriplet("brought her the attention of the music industry, winning her the music", "selling artist and was titled 2012", "now debuted three additional studio recorded albums, a best of the albums"));
+		//ls3list.add(new LSTriplet("American singer-songwriter, record producer, actor and choreographer and music. His music is", "selling artist and was titled 2012", "He has sold 10 million albums and 58 million singles worldwide as. His best album is"));
 		if(ls3list != null && !ls3list.isEmpty()){
 			//replacePunct(ls3list);
 			replaceDigits(ls3list);
@@ -110,12 +110,20 @@ public class VTTReader {
 			for(List<LSTriplet> tripletList : snippetGroups.values()){
 				replaceDigitsBLSALS(tripletList);
 				replaceWhiteSpaces(tripletList);
-				//replacePunct(ls3list);
+				replacePunct(ls3list);
 				for(LSTriplet triplet : tripletList)
 					regExpressions.add(triplet.toString());
 			}
 		}
 		return regExpressions;
+	}
+	
+	/**
+	 * Replaces all the words which have a frequency of one by .*.
+	 * @param regExpressions The string on which the method operates.
+	 */
+	private String replaceSingleFreqWords(String regExpression){
+		return regExpression.replaceAll("[]", ".*");
 	}
 	
 	/**
@@ -330,13 +338,13 @@ public class VTTReader {
 		for(LSTriplet x : ls3list)
 		{
 			s=x.getLS();
-			s=s.replaceAll("\\p{Punct}","\\\\p{Punct}");
+			s=s.replaceAll("[\\p{Punct}&&[^\\\\]]&&[^\\\\s{1,10}]","\\\\p{Punct}");
 			x.setLS(s);
 			s=x.getBLS();
-			s=s.replaceAll("\\p{Punct}","\\\\p{Punct}");
+			s=s.replaceAll("[\\p{Punct}&&[^\\\\]]&&[^\\\\s{1,10}]","\\\\p{Punct}");
 			x.setBLS(s);
 			s=x.getALS();
-			s=s.replaceAll("\\p{Punct}","\\\\p{Punct}");
+			s=s.replaceAll("[\\p{Punct}&&[^\\\\]]&&[^\\\\s{1,10}]","\\\\p{Punct}");
 			x.setALS(s);
 		}
 		return ls3list;
