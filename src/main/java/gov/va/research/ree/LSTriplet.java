@@ -39,7 +39,13 @@ public class LSTriplet {
 	 */
 	@Override
 	public String toString() {
-		return "" + BLS + "|" + LS  + "|" + ALS;
+		return "" + BLS + " " + LS  + " " + ALS;
+		//return "" + BLS + "|" + LS  + "|" + ALS;
+		//return "" + BLS +  LS + ALS;
+	}
+	
+	public String toStringRegEx(){
+		return "" + BLS + "\\s{1,10}" + LS  + "\\s{1,10}" + ALS;
 	}
 
 	/////

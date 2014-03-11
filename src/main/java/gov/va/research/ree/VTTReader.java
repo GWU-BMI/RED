@@ -96,30 +96,32 @@ public class VTTReader {
 	 * @return Regular expressions extracted from the snippets.
 	 * @throws IOException
 	 */
-	public List<String> extractRegexExpressions(final File vttFile, final String label) throws IOException{
+	public List<LSTriplet> extractRegexExpressions(final File vttFile, final String label) throws IOException{
 		List<String> regExpressions = new ArrayList<String>();
-		//List<LSTriplet> ls3list = extractLSTriplets(vttFile, label);
-		List<LSTriplet> ls3list = new ArrayList<LSTriplet>();
-		ls3list.add(new LSTriplet("brought her the attention of the music industry, winning her the music", "selling artist and was titled 2012", "now debuted three additional studio recorded albums, a best of the albums"));
-		ls3list.add(new LSTriplet("American singer-songwriter, record producer, actor and choreographer and music. His music is", "selling artist and was titled 2012", "He has sold 10 million albums and 58 million singles worldwide as. His best album is"));
+		List<LSTriplet> ls3list = extractLSTriplets(vttFile, label);
+		//List<LSTriplet> ls3list = new ArrayList<LSTriplet>();
+		//ls3list.add(new LSTriplet("brought her the attention of the music industry, winning her the music", "selling artist and was titled 2012", "now debuted three additional studio recorded albums, a best of the albums"));
+		//ls3list.add(new LSTriplet("American singer-songwriter, record producer, actor and choreographer and music. His music is", "selling artist and was titled 2012", "He has sold 10 million albums and 58 million singles worldwide as. His best album is"));
 		if(ls3list != null && !ls3list.isEmpty()){
 			replacePunct(ls3list);
-			replaceDigits(ls3list);
+			replaceDigitsLS(ls3list);
 			Map<String,List<LSTriplet>> snippetGroups = groupSnippets(ls3list);
 			processSnippetGroups(snippetGroups);
 			for(List<LSTriplet> tripletList : snippetGroups.values()){
 				replaceDigitsBLSALS(tripletList);
 				replaceWhiteSpaces(tripletList);
-				replacePunctEnd(ls3list);
-				for(LSTriplet triplet : tripletList)
-					regExpressions.add(triplet.toString());
+				//replacePunctEnd(ls3list);
+				return tripletList;
+				/*for(LSTriplet triplet : tripletList)
+					regExpressions.add(triplet.toString());*/
 			}
 		}
+		return null;
 		/*for(String reEx: regExpressions){
 			System.out.println(replaceSingleFreqWords(reEx));
 		}*/
 		//System.out.println(replaceSingleWords2(regExpressions));
-		return regExpressions;
+		//return regExpressions;
 	}
 	
 	/**
@@ -238,9 +240,9 @@ public class VTTReader {
 			}else{
 				for(LSTriplet triplet : value){
 					if(processBLS)
-						triplet.setBLS(triplet.getBLS().replaceAll("\\b"+key+"\\b", ".{1,"+key.length()+"}"));//triplet.getBLS().replaceAll("?:"+key, "(?:"+key+")");
+						triplet.setBLS(triplet.getBLS().replaceAll("\\b"+key+"\\b"+"&^((?!\\.\\{1,20\\}).)*$", ".{1,"+key.length()+"}"));//triplet.getBLS().replaceAll("?:"+key, "(?:"+key+")");
 					else
-						triplet.setALS(triplet.getALS().replaceAll("\\b"+key+"\\b", ".{1,"+key.length()+"}"));//triplet.getALS().replaceAll("?:"+key, "(?:"+key+")");
+						triplet.setALS(triplet.getALS().replaceAll("\\b"+key+"\\b"+"&^((?!\\.\\{1,20\\}).)*$", ".{1,"+key.length()+"}"));//triplet.getALS().replaceAll("?:"+key, "(?:"+key+")");
 				}
 			}
 		}
@@ -291,7 +293,7 @@ public class VTTReader {
 	}
 	
 	//replace digits with '\d+'
-	public List<LSTriplet> replaceDigits(List<LSTriplet> ls3list)
+	public List<LSTriplet> replaceDigitsLS(List<LSTriplet> ls3list)
 	{
 		String s;
 		for(LSTriplet x : ls3list)
@@ -299,25 +301,6 @@ public class VTTReader {
 			s=x.getLS();
 			s=s.replaceAll("\\d+","\\\\d+");
 			x.setLS(s);
-		}
-		return ls3list;
-	}
-	
-	//replace newlines
-	public List<LSTriplet> replaceNewLines(List<LSTriplet> ls3list)
-	{
-		String s;
-		for(LSTriplet x : ls3list)
-		{
-			s=x.getBLS();
-			s=s.replace("\n","");
-			x.setBLS(s);
-			s=x.getLS();
-			s=s.replace("\n","");
-			x.setLS(s);
-			s=x.getALS();
-			s=s.replace("\n","");
-			x.setALS(s);
 		}
 		return ls3list;
 	}
@@ -393,7 +376,7 @@ public class VTTReader {
 		return ls3list;
 	}
 	
-	public List<LSTriplet> replacePunctEnd(List<LSTriplet> ls3list)
+	/*public List<LSTriplet> replacePunctEnd(List<LSTriplet> ls3list)
 	{
 		String s;
 		for(LSTriplet x : ls3list)
@@ -409,7 +392,7 @@ public class VTTReader {
 			x.setALS(s);
 		}
 		return ls3list;
-	}
+	}*/
 	
 	public List<LSTriplet> removeDuplicates(List<LSTriplet> ls3list)
 	{
