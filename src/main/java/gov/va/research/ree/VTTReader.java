@@ -98,23 +98,27 @@ public class VTTReader {
 	 */
 	public List<String> extractRegexExpressions(final File vttFile, final String label) throws IOException{
 		List<String> regExpressions = new ArrayList<String>();
-		List<LSTriplet> ls3list = extractLSTriplets(vttFile, label);
-		//List<LSTriplet> ls3list = new ArrayList<LSTriplet>();
-		//ls3list.add(new LSTriplet("brought her the attention of the music industry, winning her the music", "selling artist and was titled 2012", "now debuted three additional studio recorded albums, a best of the albums"));
-		//ls3list.add(new LSTriplet("American singer-songwriter, record producer, actor and choreographer and music. His music is", "selling artist and was titled 2012", "He has sold 10 million albums and 58 million singles worldwide as. His best album is"));
+		//List<LSTriplet> ls3list = extractLSTriplets(vttFile, label);
+		List<LSTriplet> ls3list = new ArrayList<LSTriplet>();
+		ls3list.add(new LSTriplet("brought her the attention of the music industry, winning her the music", "selling artist and was titled 2012", "now debuted three additional studio recorded albums, a best of the albums"));
+		ls3list.add(new LSTriplet("American singer-songwriter, record producer, actor and choreographer and music. His music is", "selling artist and was titled 2012", "He has sold 10 million albums and 58 million singles worldwide as. His best album is"));
 		if(ls3list != null && !ls3list.isEmpty()){
-			//replacePunct(ls3list);
+			replacePunct(ls3list);
 			replaceDigits(ls3list);
 			Map<String,List<LSTriplet>> snippetGroups = groupSnippets(ls3list);
 			processSnippetGroups(snippetGroups);
 			for(List<LSTriplet> tripletList : snippetGroups.values()){
 				replaceDigitsBLSALS(tripletList);
 				replaceWhiteSpaces(tripletList);
-				replacePunct(ls3list);
+				replacePunctEnd(ls3list);
 				for(LSTriplet triplet : tripletList)
 					regExpressions.add(triplet.toString());
 			}
 		}
+		/*for(String reEx: regExpressions){
+			System.out.println(replaceSingleFreqWords(reEx));
+		}*/
+		//System.out.println(replaceSingleWords2(regExpressions));
 		return regExpressions;
 	}
 	
@@ -123,8 +127,19 @@ public class VTTReader {
 	 * @param regExpressions The string on which the method operates.
 	 */
 	private String replaceSingleFreqWords(String regExpression){
-		return regExpression.replaceAll("[]", ".*");
+		return regExpression;
 	}
+	
+	/*private String replaceSingleWords2(List<String> regExpressions){
+		StringBuilder tempStr = new StringBuilder("");
+		for(String regEx: regExpressions){
+			String[] words = regEx.split("\\\\s\\{1,10\\}|\\\\p\\{Punct\\}");
+			for(String word : words){
+				tempStr.append(word);
+			}
+		}
+		return tempStr.toString();
+	}*/
 	
 	/**
 	 * Finds out all the groups that have sizes greater than 1. Calls processGroup on those groups.
@@ -220,6 +235,13 @@ public class VTTReader {
 					else
 						triplet.setALS(triplet.getALS().replaceAll("\\b"+key+"\\b", "\\\\b"+key+"\\\\b"));//triplet.getALS().replaceAll("?:"+key, "(?:"+key+")");
 				}
+			}else{
+				for(LSTriplet triplet : value){
+					if(processBLS)
+						triplet.setBLS(triplet.getBLS().replaceAll("\\b"+key+"\\b", ".{1,"+key.length()+"}"));//triplet.getBLS().replaceAll("?:"+key, "(?:"+key+")");
+					else
+						triplet.setALS(triplet.getALS().replaceAll("\\b"+key+"\\b", ".{1,"+key.length()+"}"));//triplet.getALS().replaceAll("?:"+key, "(?:"+key+")");
+				}
 			}
 		}
 	}
@@ -236,15 +258,18 @@ public class VTTReader {
 			phrase = triplet.getBLS();
 		else
 			phrase = triplet.getALS();
-		String[] termArray = phrase.replaceAll("[^a-zA-Z ]", "").split("\\s+|\\n");
+		//String[] termArray = phrase.replaceAll("[^a-zA-Z ]", "").split("\\s+|\\n");
+		String[] termArray = phrase.split("\\s+|\\n|\\\\p\\{Punct\\}");
 		List<LSTriplet> termContainingTriplets = null;
 		for(String term : termArray){
-			if(freqMap.containsKey(term))
-				termContainingTriplets = freqMap.get(term);
-			else
-				termContainingTriplets = new ArrayList<LSTriplet>();
-			termContainingTriplets.add(triplet);
-			freqMap.put(term, termContainingTriplets);
+			if(!term.equals(" ") && !term.equals("")){
+				if(freqMap.containsKey(term))
+					termContainingTriplets = freqMap.get(term);
+				else
+					termContainingTriplets = new ArrayList<LSTriplet>();
+				termContainingTriplets.add(triplet);
+				freqMap.put(term, termContainingTriplets);
+			}
 		}
 	}
 	
@@ -304,10 +329,10 @@ public class VTTReader {
 			for(LSTriplet x : ls3list)
 			{
 				s=x.getBLS();
-				s=s.replaceAll("\\d+","\\\\d+");
+				s=s.replaceAll("\\d+&^((?!\\.\\{1,20\\}).)*$","\\\\d+");
 				x.setBLS(s);
 				s=x.getALS();
-				s=s.replaceAll("\\d+","\\\\d+");
+				s=s.replaceAll("\\d+&^((?!\\.\\{1,20\\}).)*$","\\\\d+");
 				x.setALS(s);
 			}
 			return ls3list;
@@ -332,19 +357,55 @@ public class VTTReader {
 		return ls3list;
 	}
 	
+	/*public List<LSTriplet> replacePunct(List<LSTriplet> ls3list)
+	{
+		String s;
+		for(LSTriplet x : ls3list)
+		{
+			s=x.getLS();
+			s=s.replaceAll("\\p{Punct}&&[^\\\\]&&[^\\\\s{1,10}]","\\\\p{Punct}");
+			x.setLS(s);
+			s=x.getBLS();
+			s=s.replaceAll("[\\p{Punct}&&[^\\\\]&&[^\bs\\{1,10\\}\b]]","\\\\p{Punct}");
+			x.setBLS(s);
+			s=x.getALS();
+			s=s.replaceAll("\\p{Punct}&&[^\\\\]&&[^\\\\s{1,10}]","\\\\p{Punct}");
+			x.setALS(s);
+		}
+		return ls3list;
+	}*/
+	
 	public List<LSTriplet> replacePunct(List<LSTriplet> ls3list)
 	{
 		String s;
 		for(LSTriplet x : ls3list)
 		{
 			s=x.getLS();
-			s=s.replaceAll("[\\p{Punct}&&[^\\\\]]&&[^\\\\s{1,10}]","\\\\p{Punct}");
+			s=s.replaceAll("\\p{Punct}","\\\\p{Punct}");
 			x.setLS(s);
 			s=x.getBLS();
-			s=s.replaceAll("[\\p{Punct}&&[^\\\\]]&&[^\\\\s{1,10}]","\\\\p{Punct}");
+			s=s.replaceAll("\\p{Punct}","\\\\p{Punct}");
 			x.setBLS(s);
 			s=x.getALS();
-			s=s.replaceAll("[\\p{Punct}&&[^\\\\]]&&[^\\\\s{1,10}]","\\\\p{Punct}");
+			s=s.replaceAll("\\p{Punct}","\\\\p{Punct}");
+			x.setALS(s);
+		}
+		return ls3list;
+	}
+	
+	public List<LSTriplet> replacePunctEnd(List<LSTriplet> ls3list)
+	{
+		String s;
+		for(LSTriplet x : ls3list)
+		{
+			s=x.getLS();
+			s=s.replace("\\s{1,10}\\p{Punct}","\\p{Punct}");
+			x.setLS(s);
+			s=x.getBLS();
+			s=s.replace("\\s{1,10}\\p{Punct}","\\p{Punct}");
+			x.setBLS(s);
+			s=x.getALS();
+			s=s.replace("\\s{1,10}\\p{Punct}","\\p{Punct}");
 			x.setALS(s);
 		}
 		return ls3list;
