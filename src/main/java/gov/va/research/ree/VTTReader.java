@@ -107,14 +107,17 @@ public class VTTReader {
 			replaceDigitsLS(ls3list);
 			Map<String,List<LSTriplet>> snippetGroups = groupSnippets(ls3list);
 			processSnippetGroups(snippetGroups);
+			List<LSTriplet> allTriplets = new ArrayList<>();
 			for(List<LSTriplet> tripletList : snippetGroups.values()){
 				replaceDigitsBLSALS(tripletList);
 				replaceWhiteSpaces(tripletList);
 				//replacePunctEnd(ls3list);
-				return tripletList;
+				//return tripletList;
+				allTriplets.addAll(tripletList);
 				/*for(LSTriplet triplet : tripletList)
 					regExpressions.add(triplet.toString());*/
 			}
+			return allTriplets;
 		}
 		return null;
 		/*for(String reEx: regExpressions){
@@ -233,9 +236,9 @@ public class VTTReader {
 			if(value.size() > 1){
 				for(LSTriplet triplet : value){
 					if(processBLS)
-						triplet.setBLS(triplet.getBLS().replaceAll("\\b"+key+"\\b", "\\\\b"+key+"\\\\b"));//triplet.getBLS().replaceAll("?:"+key, "(?:"+key+")");
+						triplet.setBLS(triplet.getBLS().replaceAll("\\b"+key+"\\b"+"&^((?!\\.\\{1,20\\}).)*$", "\\\\b"+key+"\\\\b"));//triplet.getBLS().replaceAll("?:"+key, "(?:"+key+")");
 					else
-						triplet.setALS(triplet.getALS().replaceAll("\\b"+key+"\\b", "\\\\b"+key+"\\\\b"));//triplet.getALS().replaceAll("?:"+key, "(?:"+key+")");
+						triplet.setALS(triplet.getALS().replaceAll("\\b"+key+"\\b"+"&^((?!\\.\\{1,20\\}).)*$", "\\\\b"+key+"\\\\b"));//triplet.getALS().replaceAll("?:"+key, "(?:"+key+")");
 				}
 			}else{
 				for(LSTriplet triplet : value){
@@ -328,13 +331,13 @@ public class VTTReader {
 		for(LSTriplet x : ls3list)
 		{
 			s=x.getBLS();
-			s=s.replaceAll("\\s+","\\\\s{1,10}");
+			s=s.replaceAll("\\s+","\\\\s{1,50}");
 			x.setBLS(s);
 			s=x.getLS();
-			s=s.replaceAll("\\s+","\\\\s{1,10}");
+			s=s.replaceAll("\\s+","\\\\s{1,50}");
 			x.setLS(s);
 			s=x.getALS();
-			s=s.replaceAll("\\s+","\\\\s{1,10}");
+			s=s.replaceAll("\\s+","\\\\s{1,50}");
 			x.setALS(s);
 		}
 		return ls3list;
