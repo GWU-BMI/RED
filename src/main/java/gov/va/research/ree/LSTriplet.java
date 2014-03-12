@@ -45,7 +45,7 @@ public class LSTriplet {
 	}
 	
 	public String toStringRegEx(){
-		return "" + BLS + "\\s{1,10}" + LS  + "\\s{1,10}" + ALS;
+		return "" + BLS + "\\s{1,10}(" + LS  + ")\\s{1,10}" + ALS;
 	}
 
 	/////
