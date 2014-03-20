@@ -26,6 +26,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import gov.nih.nlm.nls.vtt.Model.Markup;
 import gov.nih.nlm.nls.vtt.Model.VttDocument;
@@ -35,7 +37,7 @@ import gov.nih.nlm.nls.vtt.Model.VttDocument;
  */
 public class VTTReader {
 
-	private static final String SNIPPET_TEXT_BEGIN = "SnippetText:";
+	private static final Pattern SNIPPET_TEXT_BEGIN_PATTERN = Pattern.compile("Snippet\\s?Text:");
 	private static final String SNIPPET_TEXT_END = "----------------------------------------------------------------------------------";
 
 	/**
@@ -74,16 +76,27 @@ public class VTTReader {
 				int labeledLength = markup.GetLength();
 				
 				// Find the boundaries for the snippet
-				int snippetTextBegin = docText.substring(0, labeledOffset).lastIndexOf(SNIPPET_TEXT_BEGIN) + SNIPPET_TEXT_BEGIN.length();
+				int snippetTextBegin = -1;
+				Matcher m = SNIPPET_TEXT_BEGIN_PATTERN.matcher(docText).region(0, labeledOffset);
+				while (m.find()) {
+					snippetTextBegin = m.end();
+				}
 				int snippetTextEnd = docText.indexOf(SNIPPET_TEXT_END, snippetTextBegin);
+				if (snippetTextEnd == -1) {
+					snippetTextEnd = docText.length();
+				}
+				int labeledEnd = labeledOffset + labeledLength;
 				
 				// Split the snippet into before, labeled segment, and after
 				String bls = docText.substring(snippetTextBegin, labeledOffset);
-				String ls = docText.substring(labeledOffset, labeledOffset + labeledLength);
-				String als = docText.substring(labeledOffset + ls.length(), snippetTextEnd);
-				
-				LSTriplet ls3 = new LSTriplet((bls == null ? null : bls.trim()), ls, (als == null ? null : als.trim()));
-				ls3list.add(ls3);
+				String ls = docText.substring(labeledOffset, labeledEnd);
+				if (labeledEnd > snippetTextEnd) {
+					System.err.println("Invalid snippet markup: offset=" + markup.GetOffset() + ", length=" + markup.GetLength());
+				} else {
+					String als = docText.substring(labeledEnd, snippetTextEnd);
+					LSTriplet ls3 = new LSTriplet((bls == null ? null : bls.trim()), ls, (als == null ? null : als.trim()));
+					ls3list.add(ls3);
+				}
 			}
 		}
 		return ls3list;
@@ -236,16 +249,16 @@ public class VTTReader {
 			if(value.size() > 1){
 				for(LSTriplet triplet : value){
 					if(processBLS)
-						triplet.setBLS(triplet.getBLS().replaceAll("\\b"+key+"\\b", "\\\\b"+key+"\\\\b"));//triplet.getBLS().replaceAll("?:"+key, "(?:"+key+")");
+						triplet.setBLS(triplet.getBLS().replaceAll("(?<!\\\\)\\b"+key+"\\b", "\\\\b"+key+"\\\\b"));//triplet.getBLS().replaceAll("?:"+key, "(?:"+key+")");
 					else
-						triplet.setALS(triplet.getALS().replaceAll("\\b"+key+"\\b", "\\\\b"+key+"\\\\b"));//triplet.getALS().replaceAll("?:"+key, "(?:"+key+")");
+						triplet.setALS(triplet.getALS().replaceAll("(?<!\\\\)\\b"+key+"\\b", "\\\\b"+key+"\\\\b"));//triplet.getALS().replaceAll("?:"+key, "(?:"+key+")");
 				}
 			}else{
 				for(LSTriplet triplet : value){
 					if(processBLS)
-						triplet.setBLS(triplet.getBLS().replaceAll("\\b"+key+"\\b"+"&^((?!\\.\\{1,20\\}).)*$", ".{1,"+key.length()+"}"));//triplet.getBLS().replaceAll("?:"+key, "(?:"+key+")");
+						triplet.setBLS(triplet.getBLS().replaceAll("(?<!\\\\)\\b"+key+"\\b"+"&^((?!\\.\\{1,20\\}).)*$", ".{1,"+key.length()+"}"));//triplet.getBLS().replaceAll("?:"+key, "(?:"+key+")");
 					else
-						triplet.setALS(triplet.getALS().replaceAll("\\b"+key+"\\b"+"&^((?!\\.\\{1,20\\}).)*$", ".{1,"+key.length()+"}"));//triplet.getALS().replaceAll("?:"+key, "(?:"+key+")");
+						triplet.setALS(triplet.getALS().replaceAll("(?<!\\\\)\\b"+key+"\\b"+"&^((?!\\.\\{1,20\\}).)*$", ".{1,"+key.length()+"}"));//triplet.getALS().replaceAll("?:"+key, "(?:"+key+")");
 				}
 			}
 		}
