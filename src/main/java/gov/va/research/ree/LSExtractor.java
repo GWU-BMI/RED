@@ -35,7 +35,7 @@ public class LSExtractor implements Extractor {
 		return returnList;
 	}
 	
-	//getter setter
+	//getter  setter
 	
 	public List<LSTriplet> getRegExpressions() {
 		return regExpressions;
