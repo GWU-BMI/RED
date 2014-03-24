@@ -61,29 +61,11 @@ public class VTTReader {
 	 * @throws IOException
 	 */
 	public List<LSTriplet> extractLSTriplets(final File vttFile, final String label) throws IOException {
-		VttDocument vttDoc = read(vttFile);
-		String docText = vttDoc.GetText();
-		List<LSTriplet> ls3list = new ArrayList<>(vttDoc.GetMarkups().GetSize());
-		for (Markup markup : vttDoc.GetMarkups().GetMarkups()) {
-			
-			// Check if the markup has the requested label
-			if (label.equals(markup.GetTagName())) {
-				
-				// Get the labeled text boundaries
-				int labeledOffset = markup.GetOffset();
-				int labeledLength = markup.GetLength();
-				
-				// Find the boundaries for the snippet
-				int snippetTextBegin = docText.substring(0, labeledOffset).lastIndexOf(SNIPPET_TEXT_BEGIN) + SNIPPET_TEXT_BEGIN.length();
-				int snippetTextEnd = docText.indexOf(SNIPPET_TEXT_END, snippetTextBegin);
-				
-				// Split the snippet into before, labeled segment, and after
-				String bls = docText.substring(snippetTextBegin, labeledOffset);
-				String ls = docText.substring(labeledOffset, labeledOffset + labeledLength);
-				String als = docText.substring(labeledOffset + ls.length(), snippetTextEnd);
-				
-				LSTriplet ls3 = new LSTriplet((bls == null ? null : bls.trim()), ls, (als == null ? null : als.trim()));
-				ls3list.add(ls3);
+		List<Snippet> snippets = extractSnippets(vttFile, label);
+		List<LSTriplet> ls3list = new ArrayList<>(snippets.size());
+		for (Snippet snippet : snippets) {
+			if (label.equals(snippet.getLabel())) {
+				ls3list.add(LSTriplet.valueOf(snippet));
 			}
 		}
 		return ls3list;
@@ -97,7 +79,17 @@ public class VTTReader {
 	 * @throws IOException
 	 */
 	public List<LSTriplet> extractRegexExpressions(final File vttFile, final String label) throws IOException{
-		List<LSTriplet> ls3list = extractLSTriplets(vttFile, label);
+		List<Snippet> snippets = extractSnippets(vttFile, label);
+		return extractRegexExpressions(snippets, label);
+	}
+	
+	public List<LSTriplet> extractRegexExpressions(final List<Snippet> snippets, final String label) throws IOException{
+		List<LSTriplet> ls3list = new ArrayList<>(snippets.size());
+		for (Snippet snippet : snippets) {
+			if (label.equals(snippet.getLabel())) {
+				ls3list.add(LSTriplet.valueOf(snippet));
+			}
+		}
 		
 		//check if there are any snippets for that label
 		if(ls3list != null && !ls3list.isEmpty()){
@@ -124,7 +116,46 @@ public class VTTReader {
 		}
 		return null;
 	}
-	
+
+	/**
+	 * Extracts regular expressions from the snippet triplets.
+	 * @param vttFile The VTT file to extract triplets from.
+	 * @param label The label of the segments to extract.
+	 * @return Regular expressions extracted from the snippets.
+	 * @throws IOException
+	 */
+	public List<Snippet> extractSnippets(final File vttFile, final String label)
+			throws IOException {
+		VttDocument vttDoc = read(vttFile);
+		String docText = vttDoc.GetText();
+		List<Snippet> snippets = new ArrayList<>(vttDoc.GetMarkups().GetSize());
+		for (Markup markup : vttDoc.GetMarkups().GetMarkups()) {
+
+			// Check if the markup has the requested label
+			if (label.equals(markup.GetTagName())) {
+
+				// Get the labeled text boundaries
+				int labeledOffset = markup.GetOffset();
+				int labeledLength = markup.GetLength();
+
+				// Find the boundaries for the snippet
+				int snippetTextBegin = docText.substring(0, labeledOffset)
+						.lastIndexOf(SNIPPET_TEXT_BEGIN)
+						+ SNIPPET_TEXT_BEGIN.length();
+				int snippetTextEnd = docText.indexOf(SNIPPET_TEXT_END,
+						snippetTextBegin);
+
+				String ls = docText.substring(labeledOffset, labeledOffset
+						+ labeledLength);
+
+				Snippet snippet = new Snippet(docText.substring(snippetTextBegin, snippetTextEnd),
+						label, ls, labeledOffset - snippetTextBegin, labeledLength);
+				snippets.add(snippet);
+			}
+		}
+		return snippets;
+	}
+
 	/**
 	 * Finds out all the groups that have sizes greater than 1. Calls processGroup on those groups.
 	 * @param snippetGroups A hashmap containing the groups. Key is LS and the value is a list of LSTriplet's.

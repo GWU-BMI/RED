@@ -79,5 +79,12 @@ public class LSTriplet {
 		this.ALS = ALS;
 	}
 	
-	
+	public static LSTriplet valueOf(final Snippet snippet) {
+		String bls = snippet.getText().substring(0, snippet.getLabeledSegmentStart());
+		String ls = snippet.getLabeledSegment();
+		String als = snippet.getText().substring(snippet.getLabeledSegmentStart() + snippet.getLabeledSegmentLength());
+
+		LSTriplet ls3 = new LSTriplet((bls == null ? null : bls.trim()), ls, (als == null ? null : als.trim()));
+		return ls3;
+	}
 }
