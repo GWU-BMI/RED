@@ -11,17 +11,27 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
+import org.apache.commons.configuration.Configuration;
+import org.apache.commons.configuration.ConfigurationException;
+import org.apache.commons.configuration.PropertiesConfiguration;
+
 public class CrossValidate {
 
-	public static void main(String[] args) throws IOException {
-		if (args.length != 3) {
-			System.out.println("Arguments: <vttFile> <label> <folds>");
+	public static void main(String[] args) throws IOException, ConfigurationException {
+		if (args.length != 1) {
+			System.out.println("Arguments: <properties file>");
 		} else {
-			File vttFile = new File(args[0]);
-			String label = args[1];
-			int folds = Integer.valueOf(args[2]);
+			Configuration conf = new PropertiesConfiguration(args[0]);
+			List<Object> vttfileObjs = conf.getList("vtt.file");
+			List<File> vttfiles = new ArrayList<>(vttfileObjs.size());
+			for (Object vf : vttfileObjs) {
+				vttfiles.add(new File((String)vf));
+			}
+			String label = conf.getString("label");
+			int folds = conf.getInt("folds");
+			
 			CrossValidate cv = new CrossValidate();
-			List<CVScore> results = cv.crossValidate(vttFile, label, folds);
+			List<CVScore> results = cv.crossValidate(vttfiles, label, folds);
 			
 			// Display results
 			int i = 0;
@@ -35,10 +45,13 @@ public class CrossValidate {
 		}
 	}
 
-	public List<CVScore> crossValidate(File vttFile, String label, int folds)
+	public List<CVScore> crossValidate(List<File> vttFiles, String label, int folds)
 			throws IOException {
 		VTTReader vttr = new VTTReader();
-		List<Snippet> snippets = vttr.extractSnippets(vttFile, label);
+		List<Snippet> snippets = new ArrayList<>();
+		for (File vttFile : vttFiles) {
+			snippets.addAll(vttr.extractSnippets(vttFile, label));
+		}
 		
 		List<List<Snippet>> partitions = new ArrayList<>(folds);
 		for (int i = 0; i < folds; i++) {
@@ -64,14 +77,14 @@ public class CrossValidate {
 		
 		for (List<Snippet> partition : partitions) {
 			// set up training and testing sets for this fold
-			List<Snippet> training = partition;
-			List<Snippet> testing = new ArrayList<>();
+			List<Snippet> testing = partition;
+			List<Snippet> training = new ArrayList<>();
 			for (List<Snippet> p : partitions) {
-				if (p != training) {
-					testing.addAll(p);
+				if (p != testing) {
+					training.addAll(p);
 				}
 			}
-			
+
 			// Train
 			List<LSTriplet> trained = vttr.extractRegexExpressions(training, label);
 			LSExtractor ex = new LSExtractor(trained);

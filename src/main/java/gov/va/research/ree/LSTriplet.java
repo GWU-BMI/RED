@@ -80,7 +80,13 @@ public class LSTriplet {
 	}
 	
 	public static LSTriplet valueOf(final Snippet snippet) {
-		String bls = snippet.getText().substring(0, snippet.getLabeledSegmentStart());
+		String bls = null;
+		try {
+			bls = snippet.getText().substring(0, snippet.getLabeledSegmentStart());
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		String ls = snippet.getLabeledSegment();
 		String als = snippet.getText().substring(snippet.getLabeledSegmentStart() + snippet.getLabeledSegmentLength());
 

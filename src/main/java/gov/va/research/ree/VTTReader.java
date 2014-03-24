@@ -28,6 +28,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.Set;
 
 /**
@@ -35,7 +37,7 @@ import java.util.Set;
  */
 public class VTTReader {
 
-	private static final String SNIPPET_TEXT_BEGIN = "SnippetText:";
+	private static final Pattern SNIPPET_TEXT_BEGIN = Pattern.compile("Snippet\\sText:");
 	private static final String SNIPPET_TEXT_END = "----------------------------------------------------------------------------------";
 
 	/**
@@ -130,7 +132,6 @@ public class VTTReader {
 		String docText = vttDoc.GetText();
 		List<Snippet> snippets = new ArrayList<>(vttDoc.GetMarkups().GetSize());
 		for (Markup markup : vttDoc.GetMarkups().GetMarkups()) {
-
 			// Check if the markup has the requested label
 			if (label.equals(markup.GetTagName())) {
 
@@ -139,9 +140,12 @@ public class VTTReader {
 				int labeledLength = markup.GetLength();
 
 				// Find the boundaries for the snippet
-				int snippetTextBegin = docText.substring(0, labeledOffset)
-						.lastIndexOf(SNIPPET_TEXT_BEGIN)
-						+ SNIPPET_TEXT_BEGIN.length();
+				String beginText = docText.substring(0, labeledOffset);
+				Matcher m = SNIPPET_TEXT_BEGIN.matcher(beginText);
+				int snippetTextBegin = -1;
+				while (m.find()) {
+					snippetTextBegin = m.end();
+				}
 				int snippetTextEnd = docText.indexOf(SNIPPET_TEXT_END,
 						snippetTextBegin);
 
@@ -150,7 +154,11 @@ public class VTTReader {
 
 				Snippet snippet = new Snippet(docText.substring(snippetTextBegin, snippetTextEnd),
 						label, ls, labeledOffset - snippetTextBegin, labeledLength);
-				snippets.add(snippet);
+				if (snippet.getText().length() < (snippet.getLabeledSegmentStart() + snippet.getLabeledSegmentLength())) {
+					System.err.println("Invalid snippet: text length = " + snippet.getText().length() + ", labeled segment start = " + snippet.getLabeledSegmentStart() + ", labeled segment length = " + snippet.getLabeledSegmentLength());
+				} else {
+					snippets.add(snippet);
+				}
 			}
 		}
 		return snippets;

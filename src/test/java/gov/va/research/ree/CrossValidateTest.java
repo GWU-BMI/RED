@@ -4,6 +4,7 @@ import static org.junit.Assert.*;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.List;
 
 import junit.framework.Assert;
@@ -39,7 +40,7 @@ public class CrossValidateTest {
 	public void testCrossValidate() {
 		try {
 			CrossValidate cv = new CrossValidate();
-			List<CVScore> results = cv.crossValidate(new File(TEST_VTT_FILENAME), "weight", 2);
+			List<CVScore> results = cv.crossValidate(Arrays.asList(new File[] { new File(TEST_VTT_FILENAME) }), "weight", 2);
 			int i = 0;
 			for (CVScore score : results) {
 				System.out.println("--- Run " + (i++) + " ---");
