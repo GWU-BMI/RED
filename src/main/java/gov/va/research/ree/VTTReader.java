@@ -28,6 +28,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.TreeMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.Set;
@@ -37,7 +38,11 @@ import java.util.Set;
  */
 public class VTTReader {
 
-	private static final Pattern SNIPPET_TEXT_BEGIN = Pattern.compile("Snippet\\sText:");
+	/**
+	 * 
+	 */
+	private static final String SNIPPET_TEXT_BEGIN_REGEX = "Snippet\\sText:";
+	private static final Pattern SNIPPET_TEXT_BEGIN_PATTERN = Pattern.compile(SNIPPET_TEXT_BEGIN_REGEX);
 	private static final String SNIPPET_TEXT_END = "----------------------------------------------------------------------------------";
 
 	/**
@@ -130,7 +135,23 @@ public class VTTReader {
 			throws IOException {
 		VttDocument vttDoc = read(vttFile);
 		String docText = vttDoc.GetText();
-		List<Snippet> snippets = new ArrayList<>(vttDoc.GetMarkups().GetSize());
+		//List<Snippet> snippets = new ArrayList<>(vttDoc.GetMarkups().GetSize());
+		Pattern snippetPattern = Pattern.compile("(?s)" + SNIPPET_TEXT_BEGIN_REGEX + "(.*?)" + SNIPPET_TEXT_END);
+		Matcher snippetMatcher = snippetPattern.matcher(docText);
+		TreeMap<SnippetPosition, Snippet> pos2snips = new TreeMap<>();
+		while (snippetMatcher.find()) {
+			SnippetPosition snipPos = new SnippetPosition(snippetMatcher.start(1), snippetMatcher.end(1));
+			Snippet snip = new Snippet(snippetMatcher.group(1), null, null, -1, -1);
+			pos2snips.put(snipPos, snip);
+		}
+		// The last snippet in the file does not have a snippet end delimiter, so we must add it separately.
+		Matcher snippetBeginMatcher = SNIPPET_TEXT_BEGIN_PATTERN.matcher(docText);
+		snippetBeginMatcher.find(pos2snips.lastKey().end);
+
+		SnippetPosition snipPos = new SnippetPosition(snippetBeginMatcher.end(), docText.length());
+		Snippet snip = new Snippet(docText.substring(snippetBeginMatcher.end()), null, null, -1, -1);
+		pos2snips.put(snipPos, snip);
+
 		for (Markup markup : vttDoc.GetMarkups().GetMarkups()) {
 			// Check if the markup has the requested label
 			if (label.equals(markup.GetTagName())) {
@@ -138,30 +159,29 @@ public class VTTReader {
 				// Get the labeled text boundaries
 				int labeledOffset = markup.GetOffset();
 				int labeledLength = markup.GetLength();
+				int labeledEnd = labeledOffset + labeledLength;
 
-				// Find the boundaries for the snippet
-				String beginText = docText.substring(0, labeledOffset);
-				Matcher m = SNIPPET_TEXT_BEGIN.matcher(beginText);
-				int snippetTextBegin = -1;
-				while (m.find()) {
-					snippetTextBegin = m.end();
-				}
-				int snippetTextEnd = docText.indexOf(SNIPPET_TEXT_END,
-						snippetTextBegin);
-
-				String ls = docText.substring(labeledOffset, labeledOffset
-						+ labeledLength);
-
-				Snippet snippet = new Snippet(docText.substring(snippetTextBegin, snippetTextEnd),
-						label, ls, labeledOffset - snippetTextBegin, labeledLength);
-				if (snippet.getText().length() < (snippet.getLabeledSegmentStart() + snippet.getLabeledSegmentLength())) {
-					System.err.println("Invalid snippet: text length = " + snippet.getText().length() + ", labeled segment start = " + snippet.getLabeledSegmentStart() + ", labeled segment length = " + snippet.getLabeledSegmentLength());
+				// Find the snippet in which the labeled segment occurs
+				SnippetPosition labelPos = new SnippetPosition(labeledOffset, labeledEnd);
+				Entry<SnippetPosition, Snippet> p2s = pos2snips.floorEntry(labelPos);
+				if (p2s == null) {
+					System.err.println("No enclosing snippet found for label position: " + labelPos);
+				} else if (!(p2s.getKey().start <= labeledOffset && p2s.getKey().end >= labeledEnd)) {
+					System.err.println("Label is not within snippet. Label position:" + labelPos + ", snippet position:" + p2s.getKey());
 				} else {
-					snippets.add(snippet);
+					Snippet snippet = p2s.getValue();
+					String ls = docText.substring(labeledOffset, labeledEnd);
+					snippet.setLabel(label);
+					snippet.setLabeledSegment(ls);
+					snippet.setLabeledSegmentStart(labeledOffset - p2s.getKey().start);
+					snippet.setLabeledSegmentLength(labeledLength);
+					if (snippet.getText().length() < (snippet.getLabeledSegmentStart() + snippet.getLabeledSegmentLength())) {
+						System.err.println("Invalid labeled snippet: text length = " + snippet.getText().length() + ", labeled segment start = " + snippet.getLabeledSegmentStart() + ", labeled segment length = " + snippet.getLabeledSegmentLength());
+					}
 				}
 			}
 		}
-		return snippets;
+		return new ArrayList<Snippet>(pos2snips.values());
 	}
 
 	/**
@@ -337,4 +357,48 @@ public class VTTReader {
 		return ls3listWithoutDuplicates;
 	}
 	
+	private class SnippetPosition implements Comparable<SnippetPosition> {
+		public final int start;
+		public final int end;
+		public SnippetPosition(final int start, final int end) {
+			this.start = start;
+			this.end = end;
+		}
+		@Override
+		public int hashCode() {
+			int result = 17;
+			result = 31 * result + start;
+			result = 31 * result + end;
+			return result;
+		}
+		@Override
+		public boolean equals(Object obj) {
+			if (!(obj instanceof SnippetPosition)) {
+				return false;
+			}
+			SnippetPosition sp = (SnippetPosition)obj;
+			return sp.start == start && sp.end == end;
+		}
+		@Override
+		public String toString() {
+			return "" + start + "-" + end;
+		}
+		@Override
+		public int compareTo(SnippetPosition o) {
+			if (start < o.start) {
+				return -1;
+			}
+			if (start > o.start){
+				return 1;
+			}
+			if (end < o.end) {
+				return -1;
+			}
+			if (end > o.end) {
+				return 1;
+			}
+			return 0;
+		}
+		
+	}
 }

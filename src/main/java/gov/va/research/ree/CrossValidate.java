@@ -2,6 +2,7 @@ package gov.va.research.ree;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -58,7 +59,7 @@ public class CrossValidate {
 			partitions.add(new ArrayList<Snippet>());
 		}
 
-		Collections.shuffle(partitions);
+		Collections.shuffle(snippets);
 
 		Iterator<Snippet> snippetIter = snippets.iterator();
 		
@@ -74,8 +75,11 @@ public class CrossValidate {
 
 		
 		List<CVScore> results = new ArrayList<>(folds);
-		
+
+		PrintWriter fw = new PrintWriter(new File("training and testing.txt"));
+		int fold = 0;
 		for (List<Snippet> partition : partitions) {
+			fw.println("##### FOLD " + (++fold) + " #####");
 			// set up training and testing sets for this fold
 			List<Snippet> testing = partition;
 			List<Snippet> training = new ArrayList<>();
@@ -87,15 +91,29 @@ public class CrossValidate {
 
 			// Train
 			List<LSTriplet> trained = vttr.extractRegexExpressions(training, label);
+			fw.println("--- Training snippets:");
+			for (Snippet trainingSnippet : training) {
+				fw.println(trainingSnippet.getText());
+				fw.println("----------");
+			}
+			fw.println();
+			fw.println("--- Trained Regexes:");
+			for (LSTriplet trainedTriplet : trained) {
+				fw.println(trainedTriplet.toStringRegEx());
+				fw.println("----------");
+			}
 			LSExtractor ex = new LSExtractor(trained);
 
 			// Test
+			fw.println();
 			CVScore score = new CVScore();
 			for (Snippet snippet : testing) {
 				List<String> candidates = ex.extract(snippet.getText());
 				String predicted = chooseBestCandidate(candidates);
 				String actual = snippet.getLabeledSegment();
-				
+				fw.println("--- Test Snippet:");
+				fw.println(snippet.getText());
+				fw.println("Predicted: " + predicted + ", Actual: " + actual);
 				// Score
 				if (predicted == null) {
 					if (actual == null) {
@@ -115,6 +133,7 @@ public class CrossValidate {
 			}
 			results.add(score);
 		}
+		fw.close();
 		return results;
 	}
 	
