@@ -12,8 +12,12 @@ import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class CrossValidateTest {
+
+	private static final Logger LOG = LoggerFactory.getLogger(CrossValidateTest.class);
 
 	private static final String TEST_VTT_FILENAME = "weight1000.vtt";
 
@@ -41,12 +45,12 @@ public class CrossValidateTest {
 			List<CVScore> results = cv.crossValidate(Arrays.asList(new File[] { new File(TEST_VTT_FILENAME) }), "weight", 10);
 			int i = 0;
 			for (CVScore score : results) {
-				System.out.println("--- Run " + (i++) + " ---");
-				System.out.println(score.getEvaluation());
+				LOG.info("--- Run " + (i++) + " ---");
+				LOG.info(score.getEvaluation());
 			}
-			System.out.println("--- Aggregate ---");
+			LOG.info("--- Aggregate ---");
 			CVScore aggregate = CVScore.aggregate(results);
-			System.out.println(aggregate.getEvaluation());
+			LOG.info(aggregate.getEvaluation());
 			
 			Assert.assertTrue("Accuracy is very bad", aggregate.calcAccuracy() > 0.25f);
 

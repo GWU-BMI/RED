@@ -15,9 +15,13 @@ import java.util.TreeMap;
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class CrossValidate {
 
+	private static final Logger LOG = LoggerFactory.getLogger(CrossValidate.class);
+	
 	public static void main(String[] args) throws IOException, ConfigurationException {
 		if (args.length != 1) {
 			System.out.println("Arguments: <properties file>");
@@ -37,11 +41,11 @@ public class CrossValidate {
 			// Display results
 			int i = 0;
 			for (CVScore s : results) {
-				System.out.println("--- Run " + (i++) + " ---");
-				System.out.println(s.getEvaluation());
+				LOG.info("--- Run " + (i++) + " ---");
+				LOG.info(s.getEvaluation());
 			}
-			System.out.println("--- Aggregate ---");
-			System.out.println(CVScore.aggregate(results).getEvaluation());
+			LOG.info("--- Aggregate ---");
+			LOG.info(CVScore.aggregate(results).getEvaluation());
 
 		}
 	}
@@ -49,37 +53,24 @@ public class CrossValidate {
 	public List<CVScore> crossValidate(List<File> vttFiles, String label, int folds)
 			throws IOException {
 		VTTReader vttr = new VTTReader();
+		// get snippets
 		List<Snippet> snippets = new ArrayList<>();
 		for (File vttFile : vttFiles) {
 			snippets.addAll(vttr.extractSnippets(vttFile, label));
 		}
 		
-		List<List<Snippet>> partitions = new ArrayList<>(folds);
-		for (int i = 0; i < folds; i++) {
-			partitions.add(new ArrayList<Snippet>());
-		}
-
+		// randomize the order of the snippets
 		Collections.shuffle(snippets);
-
-		Iterator<Snippet> snippetIter = snippets.iterator();
 		
-		int partitionIdx = 0;
-		while (snippetIter.hasNext()) {
-			if (partitionIdx >= folds) {
-				partitionIdx = 0;
-			}
-			List<Snippet> partition = partitions.get(partitionIdx);
-			partition.add(snippetIter.next());
-			partitionIdx++;
-		}
+		// partition snippets into one partition per fold
+		List<List<Snippet>> partitions = partitionSnippets(folds, snippets);
 
-		
+		// Run evaluations, "folds" number of times, alternating which partition is being used for testing.
 		List<CVScore> results = new ArrayList<>(folds);
-
-		PrintWriter fw = new PrintWriter(new File("training and testing.txt"));
+		PrintWriter pw = new PrintWriter(new File("training and testing.txt"));
 		int fold = 0;
 		for (List<Snippet> partition : partitions) {
-			fw.println("##### FOLD " + (++fold) + " #####");
+			pw.println("##### FOLD " + (++fold) + " #####");
 			// set up training and testing sets for this fold
 			List<Snippet> testing = partition;
 			List<Snippet> training = new ArrayList<>();
@@ -90,51 +81,108 @@ public class CrossValidate {
 			}
 
 			// Train
-			List<LSTriplet> trained = vttr.extractRegexExpressions(training, label);
-			fw.println("--- Training snippets:");
-			for (Snippet trainingSnippet : training) {
-				fw.println(trainingSnippet.getText());
-				fw.println("----------");
-			}
-			fw.println();
-			fw.println("--- Trained Regexes:");
-			for (LSTriplet trainedTriplet : trained) {
-				fw.println(trainedTriplet.toStringRegEx());
-				fw.println("----------");
-			}
-			LSExtractor ex = new LSExtractor(trained);
+			LSExtractor ex = trainExtractor(label, vttr, training, pw);
 
 			// Test
-			fw.println();
-			CVScore score = new CVScore();
-			for (Snippet snippet : testing) {
-				List<String> candidates = ex.extract(snippet.getText());
-				String predicted = chooseBestCandidate(candidates);
-				String actual = snippet.getLabeledSegment();
-				fw.println("--- Test Snippet:");
-				fw.println(snippet.getText());
-				fw.println("Predicted: " + predicted + ", Actual: " + actual);
-				// Score
-				if (predicted == null) {
-					if (actual == null) {
-						score.setTn(score.getTn() + 1);
-					} else {
-						score.setFn(score.getFn() + 1);
-					}
-				} else if (actual == null) {
-					score.setFp(score.getFp() + 1);
-				} else {
-					if (predicted.equals(snippet.getLabeledSegment())) {
-						score.setTp(score.getTp() + 1);
-					} else {
-						score.setFp(score.getFp() + 1);
-					}
-				}
-			}
+			CVScore score = testExtractor(testing, ex, pw);
+
 			results.add(score);
 		}
-		fw.close();
+		pw.close();
 		return results;
+	}
+
+	/**
+	 * @param pw
+	 * @param testing
+	 * @param ex
+	 * @return
+	 */
+	private CVScore testExtractor(List<Snippet> testing,
+			LSExtractor ex, PrintWriter pw) {
+		if (pw != null) {
+			pw.println();
+		}
+		CVScore score = new CVScore();
+		for (Snippet snippet : testing) {
+			List<String> candidates = ex.extract(snippet.getText());
+			String predicted = chooseBestCandidate(candidates);
+			String actual = snippet.getLabeledSegment();
+			if (pw != null) {
+				pw.println("--- Test Snippet:");
+				pw.println(snippet.getText());
+				pw.println("Predicted: " + predicted + ", Actual: " + actual);
+			}
+			// Score
+			if (predicted == null) {
+				if (actual == null) {
+					score.setTn(score.getTn() + 1);
+				} else {
+					score.setFn(score.getFn() + 1);
+				}
+			} else if (actual == null) {
+				score.setFp(score.getFp() + 1);
+			} else {
+				if (predicted.equals(snippet.getLabeledSegment())) {
+					score.setTp(score.getTp() + 1);
+				} else {
+					score.setFp(score.getFp() + 1);
+				}
+			}
+		}
+		return score;
+	}
+
+	/**
+	 * @param label
+	 * @param vttr
+	 * @param pw
+	 * @param training
+	 * @return
+	 * @throws IOException
+	 */
+	private LSExtractor trainExtractor(String label, VTTReader vttr,
+			List<Snippet> training, PrintWriter pw) throws IOException {
+		List<LSTriplet> trained = vttr.extractRegexExpressions(training, label);
+		if (pw != null) {
+			pw.println("--- Training snippets:");
+			for (Snippet trainingSnippet : training) {
+				pw.println(trainingSnippet.getText());
+				pw.println("----------");
+			}
+			pw.println();
+			pw.println("--- Trained Regexes:");
+			for (LSTriplet trainedTriplet : trained) {
+				pw.println(trainedTriplet.toStringRegEx());
+				pw.println("----------");
+			}
+		}
+		LSExtractor ex = new LSExtractor(trained);
+		return ex;
+	}
+
+	/**
+	 * @param folds
+	 * @param snippets
+	 * @return
+	 */
+	private List<List<Snippet>> partitionSnippets(int folds,
+			List<Snippet> snippets) {
+		List<List<Snippet>> partitions = new ArrayList<>(folds);
+		for (int i = 0; i < folds; i++) {
+			partitions.add(new ArrayList<Snippet>());
+		}
+		Iterator<Snippet> snippetIter = snippets.iterator();
+		int partitionIdx = 0;
+		while (snippetIter.hasNext()) {
+			if (partitionIdx >= folds) {
+				partitionIdx = 0;
+			}
+			List<Snippet> partition = partitions.get(partitionIdx);
+			partition.add(snippetIter.next());
+			partitionIdx++;
+		}
+		return partitions;
 	}
 	
 
