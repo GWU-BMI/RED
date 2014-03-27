@@ -41,7 +41,7 @@ public class VTTReader {
 	/**
 	 * 
 	 */
-	private static final String SNIPPET_TEXT_BEGIN_REGEX = "Snippet\\sText:";
+	private static final String SNIPPET_TEXT_BEGIN_REGEX = "Snippet\\s?Text:";
 	private static final Pattern SNIPPET_TEXT_BEGIN_PATTERN = Pattern.compile(SNIPPET_TEXT_BEGIN_REGEX);
 	private static final String SNIPPET_TEXT_END = "----------------------------------------------------------------------------------";
 
