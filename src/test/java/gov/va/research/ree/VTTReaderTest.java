@@ -98,7 +98,7 @@ public class VTTReaderTest {
 		} catch (IOException e) {
 			throw new AssertionError("Failed extract 'weight' labeled regular expressions from VTT file: " + TEST_VTT_FILENAME, e);
 		}
-		List<LSTriplet> ls3list = null;
+		/*List<LSTriplet> ls3list = null;
 		try {
 			ls3list = vttr.extractLSTriplets(new File(TEST_VTT_FILENAME), "weight");
 		} catch (IOException e) {
@@ -117,11 +117,11 @@ public class VTTReaderTest {
 			 matcher = pattern.matcher(dataToTestBld.toString());
 			 test = matcher.find();
 			 Assert.assertTrue(test);
-			 /*if(!test){
+			 if(!test){
 				 System.out.println("false");
 				break;
 			 }else
-				 System.out.println("true");*/
+				 System.out.println("true");
 		}
 		System.out.println("Testing the document against the regular expressions...");
 		for(LSTriplet triplet : ls3list){
@@ -139,7 +139,7 @@ public class VTTReaderTest {
 				System.out.println(toTest);
 			}
 			Assert.assertTrue(test);
-		}
+		}*/
 	}
 
 }

@@ -132,6 +132,51 @@ public class CrossValidate {
 		}
 		return score;
 	}
+	
+	/**
+	 * is called from the VTTReader class. Method is used when trimming
+	 * regex's. It is used to see if any false positives are genereated
+	 * by the new regex.
+	 * @param testing
+	 * @param ex
+	 * @param pw
+	 * @return
+	 */
+	public CVScore testExtractor(List<Snippet> testing,
+			LSExtractor ex) {
+		/*if (pw != null) {
+			pw.println();
+		}*/
+		CVScore score = new CVScore();
+		for (Snippet snippet : testing) {
+			List<String> candidates = ex.extract(snippet.getText());
+			String predicted = chooseBestCandidate(candidates);
+			String actual = snippet.getLabeledSegment();
+			/*if (pw != null) {
+				pw.println("--- Test Snippet:");
+				pw.println(snippet.getText());
+				pw.println("Predicted: " + predicted + ", Actual: " + actual);
+			}*/
+			// Score
+			
+			if (predicted == null) {
+				if (actual == null) {
+					score.setTn(score.getTn() + 1);
+				} else {
+					score.setFn(score.getFn() + 1);
+				}
+			} else if (actual == null) {
+				score.setFp(score.getFp() + 1);
+			} else {
+				if (predicted.equals(snippet.getLabeledSegment())) {
+					score.setTp(score.getTp() + 1);
+				} else {
+					score.setFp(score.getFp() + 1);
+				}
+			}
+		}
+		return score;
+	}
 
 	/**
 	 * @param label

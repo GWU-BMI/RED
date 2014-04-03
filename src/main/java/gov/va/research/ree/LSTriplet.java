@@ -49,7 +49,7 @@ public class LSTriplet {
 	 * @return
 	 */
 	public String toStringRegEx(){
-		return "" + BLS + "\\s{1,10}(" + LS  + ")\\s{1,10}" + ALS;
+		return "" + BLS + "(" + LS  + ")" + ALS;
 	}
 
 	/////
@@ -90,7 +90,7 @@ public class LSTriplet {
 		String ls = snippet.getLabeledSegment();
 		String als = snippet.getText().substring(snippet.getLabeledSegmentStart() + snippet.getLabeledSegmentLength());
 
-		LSTriplet ls3 = new LSTriplet((bls == null ? null : bls.trim()), ls, (als == null ? null : als.trim()));
+		LSTriplet ls3 = new LSTriplet((bls == null ? null : bls), ls, (als == null ? null : als));
 		return ls3;
 	}
 }
