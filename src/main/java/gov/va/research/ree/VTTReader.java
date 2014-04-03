@@ -170,6 +170,9 @@ public class VTTReader {
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
+			for(LSTriplet triplet : ls3list){
+				System.out.println("\n\n"+triplet.toStringRegEx()+"\n\n");
+			}
 			return allTriplets;
 		}
 		return null;
@@ -232,48 +235,56 @@ public class VTTReader {
 				for(LSTriplet triplet : value){
 					if(processBLS){
 						bls = triplet.getBLS();
-						triplet.setBLS(triplet.getBLS().replaceAll("\\b"+key+"\\b"+"&^((?!\\.\\{1,20\\}).)*$", "\\\\b"+key+"\\\\b"));//triplet.getBLS().replaceAll("?:"+key, "(?:"+key+")");
-						List<LSTriplet> regEx = new ArrayList<LSTriplet>();
-						regEx.add(triplet);
-						LSExtractor leExt = new LSExtractor(regEx);
-						CrossValidate cv = new CrossValidate();
-						CVScore cvScore = cv.testExtractor(snippets, leExt);
-						if(cvScore.getFp() > 0)
-							triplet.setBLS(bls);
+						if(!key.equals("b")){
+							triplet.setBLS(triplet.getBLS().replaceAll("\\b"+key+"\\b", "\\\\b"+key+"\\\\b"));//triplet.getBLS().replaceAll("?:"+key, "(?:"+key+")");
+							List<LSTriplet> regEx = new ArrayList<LSTriplet>();
+							regEx.add(triplet);
+							LSExtractor leExt = new LSExtractor(regEx);
+							CrossValidate cv = new CrossValidate();
+							CVScore cvScore = cv.testExtractor(snippets, leExt);
+							if(cvScore.getFp() > 0)
+								triplet.setBLS(bls);
+						}
 					}else{
 						als = triplet.getALS();
-						triplet.setALS(triplet.getALS().replaceAll("\\b"+key+"\\b"+"&^((?!\\.\\{1,20\\}).)*$", "\\\\b"+key+"\\\\b"));//triplet.getALS().replaceAll("?:"+key, "(?:"+key+")");
-						List<LSTriplet> regEx = new ArrayList<LSTriplet>();
-						regEx.add(triplet);
-						LSExtractor leExt = new LSExtractor(regEx);
-						CrossValidate cv = new CrossValidate();
-						CVScore cvScore = cv.testExtractor(snippets, leExt);
-						if(cvScore.getFp() > 0)
-							triplet.setALS(als);
+						if(!key.equals("b")){
+							triplet.setALS(triplet.getALS().replaceAll("\\b"+key+"\\b", "\\\\b"+key+"\\\\b"));//triplet.getALS().replaceAll("?:"+key, "(?:"+key+")");
+							List<LSTriplet> regEx = new ArrayList<LSTriplet>();
+							regEx.add(triplet);
+							LSExtractor leExt = new LSExtractor(regEx);
+							CrossValidate cv = new CrossValidate();
+							CVScore cvScore = cv.testExtractor(snippets, leExt);
+							if(cvScore.getFp() > 0)
+								triplet.setALS(als);
+						}
 					}
 				}
 			}else{
 				for(LSTriplet triplet : value){
 					if(processBLS){
 						bls = triplet.getBLS();
-						triplet.setBLS(triplet.getBLS().replaceAll("\\b"+key+"\\b"+"&^((?!\\.\\{1,20\\}).)*$", "\\\\S{1,"+key.length()+"}"));//triplet.getBLS().replaceAll("?:"+key, "(?:"+key+")");
-						List<LSTriplet> regEx = new ArrayList<LSTriplet>();
-						regEx.add(triplet);
-						LSExtractor leExt = new LSExtractor(regEx);
-						CrossValidate cv = new CrossValidate();
-						CVScore cvScore = cv.testExtractor(snippets, leExt);
-						if(cvScore.getFp() > 0)
-							triplet.setBLS(bls);
+						if(!key.equals("S")){
+							triplet.setBLS(triplet.getBLS().replaceAll("\\b"+key+"\\b", "\\\\S{1,"+key.length()+"}"));//triplet.getBLS().replaceAll("?:"+key, "(?:"+key+")");
+							List<LSTriplet> regEx = new ArrayList<LSTriplet>();
+							regEx.add(triplet);
+							LSExtractor leExt = new LSExtractor(regEx);
+							CrossValidate cv = new CrossValidate();
+							CVScore cvScore = cv.testExtractor(snippets, leExt);
+							if(cvScore.getFp() > 0)
+								triplet.setBLS(bls);
+						}
 					}else{
 						als = triplet.getALS();
-						triplet.setALS(triplet.getALS().replaceAll("\\b"+key+"\\b"+"&^((?!\\.\\{1,20\\}).)*$", "\\\\S{1,"+key.length()+"}"));//triplet.getALS().replaceAll("?:"+key, "(?:"+key+")");
-						List<LSTriplet> regEx = new ArrayList<LSTriplet>();
-						regEx.add(triplet);
-						LSExtractor leExt = new LSExtractor(regEx);
-						CrossValidate cv = new CrossValidate();
-						CVScore cvScore = cv.testExtractor(snippets, leExt);
-						if(cvScore.getFp() > 0)
-							triplet.setBLS(als);
+						if(!key.equals("S")){
+							triplet.setALS(triplet.getALS().replaceAll("\\b"+key+"\\b", "\\\\S{1,"+key.length()+"}"));//triplet.getALS().replaceAll("?:"+key, "(?:"+key+")");
+							List<LSTriplet> regEx = new ArrayList<LSTriplet>();
+							regEx.add(triplet);
+							LSExtractor leExt = new LSExtractor(regEx);
+							CrossValidate cv = new CrossValidate();
+							CVScore cvScore = cv.testExtractor(snippets, leExt);
+							if(cvScore.getFp() > 0)
+								triplet.setBLS(als);
+						}
 					}
 				}
 			}
@@ -292,7 +303,7 @@ public class VTTReader {
 			phrase = triplet.getBLS();
 		else
 			phrase = triplet.getALS();
-		String[] termArray = phrase.split("\\\\s\\{1,50\\}|\\\\p\\{Punct\\}|\\\\d+");
+		String[] termArray = phrase.split("\\\\s\\{1,50\\}|\\\\p\\{Punct\\}|\\\\d\\+");
 		List<LSTriplet> termContainingTriplets = null;
 		for(String term : termArray){
 			if(!term.equals(" ") && !term.equals("")){
@@ -629,10 +640,10 @@ public class VTTReader {
 		for(LSTriplet x : ls3list)
 		{
 			s=x.getBLS();
-			s=s.replaceAll("\\d+&^((?!\\.\\{1,20\\}).)*$","\\\\d+");
+			s=s.replaceAll("\\d+","\\\\d+");//&^((?!\\.\\{1,20\\}).)*$
 			x.setBLS(s);
 			s=x.getALS();
-			s=s.replaceAll("\\d+&^((?!\\.\\{1,20\\}).)*$","\\\\d+");
+			s=s.replaceAll("\\d+","\\\\d+");//&^((?!\\.\\{1,20\\}).)*$
 			x.setALS(s);
 		}
 		return ls3list;
