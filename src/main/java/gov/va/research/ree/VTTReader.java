@@ -22,6 +22,7 @@ import gov.nih.nlm.nls.vtt.Model.VttDocument;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -33,17 +34,18 @@ import java.util.TreeMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * Reads VTT files
  */
 public class VTTReader {
 
-	/**
-	 * 
-	 */
 	private static final String SNIPPET_TEXT_BEGIN_REGEX = "Snippet\\s?Text:";
 	private static final Pattern SNIPPET_TEXT_BEGIN_PATTERN = Pattern.compile(SNIPPET_TEXT_BEGIN_REGEX);
 	private static final String SNIPPET_TEXT_END = "----------------------------------------------------------------------------------";
+	private static final Logger LOG = LoggerFactory.getLogger(VTTReader.class);
 
 	/**
 	 * Reads a VTT file.
@@ -71,8 +73,10 @@ public class VTTReader {
 		List<Snippet> snippets = extractSnippets(vttFile, label);
 		List<LSTriplet> ls3list = new ArrayList<>(snippets.size());
 		for (Snippet snippet : snippets) {
-			if (label.equals(snippet.getLabel())) {
-				ls3list.add(LSTriplet.valueOf(snippet));
+			for (LabeledSegment ls : snippet.getLabeledSegments()) {
+				if (label.equals(ls.getLabel())) {
+					ls3list.add(LSTriplet.valueOf(snippet.getText(), ls));
+				}
 			}
 		}
 		return ls3list;
@@ -93,8 +97,10 @@ public class VTTReader {
 	public List<LSTriplet> extractRegexExpressions(final List<Snippet> snippets, final String label) {
 		List<LSTriplet> ls3list = new ArrayList<>(snippets.size());
 		for (Snippet snippet : snippets) {
-			if (label.equals(snippet.getLabel())) {
-				ls3list.add(LSTriplet.valueOf(snippet));
+			for (LabeledSegment ls : snippet.getLabeledSegments()) {
+				if (label.equals(ls.getLabel())) {
+					ls3list.add(LSTriplet.valueOf(snippet.getText(), ls));
+				}
 			}
 		}
 		if(ls3list != null && !ls3list.isEmpty()){
@@ -106,6 +112,25 @@ public class VTTReader {
 			replaceDigitsBLSALS(ls3list);
 			//replace the white spaces with regular expressions.
 			replaceWhiteSpaces(ls3list);
+			
+			Map<LSTriplet, CrossValidate.TripletMatches> tripsWithFP = CrossValidate.findTripletsWithFalsePositives(ls3list, snippets, label);
+			if (tripsWithFP != null && tripsWithFP.size() > 0) {
+				LOG.warn("False positive regexes found before trimming");
+				for (Map.Entry<LSTriplet, CrossValidate.TripletMatches> twfp : tripsWithFP.entrySet()) {
+					LOG.warn("RegEx: " + twfp.getKey().toStringRegEx());
+					LOG.warn("Correct matches:");
+					for (Snippet correct : twfp.getValue().getCorrect()) {
+						LOG.warn("<correct value='" + correct.getLabeledStrings() + "'>\n" + correct.getText() + "\n</correct>");
+					}
+					LOG.warn("False positive matches:");
+					for (Snippet fp : twfp.getValue().getFalsePositive()) {
+						Pattern p = Pattern.compile(twfp.getKey().toStringRegEx());
+						Matcher m = p.matcher(fp.getText());
+						m.find();
+						LOG.warn("<fp actual='" + fp.getLabeledStrings() + "' predicted='" + m.group(1) + "'>\n" + fp.getText() + "\n</fp>");
+					}
+				}
+			}
 			
 			//check if we can remove the first regex from bls. Keep on repeating
 			//the process till we can't remove any regex's from the bls's.
@@ -177,7 +202,7 @@ public class VTTReader {
 		}
 		return null;
 	}
-	
+
 	/**
 	 * Finds out all the groups that have sizes greater than 1. Calls processGroup on those groups.
 	 * @param snippetGroups A hashmap containing the groups. Key is LS and the value is a list of LSTriplet's.
@@ -425,6 +450,7 @@ public class VTTReader {
 			if(processedBLSorALS)
 				break;
 		}
+		System.out.println("done");
 	}
 	
 	/*public List<LSTriplet> extractRegexExpressions(final List<Snippet> snippets, final String label) throws IOException{
@@ -472,13 +498,12 @@ public class VTTReader {
 			throws IOException {
 		VttDocument vttDoc = read(vttFile);
 		String docText = vttDoc.GetText();
-		//List<Snippet> snippets = new ArrayList<>(vttDoc.GetMarkups().GetSize());
 		Pattern snippetPattern = Pattern.compile("(?s)" + SNIPPET_TEXT_BEGIN_REGEX + "(.*?)" + SNIPPET_TEXT_END);
 		Matcher snippetMatcher = snippetPattern.matcher(docText);
 		TreeMap<SnippetPosition, Snippet> pos2snips = new TreeMap<>();
 		while (snippetMatcher.find()) {
 			SnippetPosition snipPos = new SnippetPosition(snippetMatcher.start(1), snippetMatcher.end(1));
-			Snippet snip = new Snippet(snippetMatcher.group(1), null, null, -1, -1);
+			Snippet snip = new Snippet(snippetMatcher.group(1), null);
 			pos2snips.put(snipPos, snip);
 		}
 		// The last snippet in the file does not have a snippet end delimiter, so we must add it separately.
@@ -486,7 +511,7 @@ public class VTTReader {
 		snippetBeginMatcher.find(pos2snips.lastKey().end);
 
 		SnippetPosition snipPos = new SnippetPosition(snippetBeginMatcher.end(), docText.length());
-		Snippet snip = new Snippet(docText.substring(snippetBeginMatcher.end()), null, null, -1, -1);
+		Snippet snip = new Snippet(docText.substring(snippetBeginMatcher.end()), null);
 		pos2snips.put(snipPos, snip);
 
 		for (Markup markup : vttDoc.GetMarkups().GetMarkups()) {
@@ -502,19 +527,30 @@ public class VTTReader {
 				SnippetPosition labelPos = new SnippetPosition(labeledOffset, labeledEnd);
 				Entry<SnippetPosition, Snippet> p2s = pos2snips.floorEntry(labelPos);
 				if (p2s == null) {
-					System.err.println("No enclosing snippet found for label position: " + labelPos);
+					LOG.error("No enclosing snippet found for label position: " + labelPos);
 				} else if (!(p2s.getKey().start <= labeledOffset && p2s.getKey().end >= labeledEnd)) {
-					System.err.println("Label is not within snippet. Label position:" + labelPos + ", snippet position:" + p2s.getKey());
+					LOG.error("Label is not within snippet. Label position:" + labelPos + ", snippet position:" + p2s.getKey());
 				} else {
-					Snippet snippet = p2s.getValue();
-					String ls = docText.substring(labeledOffset, labeledEnd);
-					snippet.setLabel(label);
-					snippet.setLabeledSegment(ls);
-					snippet.setLabeledSegmentStart(labeledOffset - p2s.getKey().start);
-					snippet.setLabeledSegmentLength(labeledLength);
-					if (snippet.getText().length() < (snippet.getLabeledSegmentStart() + snippet.getLabeledSegmentLength())) {
-						System.err.println("Invalid labeled snippet: text length = " + snippet.getText().length() + ", labeled segment start = " + snippet.getLabeledSegmentStart() + ", labeled segment length = " + snippet.getLabeledSegmentLength());
+					String labStr = docText.substring(labeledOffset, labeledEnd);
+					// Adjust the labeled string boundaries so that it does not have any whitespace prefix or suffix
+					while (Character.isWhitespace(labStr.charAt(0))) {
+						labeledOffset++;
+						labStr = labStr.substring(1);
+						labeledLength--;
 					}
+					while (Character.isWhitespace(labStr.charAt(labStr.length() - 1))) {
+						labeledEnd--;
+						labStr = labStr.substring(0, labStr.length() - 1);
+						labeledLength--;
+					}
+					LabeledSegment ls = new LabeledSegment(label, labStr, labeledOffset - p2s.getKey().start, labeledLength);
+					Snippet snippet = p2s.getValue();
+					Collection<LabeledSegment> labeledSegments = snippet.getLabeledSegments();
+					if (labeledSegments == null) {
+						labeledSegments = new ArrayList<LabeledSegment>();
+						snippet.setLabeledSegments(labeledSegments);
+					}
+					labeledSegments.add(ls);
 				}
 			}
 		}

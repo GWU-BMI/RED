@@ -1,0 +1,109 @@
+#<---------------------------------------------------------------------->
+#<Meta Data>
+#<Tags file|confirmation|path of default tags file>
+#<File History|VTT file format version|User name|Time stamp>
+#<---------------------------------------------------------------------->
+FILE_SAVE|VTT.2010.0|VTT|4/8/14 11:51:42 AM
+#<---------------------------------------------------------------------->
+#<Text Content>
+#<---------------------------------------------------------------------->
+PatientID: 1
+DocumentID: 1
+SnippetNumber: 1
+SnippetText: 
+
+His weight was 184 pounds.
+
+----------------------------------------------------------------------------------
+PatientID: 2
+DocumentID: 1
+SnippetNumber: 1
+SnippetText: 
+
+weight: 184 lb.
+
+----------------------------------------------------------------------------------
+PatientID: 3
+DocumentID: 1
+SnippetNumber: 1
+SnippetText: 
+
+wt: 184.5 lbs.
+
+----------------------------------------------------------------------------------
+PatientID: 4
+DocumentID: 1
+SnippetNumber: 1
+SnippetText: 
+
+Height: 6 ft 4 in
+weight: 184 lb. [83.4 kg]
+
+----------------------------------------------------------------------------------
+PatientID: 5
+DocumentID: 1
+SnippetNumber: 1
+SnippetText: 
+
+HT: 76 in. [193 cm] WT: 184 lb. [83.4 kg]
+#<---------------------------------------------------------------------->
+#<Tags Configuration>
+#<Name|Category|Bold|Italic|Underline|Display|FR|FG|FB|BR|BG|BB|FontFamily|FontSize>
+#<---------------------------------------------------------------------->
+Text/Clear||false|false|false|true|255|255|255|0|51|153|Monospaced|12
+#<---------------------------------------------------------------------->
+weight||false|false|false|true|51|51|255|255|255|255|Monospaced|+0
+BMI||false|false|false|true|255|102|102|255|255|255|Monospaced|+0
+height||false|false|false|true|0|0|0|102|255|102|Monospaced|+0
+feet||false|false|false|true|0|0|0|51|255|255|Monospaced|+0
+Inches||false|false|false|true|0|0|0|204|0|204|Monospaced|+0
+cm||false|false|false|true|255|255|0|255|255|255|Monospaced|+0
+lbs||false|false|false|true|51|255|204|255|255|255|Monospaced|+0
+kgs||false|false|false|true|0|0|0|255|153|51|Monospaced|+0
+date time||false|false|false|true|0|0|0|153|51|255|Monospaced|+0
+temporal words||false|false|false|true|0|0|0|0|255|51|Monospaced|+0
+abd||false|false|false|true|102|255|255|255|255|255|Monospaced|+0
+SnippetColumn||false|false|false|false|0|0|0|255|255|255|Monospaced|+0
+#<---------------------------------------------------------------------->
+#<MarkUps Information>
+#<Offset|Length|TagName|TagCategory|Annotation|TagText>
+#<---------------------------------------------------------------------->
+     11| 1|SnippetColumn  |               |snippetNumber="1"<::>columnNumber="1"<::>columnName="PatientID"|1
+     25| 1|SnippetColumn  |               |snippetNumber="1"<::>columnNumber="2"<::>columnName="DocumentID"|1
+     42| 1|SnippetColumn  |               |snippetNumber="1"<::>columnNumber="3"<::>columnName="SnippetNumber"|1
+     59|26|SnippetColumn  |               |snippetNumber="1"<::>columnNumber="4"<::>columnName="SnippetText"|His weight was 184 pounds.
+     74| 4|weight         |               ||184 
+     78| 6|lbs            |               ||pounds
+    181| 1|SnippetColumn  |               |snippetNumber="2"<::>columnNumber="1"<::>columnName="PatientID"|2
+    195| 1|SnippetColumn  |               |snippetNumber="2"<::>columnNumber="2"<::>columnName="DocumentID"|1
+    212| 1|SnippetColumn  |               |snippetNumber="2"<::>columnNumber="3"<::>columnName="SnippetNumber"|1
+    229|15|SnippetColumn  |               |snippetNumber="2"<::>columnNumber="4"<::>columnName="SnippetText"|weight: 184 lb.
+    236| 4|weight         |               || 184
+    241| 2|lbs            |               ||lb
+    340| 1|SnippetColumn  |               |snippetNumber="3"<::>columnNumber="1"<::>columnName="PatientID"|3
+    354| 1|SnippetColumn  |               |snippetNumber="3"<::>columnNumber="2"<::>columnName="DocumentID"|1
+    371| 1|SnippetColumn  |               |snippetNumber="3"<::>columnNumber="3"<::>columnName="SnippetNumber"|1
+    388|14|SnippetColumn  |               |snippetNumber="3"<::>columnNumber="4"<::>columnName="SnippetText"|wt: 184.5 lbs.
+    392| 5|weight         |               ||184.5
+    498| 1|SnippetColumn  |               |snippetNumber="4"<::>columnNumber="1"<::>columnName="PatientID"|4
+    512| 1|SnippetColumn  |               |snippetNumber="4"<::>columnNumber="2"<::>columnName="DocumentID"|1
+    529| 1|SnippetColumn  |               |snippetNumber="4"<::>columnNumber="3"<::>columnName="SnippetNumber"|1
+    546|43|SnippetColumn  |               |snippetNumber="4"<::>columnNumber="4"<::>columnName="SnippetText"|Height: 6 ft 4 in weight: 184 lb. [83.4 kg]
+    554| 1|height         |               ||6
+    556| 2|feet           |               ||ft
+    571| 5|weight         |               || 184 
+    576| 2|lbs            |               ||lb
+    581| 5|weight         |               ||83.4 
+    586| 2|kgs            |               ||kg
+    685| 1|SnippetColumn  |               |snippetNumber="5"<::>columnNumber="1"<::>columnName="PatientID"|5
+    699| 1|SnippetColumn  |               |snippetNumber="5"<::>columnNumber="2"<::>columnName="DocumentID"|1
+    716| 1|SnippetColumn  |               |snippetNumber="5"<::>columnNumber="3"<::>columnName="SnippetNumber"|1
+    733|41|SnippetColumn  |               |snippetNumber="5"<::>columnNumber="4"<::>columnName="SnippetText"|HT: 76 in. [193 cm] WT: 184 lb. [83.4 kg]
+    737| 2|height         |               ||76
+    740| 2|Inches         |               ||in
+    745| 3|height         |               ||193
+    749| 2|cm             |               ||cm
+    757| 3|weight         |               ||184
+    761| 2|lbs            |               ||lb
+    766| 4|weight         |               ||83.4
+    771| 2|kgs            |               ||kg
