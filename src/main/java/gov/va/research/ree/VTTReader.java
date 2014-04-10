@@ -155,8 +155,8 @@ public class VTTReader {
 				for(LSTriplet triplet : ls3list){
 					System.out.println("\n\n"+triplet.toStringRegEx()+"\n\n");
 				}
-			}
-			return ls3list;*/
+			}*/
+			//return ls3list;
 			Map<String,List<LSTriplet>> snippetGroups = groupSnippets(ls3list);
 			processSnippetGroupsTrimVersion(snippetGroups,snippets);
 			List<LSTriplet> allTriplets = new ArrayList<>();
@@ -231,7 +231,7 @@ public class VTTReader {
 			List<LSTriplet> value = entry.getValue();
 			String key = entry.getKey();
 			String bls=null,als=null;
-			if(value.size() > 1){
+			/*if(value.size() > 1){
 				for(LSTriplet triplet : value){
 					if(processBLS){
 						bls = triplet.getBLS();
@@ -244,6 +244,8 @@ public class VTTReader {
 							CVScore cvScore = cv.testExtractor(snippets, leExt);
 							if(cvScore.getFp() > 0)
 								triplet.setBLS(bls);
+						}else{
+							System.out.println("----------------------------------------key B-----------------------------");
 						}
 					}else{
 						als = triplet.getALS();
@@ -259,7 +261,7 @@ public class VTTReader {
 						}
 					}
 				}
-			}else{
+			}else{*/
 				for(LSTriplet triplet : value){
 					if(processBLS){
 						bls = triplet.getBLS();
@@ -272,6 +274,8 @@ public class VTTReader {
 							CVScore cvScore = cv.testExtractor(snippets, leExt);
 							if(cvScore.getFp() > 0)
 								triplet.setBLS(bls);
+						}else{
+							System.out.println("----------------------------------------key S-----------------------------");
 						}
 					}else{
 						als = triplet.getALS();
@@ -283,11 +287,11 @@ public class VTTReader {
 							CrossValidate cv = new CrossValidate();
 							CVScore cvScore = cv.testExtractor(snippets, leExt);
 							if(cvScore.getFp() > 0)
-								triplet.setBLS(als);
+								triplet.setALS(als);
 						}
 					}
 				}
-			}
+			//}
 		}
 	}
 	
