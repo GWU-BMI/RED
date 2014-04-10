@@ -79,16 +79,16 @@ public class LSTriplet {
 		this.ALS = ALS;
 	}
 	
-	public static LSTriplet valueOf(final Snippet snippet) {
+	public static LSTriplet valueOf(final String snippetText, final LabeledSegment labeledSegment) {
 		String bls = null;
 		try {
-			bls = snippet.getText().substring(0, snippet.getLabeledSegmentStart());
+			bls = snippetText.substring(0, labeledSegment.getStart());
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
+			// probably java.lang.StringIndexOutOfBoundsException from a bad annotation
 			e.printStackTrace();
 		}
-		String ls = snippet.getLabeledSegment();
-		String als = snippet.getText().substring(snippet.getLabeledSegmentStart() + snippet.getLabeledSegmentLength());
+		String ls = labeledSegment.getLabeledString();
+		String als = snippetText.substring(labeledSegment.getStart() + labeledSegment.getLength());
 
 		LSTriplet ls3 = new LSTriplet((bls == null ? null : bls), ls, (als == null ? null : als));
 		return ls3;

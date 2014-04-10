@@ -20,6 +20,8 @@ import gov.nih.nlm.nls.vtt.Model.VttDocument;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -142,4 +144,65 @@ public class VTTReaderTest {
 		}*/
 	}
 
+	/**
+	 * Test method for {@link gov.va.research.ree.VTTReader#extractSnippets(java.io.File, java.lang.String)}.
+	 */
+	@Test
+	public void testExtractSnippets() {
+		VTTReader vttr = new VTTReader();
+		URL testFileURL = this.getClass().getResource("/test-snippets.vtt");
+		File vttFile = null;
+		try {
+			vttFile = new File(testFileURL.toURI());
+		} catch (URISyntaxException e1) {
+			throw new AssertionError("Failed to open test vtt file");
+		}
+		List<Snippet> snippets = null;
+		try {
+			snippets = vttr.extractSnippets(vttFile, "weight");
+		} catch (IOException e) {
+			throw new AssertionError("Failed extract 'weight' labeled segment triplets from VTT file: " + vttFile, e);
+		}
+		Assert.assertNotNull(snippets);
+		Assert.assertEquals(5, snippets.size());
+
+		{
+			Snippet firstSnip = snippets.get(0);
+			Assert.assertEquals(1, firstSnip.getLabeledSegments().size());
+			LabeledSegment firstSnipFirstLS = firstSnip.getLabeledSegments().iterator().next();
+			Assert.assertEquals("184", firstSnipFirstLS.getLabeledString());
+		}
+		{
+			Snippet secondSnip = snippets.get(1);
+			Assert.assertEquals(1, secondSnip.getLabeledSegments().size());
+			LabeledSegment secondSnipFirstLS = secondSnip.getLabeledSegments().iterator().next();
+			Assert.assertEquals("184", secondSnipFirstLS.getLabeledString());
+		}
+		{
+			Snippet thirdSnip = snippets.get(2);
+			Assert.assertEquals(1, thirdSnip.getLabeledSegments().size());
+			LabeledSegment thirdSnipFirstLS = thirdSnip.getLabeledSegments().iterator().next();
+			Assert.assertEquals("184.5", thirdSnipFirstLS.getLabeledString());
+		}
+		{
+			Snippet fourthSnip = snippets.get(3);
+			Assert.assertEquals(2, fourthSnip.getLabeledSegments().size());
+			List<String> labeledStrings = new ArrayList<>(2);
+			for (LabeledSegment ls : fourthSnip.getLabeledSegments()) {
+				labeledStrings.add(ls.getLabeledString());
+			}
+			Assert.assertTrue(labeledStrings.contains("184"));
+			Assert.assertTrue(labeledStrings.contains("83.4"));
+		}
+		{
+			Snippet fifthSnip = snippets.get(4);
+			Assert.assertEquals(2, fifthSnip.getLabeledSegments().size());
+			List<String> labeledStrings = new ArrayList<>(2);
+			for (LabeledSegment ls : fifthSnip.getLabeledSegments()) {
+				labeledStrings.add(ls.getLabeledString());
+			}
+			Assert.assertTrue(labeledStrings.contains("184"));
+			Assert.assertTrue(labeledStrings.contains("83.4"));
+		}
+	}
 }

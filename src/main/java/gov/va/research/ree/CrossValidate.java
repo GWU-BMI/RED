@@ -11,6 +11,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.ConfigurationException;
@@ -107,7 +109,7 @@ public class CrossValidate {
 		for (Snippet snippet : testing) {
 			List<String> candidates = ex.extract(snippet.getText());
 			String predicted = chooseBestCandidate(candidates);
-			String actual = snippet.getLabeledSegment();
+			List<String> actual = snippet.getLabeledStrings();
 			if (pw != null) {
 				pw.println("--- Test Snippet:");
 				pw.println(snippet.getText());
@@ -123,7 +125,7 @@ public class CrossValidate {
 			} else if (actual == null) {
 				score.setFp(score.getFp() + 1);
 			} else {
-				if (predicted.equals(snippet.getLabeledSegment())) {
+				if (snippet.getLabeledStrings().contains(predicted)) {
 					score.setTp(score.getTp() + 1);
 				} else {
 					score.setFp(score.getFp() + 1);
@@ -144,31 +146,24 @@ public class CrossValidate {
 	 */
 	public CVScore testExtractor(List<Snippet> testing,
 			LSExtractor ex) {
-		/*if (pw != null) {
-			pw.println();
-		}*/
 		CVScore score = new CVScore();
 		for (Snippet snippet : testing) {
 			List<String> candidates = ex.extract(snippet.getText());
 			String predicted = chooseBestCandidate(candidates);
-			String actual = snippet.getLabeledSegment();
-			/*if (pw != null) {
-				pw.println("--- Test Snippet:");
-				pw.println(snippet.getText());
-				pw.println("Predicted: " + predicted + ", Actual: " + actual);
-			}*/
+			List<String> actual = snippet.getLabeledStrings();
+
 			// Score
 			
 			if (predicted == null) {
-				if (actual == null) {
+				if (actual == null || actual.size() == 0) {
 					score.setTn(score.getTn() + 1);
 				} else {
 					score.setFn(score.getFn() + 1);
 				}
-			} else if (actual == null) {
+			} else if (actual == null || actual.size() == 0) {
 				score.setFp(score.getFp() + 1);
 			} else {
-				if (predicted.equals(snippet.getLabeledSegment())) {
+				if (snippet.getLabeledStrings().contains(predicted.trim())) {
 					score.setTp(score.getTp() + 1);
 				} else {
 					score.setFp(score.getFp() + 1);
@@ -294,4 +289,63 @@ public class CrossValidate {
 		return category;
 	}
 
+	public static Map<LSTriplet, TripletMatches> findTripletsWithFalsePositives(final List<LSTriplet> ls3list, final List<Snippet> snippets, final String label) {
+		Map<LSTriplet, TripletMatches> tripsWithFP = new HashMap<>();
+		for (LSTriplet ls3 : ls3list) {
+			List<Snippet> correct = new ArrayList<>();
+			List<Snippet> falsePositive = new ArrayList<>();
+			Pattern ls3pattern = Pattern.compile(ls3.toStringRegEx());
+			for (Snippet snippet : snippets) {
+				List<Snippet> lsCorrectMatch = new ArrayList<>();
+				List<Snippet> lsFalseMatch = new ArrayList<>();
+				for (LabeledSegment ls : snippet.getLabeledSegments()) {
+					if (label.equals(ls.getLabel())) {
+						Matcher m = ls3pattern.matcher(snippet.getText());
+						if (m.find()) {
+							String actual = ls.getLabeledString();
+							String predicted = m.group(1);
+							if ((predicted != null && actual == null) || (predicted != null && !snippet.getLabeledStrings().contains(predicted.trim()))) {
+								lsFalseMatch.add(snippet);
+							} else {
+								// The regex matched at least one of the snippets labeled segments correctly
+								lsCorrectMatch.add(snippet);
+								break;
+							}
+						}
+					}
+				}
+				if (lsCorrectMatch.size() == 0) {
+					// The regex did not match any labeled segments correctly
+					// count as a false positive.
+					correct.addAll(lsCorrectMatch);
+					falsePositive.addAll(lsFalseMatch);
+				}
+			}
+			if (falsePositive.size() > 0) {
+				tripsWithFP.put(ls3, new TripletMatches(correct, falsePositive));
+			}
+		}
+		return tripsWithFP;
+	}
+	
+	public static class TripletMatches {
+		private List<Snippet> correct;
+		private List<Snippet> falsePositive;
+		public TripletMatches(final List<Snippet> correct, final List<Snippet> falsePositive) {
+			this.correct = correct;
+			this.falsePositive = falsePositive;
+		}
+		public List<Snippet> getCorrect() {
+			return correct;
+		}
+		public void setCorrect(List<Snippet> correct) {
+			this.correct = correct;
+		}
+		public List<Snippet> getFalsePositive() {
+			return falsePositive;
+		}
+		public void setFalsePositive(List<Snippet> falsePositive) {
+			this.falsePositive = falsePositive;
+		}
+	}
 }
