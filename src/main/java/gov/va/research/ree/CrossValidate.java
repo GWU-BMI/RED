@@ -117,15 +117,15 @@ public class CrossValidate {
 			}
 			// Score
 			if (predicted == null) {
-				if (actual == null) {
+				if (actual == null || actual.size() == 0) {
 					score.setTn(score.getTn() + 1);
 				} else {
 					score.setFn(score.getFn() + 1);
 				}
-			} else if (actual == null) {
+			} else if (actual == null || actual.size() == 0) {
 				score.setFp(score.getFp() + 1);
 			} else {
-				if (snippet.getLabeledStrings().contains(predicted)) {
+				if (snippet.getLabeledStrings().contains(predicted.trim())) {
 					score.setTp(score.getTp() + 1);
 				} else {
 					score.setFp(score.getFp() + 1);

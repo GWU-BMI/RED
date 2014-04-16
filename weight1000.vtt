@@ -12,6 +12,7 @@ FILE_SAVE|VTT.2010.0|VTT|4/8/14 2:06:48 PM
 FILE_SAVE|VTT.2010.0|VTT|4/8/14 2:16:13 PM
 FILE_SAVE|VTT.2010.0|VTT|4/8/14 3:38:09 PM
 FILE_SAVE|VTT.2010.0|VTT|4/10/14 12:18:47 AM
+FILE_SAVE|VTT.2010.0|VTT|4/11/14 5:56:03 PM
 #<---------------------------------------------------------------------->
 #<Text Content>
 #<---------------------------------------------------------------------->
@@ -14051,6 +14052,7 @@ unit||false|false|false|true|51|255|51|255|255|255|Monospaced|+0
  235312| 1|SnippetColumn  |               |snippetNumber="658"<::>columnNumber="2"<::>columnName="empty1"|1
  235322| 1|SnippetColumn  |               |snippetNumber="658"<::>columnNumber="3"<::>columnName="empty2"|1
  235339|214|SnippetColumn  |               |snippetNumber="658"<::>columnNumber="4"<::>columnName="SnippetText"|24 Hr Max Temp:39.2 36 Hr Max Temp:39.2 METRIC: Weight: 255 - - - - - Constitutional: No acute distress Eyes:  Other: Pupils 3mm-2mm Ears, Nose, Mouth & Throat: Moist mucosa Respiratory: CTA;  Other: no significant
+ 235395| 3|weight         |               ||255
  235648|16|SnippetColumn  |               |snippetNumber="659"<::>columnNumber="1"<::>columnName="filename"|freport98923.txt
  235673| 1|SnippetColumn  |               |snippetNumber="659"<::>columnNumber="2"<::>columnName="empty1"|1
  235683| 1|SnippetColumn  |               |snippetNumber="659"<::>columnNumber="3"<::>columnName="empty2"|1
@@ -14570,6 +14572,7 @@ unit||false|false|false|true|51|255|51|255|255|255|Monospaced|+0
  279289| 1|SnippetColumn  |               |snippetNumber="783"<::>columnNumber="2"<::>columnName="empty1"|1
  279299| 1|SnippetColumn  |               |snippetNumber="783"<::>columnNumber="3"<::>columnName="empty2"|1
  279316|201|SnippetColumn  |               |snippetNumber="783"<::>columnNumber="4"<::>columnName="SnippetText"|24 Hr Max Temp:36.7 METRIC: Weight: 185 - - - - - Constitutional:  Other: mild distress Eyes: EOMI; **NAME[SSS] Ears, Nose, Mouth & Throat: Moist mucosa; Neck supple; Hearing grossly normal Respiratory
+ 279352| 3|weight         |               ||185
  279612|17|SnippetColumn  |               |snippetNumber="784"<::>columnNumber="1"<::>columnName="filename"|freport100605.txt
  279638| 1|SnippetColumn  |               |snippetNumber="784"<::>columnNumber="2"<::>columnName="empty1"|1
  279648| 1|SnippetColumn  |               |snippetNumber="784"<::>columnNumber="3"<::>columnName="empty2"|1

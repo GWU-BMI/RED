@@ -290,8 +290,8 @@ public class VTTReader {
 				for(LSTriplet triplet : value){
 					if(processBLS){
 						bls = triplet.getBLS();
-						if(!key.equals("S")){
-							triplet.setBLS(triplet.getBLS().replaceAll("\\b"+key+"\\b", "\\\\S{1,"+key.length()+"}"));//triplet.getBLS().replaceAll("?:"+key, "(?:"+key+")");
+						//if(!key.equals("S")){
+							triplet.setBLS(triplet.getBLS().replaceAll("\\b(?<!\\\\)"+key+"\\b", "\\\\S{1,"+key.length()+"}"));//triplet.getBLS().replaceAll("?:"+key, "(?:"+key+")");
 							List<LSTriplet> regEx = new ArrayList<LSTriplet>();
 							regEx.add(triplet);
 							LSExtractor leExt = new LSExtractor(regEx);
@@ -299,13 +299,11 @@ public class VTTReader {
 							CVScore cvScore = cv.testExtractor(snippets, leExt);
 							if(cvScore.getFp() > 0)
 								triplet.setBLS(bls);
-						}else{
-							System.out.println("----------------------------------------key S-----------------------------");
-						}
+						//}
 					}else{
 						als = triplet.getALS();
-						if(!key.equals("S")){
-							triplet.setALS(triplet.getALS().replaceAll("\\b"+key+"\\b", "\\\\S{1,"+key.length()+"}"));//triplet.getALS().replaceAll("?:"+key, "(?:"+key+")");
+						//if(!key.equals("S")){
+							triplet.setALS(triplet.getALS().replaceAll("\\b(?<!\\\\)"+key+"\\b", "\\\\S{1,"+key.length()+"}"));//triplet.getALS().replaceAll("?:"+key, "(?:"+key+")");
 							List<LSTriplet> regEx = new ArrayList<LSTriplet>();
 							regEx.add(triplet);
 							LSExtractor leExt = new LSExtractor(regEx);
@@ -313,7 +311,7 @@ public class VTTReader {
 							CVScore cvScore = cv.testExtractor(snippets, leExt);
 							if(cvScore.getFp() > 0)
 								triplet.setALS(als);
-						}
+						//}
 					}
 				}
 			//}
@@ -366,7 +364,7 @@ public class VTTReader {
 		while(true){
 			boolean processedBLSorALS = true;
 			for(LSTriplet triplet : ls3list){
-				if(prevTrimOpResultBLS.get(triplet)){
+				if(prevTrimOpResultBLS.get(triplet) && triplet.getBLS().length() >= triplet.getALS().length()){
 					processedBLSorALS = false;
 					bls = triplet.getBLS();
 					if(bls.equals("") || bls == null){
@@ -408,7 +406,7 @@ public class VTTReader {
 						}
 					}
 				}
-				if(prevTrimOpResultALS.get(triplet)){
+				if(prevTrimOpResultALS.get(triplet) && triplet.getBLS().length() <= triplet.getALS().length()){
 					processedBLSorALS = false;
 					als = triplet.getALS();
 					if(als.equals("") || als == null){
