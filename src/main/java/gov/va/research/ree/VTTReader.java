@@ -46,6 +46,8 @@ public class VTTReader {
 	private static final Pattern SNIPPET_TEXT_BEGIN_PATTERN = Pattern.compile(SNIPPET_TEXT_BEGIN_REGEX);
 	private static final String SNIPPET_TEXT_END = "----------------------------------------------------------------------------------";
 	private static final Logger LOG = LoggerFactory.getLogger(VTTReader.class);
+	private LSExtractor leExt = new LSExtractor(null);
+	private CrossValidate cv = new CrossValidate();
 
 	/**
 	 * Reads a VTT file.
@@ -134,17 +136,17 @@ public class VTTReader {
 			
 			//check if we can remove the first regex from bls. Keep on repeating
 			//the process till we can't remove any regex's from the bls's.
-			LSExtractor lsExtractor = new LSExtractor(null);
-			CrossValidate cv = new CrossValidate();
+			//LSExtractor lsExtractor = new LSExtractor(null);
+			//CrossValidate cv = new CrossValidate();
 			//lsExtractor.setRegExpressions(ls3list);
 			//CVScore initScore = cv.testExtractor(snippets, lsExtractor);
 			//System.out.println("trimming bls and als");
 			//System.out.println("No of regex "+ls3list.size());
-			trimRegEx(snippets, ls3list, lsExtractor, cv);
+			trimRegEx(snippets, ls3list);
 			//System.out.println("trimming als");
 			//trimRegEx(snippets, ls3list, lsExtractor, cv, false);
-			lsExtractor.setRegExpressions(ls3list);
-			CVScore scoreAfterTrimming = cv.testExtractor(snippets, lsExtractor);
+			leExt.setRegExpressions(ls3list);
+			CVScore scoreAfterTrimming = cv.testExtractor(snippets, leExt);
 			/*try {
 				System.out.println("Score after trimming\n"+scoreAfterTrimming.getEvaluation());
 			} catch (IOException e) {
@@ -161,13 +163,17 @@ public class VTTReader {
 			CVScore tempScore = null;
 			for(LSTriplet triplet : ls3list){
 				testList.remove(triplet);
-				lsExtractor.setRegExpressions(testList);
-				tempScore = cv.testExtractor(snippets, lsExtractor);
+				leExt.setRegExpressions(testList);
+				tempScore = cv.testExtractor(snippets, leExt);
 				if(tempScore.getFn() < fnToTestAgainst)
 					fnToTestAgainst = tempScore.getFn();
 				else
 					testList.add(triplet);
 			}
+			if(ls3list.size() != testList.size())
+				System.out.println("Reduntant regex code did something");
+			else
+				System.out.println("Reduntant regex code did nothing");
 			ls3list = testList;
 			/*if(!ls3list.isEmpty()) {
 				lsExtractor.setRegExpressions(ls3list);
@@ -188,16 +194,16 @@ public class VTTReader {
 			for(List<LSTriplet> tripletList : snippetGroups.values()){
 				allTriplets.addAll(tripletList);
 			}
-			lsExtractor.setRegExpressions(allTriplets);
-			tempScore = cv.testExtractor(snippets, lsExtractor);
+			leExt.setRegExpressions(allTriplets);
+			tempScore = cv.testExtractor(snippets, leExt);
 			try {
 				System.out.println("Score after MFT operation\n"+tempScore.getEvaluation());
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
-			for(LSTriplet triplet : ls3list){
+			/*for(LSTriplet triplet : ls3list){
 				System.out.println("\n\n"+triplet.toStringRegEx()+"\n\n");
-			}
+			}*/
 			return allTriplets;
 		}
 		return null;
@@ -256,65 +262,29 @@ public class VTTReader {
 			List<LSTriplet> value = entry.getValue();
 			String key = entry.getKey();
 			String bls=null,als=null;
-			/*if(value.size() > 1){
-				for(LSTriplet triplet : value){
-					if(processBLS){
-						bls = triplet.getBLS();
-						if(!key.equals("b")){
-							triplet.setBLS(triplet.getBLS().replaceAll("\\b"+key+"\\b", "\\\\b"+key+"\\\\b"));//triplet.getBLS().replaceAll("?:"+key, "(?:"+key+")");
-							List<LSTriplet> regEx = new ArrayList<LSTriplet>();
-							regEx.add(triplet);
-							LSExtractor leExt = new LSExtractor(regEx);
-							CrossValidate cv = new CrossValidate();
-							CVScore cvScore = cv.testExtractor(snippets, leExt);
-							if(cvScore.getFp() > 0)
-								triplet.setBLS(bls);
-						}else{
-							System.out.println("----------------------------------------key B-----------------------------");
-						}
-					}else{
-						als = triplet.getALS();
-						if(!key.equals("b")){
-							triplet.setALS(triplet.getALS().replaceAll("\\b"+key+"\\b", "\\\\b"+key+"\\\\b"));//triplet.getALS().replaceAll("?:"+key, "(?:"+key+")");
-							List<LSTriplet> regEx = new ArrayList<LSTriplet>();
-							regEx.add(triplet);
-							LSExtractor leExt = new LSExtractor(regEx);
-							CrossValidate cv = new CrossValidate();
-							CVScore cvScore = cv.testExtractor(snippets, leExt);
-							if(cvScore.getFp() > 0)
-								triplet.setALS(als);
-						}
-					}
+			for(LSTriplet triplet : value){
+				if(processBLS){
+					bls = triplet.getBLS();
+					//if(!key.equals("S")){
+						triplet.setBLS(triplet.getBLS().replaceAll("\\b(?<!\\\\)"+key+"\\b", "\\\\S{1,"+key.length()+"}"));//triplet.getBLS().replaceAll("?:"+key, "(?:"+key+")");
+						List<LSTriplet> regEx = new ArrayList<LSTriplet>();
+						regEx.add(triplet);
+						leExt.setRegExpressions(regEx);
+						//CVScore cvScore = cv.testExtractor(snippets, leExt);
+						if(cv.checkForFalsePositives(snippets, leExt))
+							triplet.setBLS(bls);
+				}else{
+					als = triplet.getALS();
+					//if(!key.equals("S")){
+						triplet.setALS(triplet.getALS().replaceAll("\\b(?<!\\\\)"+key+"\\b", "\\\\S{1,"+key.length()+"}"));//triplet.getALS().replaceAll("?:"+key, "(?:"+key+")");
+						List<LSTriplet> regEx = new ArrayList<LSTriplet>();
+						regEx.add(triplet);
+						leExt.setRegExpressions(regEx);
+						//CVScore cvScore = cv.testExtractor(snippets, leExt);
+						if(cv.checkForFalsePositives(snippets, leExt))
+							triplet.setALS(als);
 				}
-			}else{*/
-				for(LSTriplet triplet : value){
-					if(processBLS){
-						bls = triplet.getBLS();
-						//if(!key.equals("S")){
-							triplet.setBLS(triplet.getBLS().replaceAll("\\b(?<!\\\\)"+key+"\\b", "\\\\S{1,"+key.length()+"}"));//triplet.getBLS().replaceAll("?:"+key, "(?:"+key+")");
-							List<LSTriplet> regEx = new ArrayList<LSTriplet>();
-							regEx.add(triplet);
-							LSExtractor leExt = new LSExtractor(regEx);
-							CrossValidate cv = new CrossValidate();
-							CVScore cvScore = cv.testExtractor(snippets, leExt);
-							if(cvScore.getFp() > 0)
-								triplet.setBLS(bls);
-						//}
-					}else{
-						als = triplet.getALS();
-						//if(!key.equals("S")){
-							triplet.setALS(triplet.getALS().replaceAll("\\b(?<!\\\\)"+key+"\\b", "\\\\S{1,"+key.length()+"}"));//triplet.getALS().replaceAll("?:"+key, "(?:"+key+")");
-							List<LSTriplet> regEx = new ArrayList<LSTriplet>();
-							regEx.add(triplet);
-							LSExtractor leExt = new LSExtractor(regEx);
-							CrossValidate cv = new CrossValidate();
-							CVScore cvScore = cv.testExtractor(snippets, leExt);
-							if(cvScore.getFp() > 0)
-								triplet.setALS(als);
-						//}
-					}
-				}
-			//}
+			}
 		}
 	}
 	
@@ -345,8 +315,7 @@ public class VTTReader {
 	}
 
 	private void trimRegEx(final List<Snippet> snippets,
-			List<LSTriplet> ls3list,
-			LSExtractor lsExtractor, CrossValidate cv) {
+			List<LSTriplet> ls3list) {
 		Map<LSTriplet,Boolean> prevTrimOpResultBLS = new HashMap<LSTriplet,Boolean>();
 		for(LSTriplet triplet : ls3list){
 			prevTrimOpResultBLS.put(triplet, true);
@@ -358,13 +327,12 @@ public class VTTReader {
 		String bls=null,als=null;
 		List<LSTriplet> regExList = new ArrayList<LSTriplet>();
 		regExList.addAll(ls3list);
-		lsExtractor.setRegExpressions(regExList);
-		CVScore cvScore = null;
+		leExt.setRegExpressions(regExList);
 		//int count = 1;
 		while(true){
 			boolean processedBLSorALS = true;
 			for(LSTriplet triplet : ls3list){
-				if(prevTrimOpResultBLS.get(triplet) && triplet.getBLS().length() >= triplet.getALS().length()){
+				if(prevTrimOpResultBLS.get(triplet) && ((triplet.getBLS().length() >= triplet.getALS().length()) || !prevTrimOpResultALS.get(triplet))){
 					processedBLSorALS = false;
 					bls = triplet.getBLS();
 					if(bls.equals("") || bls == null){
@@ -393,10 +361,10 @@ public class VTTReader {
 						triplet.setBLS(blsWithoutFirstRegex);
 						regExList = new ArrayList<LSTriplet>();
 						regExList.add(triplet);
-						lsExtractor.setRegExpressions(regExList);
-						cvScore = cv.testExtractor(snippets, lsExtractor);
-						int falsePositives = cvScore.getFp();
-						if(falsePositives > 0){
+						leExt.setRegExpressions(regExList);
+						//cvScore = cv.testExtractor(snippets, lsExtractor);
+						//int falsePositives = cvScore.getFp();
+						if(cv.checkForFalsePositives(snippets, leExt)){
 							triplet.setBLS(bls);
 							//System.out.println("trim fail bls "+count++);
 							prevTrimOpResultBLS.put(triplet, false);
@@ -406,7 +374,7 @@ public class VTTReader {
 						}
 					}
 				}
-				if(prevTrimOpResultALS.get(triplet) && triplet.getBLS().length() <= triplet.getALS().length()){
+				if(prevTrimOpResultALS.get(triplet) && ((triplet.getBLS().length() <= triplet.getALS().length()) ||  !prevTrimOpResultBLS.get(triplet))){
 					processedBLSorALS = false;
 					als = triplet.getALS();
 					if(als.equals("") || als == null){
@@ -436,10 +404,10 @@ public class VTTReader {
 						triplet.setALS(alsWithoutLastRegex);
 						regExList = new ArrayList<LSTriplet>();
 						regExList.add(triplet);
-						lsExtractor.setRegExpressions(regExList);
-						cvScore = cv.testExtractor(snippets, lsExtractor);
-						int falsePositives = cvScore.getFp();
-						if(falsePositives > 0){
+						leExt.setRegExpressions(regExList);
+						//cvScore = cv.testExtractor(snippets, lsExtractor);
+						//int falsePositives = cvScore.getFp();
+						if(cv.checkForFalsePositives(snippets, leExt)){
 							triplet.setALS(als);
 							//System.out.println("trim fail als "+count++);
 							prevTrimOpResultALS.put(triplet, false);

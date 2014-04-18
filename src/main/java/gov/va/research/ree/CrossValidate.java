@@ -172,6 +172,31 @@ public class CrossValidate {
 		}
 		return score;
 	}
+	
+	public boolean checkForFalsePositives(List<Snippet> testing,
+			LSExtractor ex) {
+		for (Snippet snippet : testing) {
+			List<String> candidates = ex.extract(snippet.getText());
+			String predicted = chooseBestCandidate(candidates);
+			List<String> actual = snippet.getLabeledStrings();
+
+			// Score
+			
+			if (predicted == null) {
+				
+			} else if (actual == null || actual.size() == 0) {
+				//score.setFp(score.getFp() + 1);
+				return true;
+			} else {
+				if (snippet.getLabeledStrings().contains(predicted.trim())) {
+					//score.setTp(score.getTp() + 1);
+				} else {
+					return true;
+				}
+			}
+		}
+		return false;
+	}
 
 	/**
 	 * @param label
