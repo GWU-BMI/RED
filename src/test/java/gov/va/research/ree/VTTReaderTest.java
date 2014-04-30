@@ -17,6 +17,7 @@
 package gov.va.research.ree;
 
 import gov.nih.nlm.nls.vtt.Model.VttDocument;
+import gov.va.research.red.VTTReader;
 
 import java.io.File;
 import java.io.IOException;
@@ -60,7 +61,7 @@ public class VTTReaderTest {
 	}
 
 	/**
-	 * Test method for {@link gov.va.research.ree.VTTReader#read(java.io.File)}.
+	 * Test method for {@link gov.va.research.red.VTTReader#read(java.io.File)}.
 	 */
 	@Test
 	public void testRead() {
@@ -73,7 +74,7 @@ public class VTTReaderTest {
 	}
 
 	/**
-	 * Test method for {@link gov.va.research.ree.VTTReader#extractLSTriplets(java.io.File, java.lang.String)}.
+	 * Test method for {@link gov.va.research.red.VTTReader#extractLSTriplets(java.io.File, java.lang.String)}.
 	 */
 	@Test
 	public void testExtractLSTriplets() {
@@ -89,7 +90,7 @@ public class VTTReaderTest {
 	}
 	
 	/**
-	 * Test method for {@link gov.va.research.ree.VTTReader#extractRegexExpressions(java.io.File, java.lang.String)}.
+	 * Test method for {@link gov.va.research.red.VTTReader#extractRegexExpressions(java.io.File, java.lang.String)}.
 	 */
 	@Test
 	public void testExtractRegexExpressions(){
@@ -145,7 +146,7 @@ public class VTTReaderTest {
 	}
 
 	/**
-	 * Test method for {@link gov.va.research.ree.VTTReader#extractSnippets(java.io.File, java.lang.String)}.
+	 * Test method for {@link gov.va.research.red.VTTReader#extractSnippets(java.io.File, java.lang.String)}.
 	 */
 	@Test
 	public void testExtractSnippets() {

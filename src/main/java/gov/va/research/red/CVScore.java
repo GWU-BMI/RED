@@ -1,4 +1,4 @@
-package gov.va.research.ree;
+package gov.va.research.red;
 
 import java.io.IOException;
 import java.io.PrintWriter;

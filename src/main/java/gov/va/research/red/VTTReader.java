@@ -14,10 +14,16 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License. 
  */
-package gov.va.research.ree;
+package gov.va.research.red;
 
 import gov.nih.nlm.nls.vtt.Model.Markup;
 import gov.nih.nlm.nls.vtt.Model.VttDocument;
+import gov.va.research.ree.CrossValidate;
+import gov.va.research.ree.LSExtractor;
+import gov.va.research.ree.LSTriplet;
+import gov.va.research.ree.LabeledSegment;
+import gov.va.research.ree.Snippet;
+import gov.va.research.ree.CrossValidate.TripletMatches;
 
 import java.io.File;
 import java.io.IOException;

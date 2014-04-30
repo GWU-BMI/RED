@@ -1,5 +1,7 @@
 package gov.va.research.ree;
 
+import gov.va.research.red.CVScore;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
