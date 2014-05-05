@@ -29,6 +29,6 @@ public interface Extractor {
 	 * @param targets String from which to extract information.
 	 * @return List of extracted information, one string for each target in the same order as the targets.
 	 */
-	public List<String> extract(final String target);
+	public List<MatchedElement> extract(final String target);
 
 }

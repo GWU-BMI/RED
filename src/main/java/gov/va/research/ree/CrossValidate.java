@@ -110,7 +110,7 @@ public class CrossValidate {
 		}
 		CVScore score = new CVScore();
 		for (Snippet snippet : testing) {
-			List<String> candidates = ex.extract(snippet.getText());
+			List<MatchedElement> candidates = ex.extract(snippet.getText());
 			String predicted = chooseBestCandidate(candidates);
 			List<String> actual = snippet.getLabeledStrings();
 			if (pw != null) {
@@ -151,7 +151,7 @@ public class CrossValidate {
 			LSExtractor ex) {
 		CVScore score = new CVScore();
 		for (Snippet snippet : testing) {
-			List<String> candidates = ex.extract(snippet.getText());
+			List<MatchedElement> candidates = ex.extract(snippet.getText());
 			String predicted = chooseBestCandidate(candidates);
 			List<String> actual = snippet.getLabeledStrings();
 
@@ -179,7 +179,7 @@ public class CrossValidate {
 	public boolean checkForFalsePositives(List<Snippet> testing,
 			LSExtractor ex) {
 		for (Snippet snippet : testing) {
-			List<String> candidates = ex.extract(snippet.getText());
+			List<MatchedElement> candidates = ex.extract(snippet.getText());
 			String predicted = chooseBestCandidate(candidates);
 			List<String> actual = snippet.getLabeledStrings();
 
@@ -258,22 +258,22 @@ public class CrossValidate {
 	 * @param candidates
 	 * @return
 	 */
-	private static String chooseBestCandidate(List<String> candidates) {
+	private static String chooseBestCandidate(List<MatchedElement> candidates) {
 		String category = null;
 		if (candidates != null && candidates.size() > 0) {
 			if (candidates.size() == 1) {
-				category = candidates.get(0);
+				category = candidates.get(0).getMatch();
 			} else {
 				// Multiple candidates, count their frequencies.
 				Map<String, Integer> candidate2freq = new HashMap<String, Integer>();
-				for (String c : candidates) {
-					Integer freq = candidate2freq.get(c);
+				for (MatchedElement c : candidates) {
+					Integer freq = candidate2freq.get(c.getMatch());
 					if (freq == null) {
 						freq = Integer.valueOf(1);
 					} else {
 						freq = Integer.valueOf(freq.intValue() + 1);
 					}
-					candidate2freq.put(c, freq);
+					candidate2freq.put(c.getMatch(), freq);
 				}
 				// Sort by frequency
 				TreeMap<Integer, List<String>> freq2candidates = new TreeMap<>();
