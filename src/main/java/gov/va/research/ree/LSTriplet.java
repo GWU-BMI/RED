@@ -33,6 +33,13 @@ public class LSTriplet {
 		this.LS = LS;
 		this.ALS = ALS;
 	}
+	
+	public LSTriplet(String triplet) {
+		String[] elem = triplet.split(" ");
+		this.BLS = elem[0];
+		this.LS = elem[1];
+		this.ALS = elem[2];
+	}
 
 	/* (non-Javadoc)
 	 * @see java.lang.Object#toString()

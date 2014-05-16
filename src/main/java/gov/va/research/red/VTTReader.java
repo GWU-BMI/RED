@@ -23,10 +23,11 @@ import gov.va.research.ree.LSExtractor;
 import gov.va.research.ree.LSTriplet;
 import gov.va.research.ree.LabeledSegment;
 import gov.va.research.ree.Snippet;
-import gov.va.research.ree.CrossValidate.TripletMatches;
 
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -56,6 +57,7 @@ public class VTTReader {
 	private static final Logger LOG = LoggerFactory.getLogger(VTTReader.class);
 	private LSExtractor leExt = new LSExtractor(null);
 	private CrossValidate cv = new CrossValidate();
+	private Map<String, Pattern> patternCache = new HashMap<>();
 
 	/**
 	 * Reads a VTT file.
@@ -99,12 +101,79 @@ public class VTTReader {
 	 * @return Regular expressions extracted from the snippets.
 	 * @throws IOException
 	 */
-	public List<LSTriplet> extractRegexExpressions(final File vttFile, final String label) throws IOException{
+	public List<LSTriplet> extractRegexExpressions(final File vttFile, final String label, final String outputFileName) throws IOException{
 		List<Snippet> snippets = extractSnippets(vttFile, label);
-		return extractRegexExpressions(snippets, label);
+		return extractRegexExpressions(snippets, label, outputFileName);
 	}
 	
-	public List<LSTriplet> extractRegexExpressions(final List<Snippet> snippets, final String label) {
+	public List<LabeledSegment> extracteRegexClassifications(final File vttFile, final String label, final String classifierOutputFileName) throws IOException{
+		List<Snippet> snippetsYes = extractSnippets(vttFile, "yes");
+		List<LabeledSegment> regExYes = extracteRegexClassifications(snippetsYes, "yes");
+		List<Snippet> snippetsNo = extractSnippets(vttFile, "no");
+		List<LabeledSegment> regExNo = extracteRegexClassifications(snippetsNo, "no");
+		if(classifierOutputFileName != null && !classifierOutputFileName.equals("")){
+			File outputFile = new File(classifierOutputFileName);
+			if(!outputFile.exists())
+				outputFile.createNewFile();
+			FileWriter fWriter = new FileWriter(outputFile.getAbsoluteFile(), false);
+			PrintWriter pWriter = new PrintWriter(fWriter);
+			pWriter.println("yes regex");
+			for(LabeledSegment regEx : regExYes){
+				pWriter.println(regEx.getLabeledString());
+			}
+			pWriter.println("\nno regex");
+			for(LabeledSegment regEx : regExNo){
+				pWriter.println(regEx.getLabeledString());
+			}
+			pWriter.close();
+			fWriter.close();
+		}
+		CrossValidate cv = new CrossValidate();
+		CVScore score = cv.testClassifier(snippetsYes, regExYes, null, "yes");
+		System.out.println(score.getEvaluation());
+		score = cv.testClassifier(snippetsNo, regExNo, null, "no");
+		System.out.println(score.getEvaluation());
+		return null;
+	}
+	
+	public List<LabeledSegment> extracteRegexClassifications(final List<Snippet> snippets, final String label) {
+		if(snippets == null || snippets.isEmpty())
+			return null;
+		List<LabeledSegment> listOfLabeledSegments = new ArrayList<>(snippets.size());
+		for(Snippet snippet : snippets){
+			LabeledSegment labeledSegment = snippet.getLabeledSegment(label);
+			if(labeledSegment != null)
+				listOfLabeledSegments.add(labeledSegment);
+		}
+		//replace all the punctuations with their regular expressions in the labeled
+		//segments
+		replacePunctClassification(listOfLabeledSegments);
+		//replace all the digits with their regular expressions in the labeled
+		//segments
+		replaceDigitsClassification(listOfLabeledSegments);
+		//replace all the whitespaces with their regular expressions in the labeled
+		//segments
+		replaceWhiteSpacesClassification(listOfLabeledSegments);
+		List<PotentialMatchClassification> potentialList = new ArrayList<>();
+		treeReplacementLogicClassification(listOfLabeledSegments, potentialList);
+		Comparator<PotentialMatchClassification> comp = new Comparator<PotentialMatchClassification>() {
+
+			@Override
+			public int compare(PotentialMatchClassification o1, PotentialMatchClassification o2) {
+				if(o1.terms.size() < o2.terms.size())
+					return 1;
+				if(o1.terms.size() > o2.terms.size())
+					return -1;
+				return 0;
+			}
+			
+		};
+		Collections.sort(potentialList, comp);
+		replacePotentialMatchesClassification(potentialList, listOfLabeledSegments, snippets, label);
+		return listOfLabeledSegments;
+	}
+	
+	public List<LSTriplet> extractRegexExpressions(final List<Snippet> snippets, final String label, final String outputFileName) throws IOException {
 		List<LSTriplet> ls3list = new ArrayList<>(snippets.size());
 		for (Snippet snippet : snippets) {
 			for (LabeledSegment ls : snippet.getLabeledSegments()) {
@@ -184,6 +253,18 @@ public class VTTReader {
 			Collections.sort(potentialListALS, comp);
 			replacePotentialMatches(potentialListBLS, ls3list, true, snippets);
 			replacePotentialMatches(potentialListALS, ls3list, false, snippets);
+			if(outputFileName != null && !outputFileName.equals("")){
+				File file = new File(outputFileName);
+				if(!file.exists())
+					file.createNewFile();
+				FileWriter fWriter = new FileWriter(file,false);
+				PrintWriter pWriter = new PrintWriter(fWriter);
+				for(LSTriplet triplet : ls3list){
+					pWriter.println(triplet.toString());
+				}
+				pWriter.close();
+				fWriter.close();
+			}
 			return ls3list;
 		}
 		return null;
@@ -220,6 +301,26 @@ public class VTTReader {
 		}
 	}
 	
+	private void replacePotentialMatchesClassification(List<PotentialMatchClassification> potentialMatches, List<LabeledSegment> ls3List, final List<Snippet> snippets, String label){
+		for(PotentialMatchClassification match : potentialMatches){
+			if(match.count == 1){
+				for(Match triplet : match.matches){
+					//String key = match.toString();
+					String bls = triplet.match.getLabeledString();
+					if(bls.contains(triplet.matchedString)){
+						//if(!key.equals("S")){
+						triplet.match.setLabeledString(bls.replace(triplet.matchedString, "[\\s\\S\\d\\p{Punct}]+"));//triplet.getBLS().replaceAll("?:"+key, "(?:"+key+")");
+						List<LabeledSegment> regEx = new ArrayList<LabeledSegment>();
+						regEx.add(triplet.match);
+						CVScore cvScore = cv.testClassifier(snippets, regEx, null, label);
+						if(cvScore.getFp() != 0)
+							triplet.match.setLabeledString(bls);
+					}
+				}
+			}
+		}
+	}
+	
 	/**
 	 * finds out all the terms in all the bls and als. It then checks to see
 	 * if any permutation of the terms matches against any bls or als. If matches
@@ -242,6 +343,15 @@ public class VTTReader {
 		termList = new ArrayList<>();
 		termList.addAll(freqMap.keySet());
 		performPermuation(null, termList, ls3List, false, potentialListALS);
+	}
+	
+	private void treeReplacementLogicClassification(List<LabeledSegment> ls3List, List<PotentialMatchClassification> potentialList){
+		Map<String, List<LabeledSegment>> freqMap = new HashMap<String, List<LabeledSegment>>();
+		for(LabeledSegment triplet : ls3List)
+			updateMFTMapClassification(triplet, freqMap);
+		List<String> termList = new ArrayList<>();
+		termList.addAll(freqMap.keySet());
+		performPermuationClassification(null, termList, ls3List, potentialList);
 	}
 	
 	/**
@@ -268,6 +378,26 @@ public class VTTReader {
 				if(match.count > 0){
 					potentialList.add(match);
 					performPermuation(tempPrefixList, tempTermList, ls3List, processBLS, potentialList);
+				}
+			}
+		}
+	}
+	
+	private void performPermuationClassification(List<String> prefixList, List<String> termList, List<LabeledSegment> ls3List, List<PotentialMatchClassification> potentialList){
+		if(!termList.isEmpty()){
+			for(int i=0;i<termList.size();i++){
+				List<String> tempPrefixList = new ArrayList<>();
+				if(prefixList != null)
+					tempPrefixList.addAll(prefixList);
+				String tempElement = termList.get(i);
+				tempPrefixList.add(tempElement);
+				List<String> tempTermList = new ArrayList<>();
+				tempTermList.addAll(termList);
+				tempTermList.remove(tempElement);
+				PotentialMatchClassification match = findMatchClassification(tempPrefixList, ls3List);
+				if(match.count > 0){
+					potentialList.add(match);
+					performPermuationClassification(tempPrefixList, tempTermList, ls3List, potentialList);
 				}
 			}
 		}
@@ -303,6 +433,37 @@ public class VTTReader {
 			}
 		}
 		PotentialMatch match = new PotentialMatch(termList, count, triplets);
+		return match;
+	}
+	
+	private PotentialMatchClassification findMatchClassification(List<String> termList, List<LabeledSegment> ls3List){
+		StringBuilder concatString = new StringBuilder("");
+		int count = 0;
+		List<Match> triplets = new ArrayList<>();
+		for(int i=0;i<termList.size();i++){
+			if(i==termList.size()-1)
+				concatString.append(termList.get(i));
+			else
+				concatString.append(termList.get(i)+"(\\\\s\\{1,50\\}|\\\\p\\{Punct\\}|\\\\d)+");
+		}
+		Pattern pattern = null;
+		String regex = concatString.toString();
+		if(patternCache.containsKey(regex)){
+			pattern = patternCache.get(regex);
+		}else{
+			pattern = Pattern.compile(regex);
+		}
+		for(LabeledSegment triplet : ls3List){
+			String matchAgainst = null;
+			matchAgainst = triplet.getLabeledString();
+			Matcher matcher = pattern.matcher(matchAgainst);
+			if(matcher.find()){
+				count++;
+				String matchedString = matchAgainst.substring(matcher.start(), matcher.end());
+				triplets.add(new Match(triplet, matchedString));
+			}
+		}
+		PotentialMatchClassification match = new PotentialMatchClassification(termList, count, triplets);
 		return match;
 	}
 
@@ -405,6 +566,23 @@ public class VTTReader {
 					termContainingTriplets = freqMap.get(term);
 				else
 					termContainingTriplets = new ArrayList<LSTriplet>();
+				termContainingTriplets.add(triplet);
+				freqMap.put(term, termContainingTriplets);
+			}
+		}
+	}
+	
+	private void updateMFTMapClassification(LabeledSegment triplet, Map<String, List<LabeledSegment>> freqMap){
+		String phrase = "";
+		phrase = triplet.getLabeledString();
+		String[] termArray = phrase.split("\\\\s\\{1,50\\}|\\\\p\\{Punct\\}|\\\\d\\+");
+		List<LabeledSegment> termContainingTriplets = null;
+		for(String term : termArray){
+			if(!term.equals(" ") && !term.equals("")){
+				if(freqMap.containsKey(term))
+					termContainingTriplets = freqMap.get(term);
+				else
+					termContainingTriplets = new ArrayList<LabeledSegment>();
 				termContainingTriplets.add(triplet);
 				freqMap.put(term, termContainingTriplets);
 			}
@@ -578,7 +756,7 @@ public class VTTReader {
 
 		for (Markup markup : vttDoc.GetMarkups().GetMarkups()) {
 			// Check if the markup has the requested label
-			if (label.equals(markup.GetTagName())) {
+			if (label.equalsIgnoreCase(markup.GetTagName())) {
 
 				// Get the labeled text boundaries
 				int labeledOffset = markup.GetOffset();
@@ -731,6 +909,18 @@ public class VTTReader {
 		return ls3list;
 	}
 	
+	public List<LabeledSegment> replaceDigitsClassification(List<LabeledSegment> ls3list)
+	{
+		String s;
+		for(LabeledSegment x : ls3list)
+		{
+			s=x.getLabeledString();
+			s=s.replaceAll("\\d+","\\\\d+");
+			x.setLabeledString(s);
+		}
+		return ls3list;
+	}
+	
 	//replace digits with '\d+'
 	public List<LSTriplet> replaceDigitsBLSALS(List<LSTriplet> ls3list)
 	{
@@ -766,6 +956,18 @@ public class VTTReader {
 		return ls3list;
 	}
 	
+	public List<LabeledSegment> replaceWhiteSpacesClassification(List<LabeledSegment> ls3list)
+	{
+		String s;
+		for(LabeledSegment x : ls3list)
+		{
+			s=x.getLabeledString();
+			s=s.replaceAll("\\s+","\\\\s{1,50}");
+			x.setLabeledString(s);
+		}
+		return ls3list;
+	}
+	
 	public List<LSTriplet> replacePunct(List<LSTriplet> ls3list)
 	{
 		String s;
@@ -780,6 +982,18 @@ public class VTTReader {
 			s=x.getALS();
 			s=s.replaceAll("\\p{Punct}","\\\\p{Punct}");
 			x.setALS(s);
+		}
+		return ls3list;
+	}
+	
+	public List<LabeledSegment> replacePunctClassification(List<LabeledSegment> ls3list)
+	{
+		String s;
+		for(LabeledSegment x : ls3list)
+		{
+			s=x.getLabeledString();
+			s=s.replaceAll("\\p{Punct}","\\\\p{Punct}");
+			x.setLabeledString(s);
 		}
 		return ls3list;
 	}
@@ -861,5 +1075,40 @@ class PotentialMatch {
 				temp.append(terms.get(i)+"\\s{1,50}");
 		}
 		return temp.toString();
+	}
+}
+
+class PotentialMatchClassification {
+	List<String> terms;
+	int count;
+	List<Match> matches;
+	
+	public PotentialMatchClassification(List<String> terms, int count, List<Match> matches) {
+		this.terms = terms;
+		this.count = count;
+		this.matches = matches;
+	}
+	
+	/*@Override
+	public String toString() {
+		if(terms == null || terms.isEmpty())
+			return " The match is empty";
+		StringBuilder temp = new StringBuilder();
+		for(int i=0;i<terms.size();i++){
+			if(i==terms.size()-1)
+				temp.append(terms.get(i));
+			else
+				temp.append(terms.get(i)+"\\s{1,50}*|\\p{punct}*|\\d*");
+		}
+		return temp.toString();
+	}*/
+}
+class Match {
+	LabeledSegment match;
+	String matchedString;
+	
+	public Match(LabeledSegment match, String matchedString) {
+		this.match = match;
+		this.matchedString = matchedString;
 	}
 }

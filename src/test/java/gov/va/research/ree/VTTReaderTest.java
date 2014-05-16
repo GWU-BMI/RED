@@ -43,6 +43,8 @@ import org.junit.Test;
 public class VTTReaderTest {
 
 	private static final String TEST_VTT_FILENAME = "weight1000.vtt";
+	private static final String CLASSIFIER_TEST_FILE = "diabetes-snippets.vtt";
+	
 
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
@@ -89,6 +91,16 @@ public class VTTReaderTest {
 		Assert.assertTrue("List of 'weight' labeled segment triplets was empty", ls3List.size() > 0);
 	}
 	
+	@Test
+	public void testExtractClassifier(){
+		VTTReader vttr = new VTTReader();
+		try {
+			vttr.extracteRegexClassifications(new File(CLASSIFIER_TEST_FILE), "", "");
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+	
 	/**
 	 * Test method for {@link gov.va.research.red.VTTReader#extractRegexExpressions(java.io.File, java.lang.String)}.
 	 */
@@ -97,7 +109,7 @@ public class VTTReaderTest {
 		VTTReader vttr = new VTTReader();
 		List<LSTriplet> regExpList = null;
 		try {
-			regExpList = vttr.extractRegexExpressions(new File(TEST_VTT_FILENAME), "weight");
+			regExpList = vttr.extractRegexExpressions(new File(TEST_VTT_FILENAME), "weight", "");
 		} catch (IOException e) {
 			throw new AssertionError("Failed extract 'weight' labeled regular expressions from VTT file: " + TEST_VTT_FILENAME, e);
 		}

@@ -28,6 +28,23 @@ public class Snippet {
 		}
 		return labeledSegments;
 	}
+	
+	/**
+	 * returns  the labeled segment with the parameter as the label.
+	 * @param label
+	 * @return
+	 */
+	public LabeledSegment getLabeledSegment(String label) {
+		if (labeledSegments == null) {
+			return null;
+		}
+		for(LabeledSegment labelsegment : labeledSegments){
+			if(labelsegment.getLabel() != null && labelsegment.getLabel().equalsIgnoreCase(label)){
+				return labelsegment;
+			}
+		}
+		return null;
+	}
 
 	public void setLabeledSegments(Collection<LabeledSegment> labeledSegments) {
 		this.labeledSegments = labeledSegments;
