@@ -1,5 +1,6 @@
 package gov.va.research.ree;
 
+import gov.va.research.rec.ClassifierRegEx;
 import gov.va.research.rec.ClassifierTester;
 import gov.va.research.red.CVScore;
 import gov.va.research.red.VTTReader;
@@ -177,7 +178,7 @@ public class CrossValidate {
 		return score;
 	}
 	
-	public CVScore testClassifier(List<Snippet> testing, List<LabeledSegment> regularExpressions, ClassifierTester tester, String label) {
+	public CVScore testClassifier(List<Snippet> testing, List<ClassifierRegEx> regularExpressions, ClassifierTester tester, String label) {
 		CVScore score = new CVScore();
 		if(tester == null)
 			tester = new ClassifierTester();

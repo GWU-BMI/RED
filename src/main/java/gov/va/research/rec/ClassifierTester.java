@@ -1,6 +1,5 @@
 package gov.va.research.rec;
 
-import gov.va.research.ree.LabeledSegment;
 import gov.va.research.ree.Snippet;
 
 import java.util.HashMap;
@@ -13,14 +12,14 @@ public class ClassifierTester {
 	
 	private Map<String, Pattern> patternCache = new HashMap<>();
 	
-	public boolean test(List<LabeledSegment> regularExpressions, Snippet snippet){
-		for(LabeledSegment segment : regularExpressions){
+	public boolean test(List<ClassifierRegEx> regularExpressions, Snippet snippet){
+		for(ClassifierRegEx segment : regularExpressions){
 			Pattern pattern = null;
-			if(patternCache.containsKey(segment.getLabeledString())){
-				pattern = patternCache.get(segment.getLabeledString());
+			if(patternCache.containsKey(segment.getRegEx())){
+				pattern = patternCache.get(segment.getRegEx());
 			}else {
-				pattern = Pattern.compile(segment.getLabeledString());
-				patternCache.put(segment.getLabeledString(), pattern);
+				pattern = Pattern.compile(segment.getRegEx());
+				patternCache.put(segment.getRegEx(), pattern);
 			}
 			Matcher matcher = pattern.matcher(snippet.getText());
 			boolean test = matcher.find();

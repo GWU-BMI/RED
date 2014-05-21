@@ -1,6 +1,4 @@
-package gov.va.research.red;
-
-import gov.va.research.ree.LSTriplet;
+package gov.va.research.ree;
 
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;

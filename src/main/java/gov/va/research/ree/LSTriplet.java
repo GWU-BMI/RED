@@ -38,7 +38,8 @@ public class LSTriplet {
 		String[] elem = triplet.split(" ");
 		this.BLS = elem[0];
 		this.LS = elem[1];
-		this.ALS = elem[2];
+		if(elem.length == 3)
+			this.ALS = elem[2];
 	}
 
 	/* (non-Javadoc)
