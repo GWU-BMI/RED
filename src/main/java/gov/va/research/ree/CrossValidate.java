@@ -178,16 +178,20 @@ public class CrossValidate {
 		return score;
 	}
 	
-	public CVScore testClassifier(List<Snippet> testing, List<ClassifierRegEx> regularExpressions, ClassifierTester tester, String label) {
+	public CVScore testClassifier(List<Snippet> testing, List<ClassifierRegEx> regularExpressions, ClassifierTester tester, List<String> labels) {
 		CVScore score = new CVScore();
 		if(tester == null)
 			tester = new ClassifierTester();
 		for(Snippet testSnippet : testing){
 			boolean predicted = tester.test(regularExpressions, testSnippet);
-			LabeledSegment actualSegment = testSnippet.getLabeledSegment(label);
 			boolean actual = false;
-			if(actualSegment != null)
-				actual = true;
+			for(String label : labels){
+				LabeledSegment actualSegment = testSnippet.getLabeledSegment(label);
+				if(actualSegment != null) {
+					actual = true;
+					break;
+				}
+			}
 			if(actual && predicted)
 				score.setTp(score.getTp() + 1);
 			else if(!actual && !predicted)

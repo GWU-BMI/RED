@@ -113,11 +113,17 @@ public class VTTReader {
 		return regExt.extractRegexExpressions(snippets, label, outputFileName);
 	}
 
-	public Map<String,List<ClassifierRegEx>> extracteRegexClassifications(final File vttFile, final String label, final String classifierOutputFileName) throws IOException{
-		List<Snippet> snippetsYes = extractSnippets(vttFile, "yes");
-		List<ClassifierRegEx> regExYes = extracteRegexClassifications(snippetsYes, "yes");
-		List<Snippet> snippetsNo = extractSnippets(vttFile, "no");
-		List<ClassifierRegEx> regExNo = extracteRegexClassifications(snippetsNo, "no");
+	public Map<String,List<ClassifierRegEx>> extracteRegexClassifications(final File vttFile, List<String> yesLabels, List<String> noLabels, final String classifierOutputFileName) throws IOException{
+		List<Snippet> snippetsYes = new ArrayList<>();
+		for(String yesLabel : yesLabels){
+			snippetsYes.addAll(extractSnippets(vttFile, yesLabel));
+		}
+		List<ClassifierRegEx> regExYes = extracteRegexClassifications(snippetsYes, yesLabels);
+		List<Snippet> snippetsNo = new ArrayList<>();
+		for(String noLabel : noLabels){
+			snippetsNo.addAll(extractSnippets(vttFile, noLabel));
+		}
+		List<ClassifierRegEx> regExNo = extracteRegexClassifications(snippetsNo, noLabels);
 		if(classifierOutputFileName != null && !classifierOutputFileName.equals("")){
 			File outputFile = new File(classifierOutputFileName);
 			if(!outputFile.exists())
@@ -136,9 +142,9 @@ public class VTTReader {
 			fWriter.close();
 		}
 		CrossValidate cv = new CrossValidate();
-		CVScore score = cv.testClassifier(snippetsYes, regExYes, null, "yes");
+		CVScore score = cv.testClassifier(snippetsYes, regExYes, null, yesLabels);
 		System.out.println(score.getEvaluation());
-		score = cv.testClassifier(snippetsNo, regExNo, null, "no");
+		score = cv.testClassifier(snippetsNo, regExNo, null, noLabels);
 		System.out.println(score.getEvaluation());
 		Map<String, List<ClassifierRegEx>> returnMap = new HashMap<>();
 		returnMap.put("yes", regExYes);
@@ -147,9 +153,9 @@ public class VTTReader {
 	}
 	
 	public List<ClassifierRegEx> extracteRegexClassifications(
-			List<Snippet> snippets, String label) {
+			List<Snippet> snippets, List<String> labels) {
 		ClassifierRegExExtractor clRegExExt = new ClassifierRegExExtractor();
-		return clRegExExt.extracteRegexClassifications(snippets, label);
+		return clRegExExt.extracteRegexClassifications(snippets, labels);
 	}
 
 	/*public List<LSTriplet> extractRegexExpressions(final List<Snippet> snippets, final String label) throws IOException{

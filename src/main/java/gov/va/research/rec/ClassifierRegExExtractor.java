@@ -14,19 +14,26 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+/**
+ * 
+ * case like T1 T2 T1 T2 can cause errors with the current algorithm
+ * basically a repeated sequence
+ */
 public class ClassifierRegExExtractor {
 	
 	private CrossValidate cv = new CrossValidate();
 	private Map<String, Pattern> patternCache = new HashMap<>();
 	
-	public List<ClassifierRegEx> extracteRegexClassifications(final List<Snippet> snippets, final String label) {
+	public List<ClassifierRegEx> extracteRegexClassifications(final List<Snippet> snippets, final List<String> labels) {
 		if(snippets == null || snippets.isEmpty())
 			return null;
 		List<LabeledSegment> listOfLabeledSegments = new ArrayList<>(snippets.size());
 		for(Snippet snippet : snippets){
-			LabeledSegment labeledSegment = snippet.getLabeledSegment(label);
-			if(labeledSegment != null)
-				listOfLabeledSegments.add(labeledSegment);
+			for(String label : labels){
+				LabeledSegment labeledSegment = snippet.getLabeledSegment(label);
+				if(labeledSegment != null)
+					listOfLabeledSegments.add(labeledSegment);
+			}
 		}
 		//replace all the punctuations with their regular expressions in the labeled
 		//segments
@@ -47,33 +54,47 @@ public class ClassifierRegExExtractor {
 
 			@Override
 			public int compare(PotentialMatchClassification o1, PotentialMatchClassification o2) {
-				if(o1.terms.size() < o2.terms.size())
+				int size1 = 0;
+				int size2 = 0;
+				for(String term : o1.terms){
+					size1 = size1 + term.length();
+				}
+				for(String term : o2.terms){
+					size2 = size2 + term.length();
+				}
+				if(size1 < size2)
 					return 1;
-				if(o1.terms.size() > o2.terms.size())
+				if(size1 > size2)
 					return -1;
 				return 0;
 			}
 			
 		};
 		Collections.sort(potentialList, comp);
-		replacePotentialMatchesClassification(potentialList, listClassifierRegEx, snippets, label);
+		replacePotentialMatchesClassification(potentialList, listClassifierRegEx, snippets, labels);
 		return listClassifierRegEx;
 	}
 	
-	private void replacePotentialMatchesClassification(List<PotentialMatchClassification> potentialMatches, List<ClassifierRegEx> ls3List, final List<Snippet> snippets, String label){
+	private void replacePotentialMatchesClassification(List<PotentialMatchClassification> potentialMatches, List<ClassifierRegEx> ls3List, final List<Snippet> snippets, List<String> labels){
 		for(PotentialMatchClassification match : potentialMatches){
-			if(match.count == 1){
-				for(Match triplet : match.matches){
+			if(match.count == 1 && match.termSize > 1){
+				for(Match potentialMatch : match.matches){
 					//String key = match.toString();
-					String bls = triplet.match.getRegEx();
-					if(bls.contains(triplet.matchedString)){
+					String bls = potentialMatch.match.getRegEx();
+					if(bls.contains(potentialMatch.matchedString)){
 						//if(!key.equals("S")){
-						triplet.match.setRegEx(bls.replace(triplet.matchedString, "[\\s\\S\\d\\p{Punct}]+"));//triplet.getBLS().replaceAll("?:"+key, "(?:"+key+")");
 						List<ClassifierRegEx> regEx = new ArrayList<ClassifierRegEx>();
-						regEx.add(triplet.match);
-						CVScore cvScore = cv.testClassifier(snippets, regEx, null, label);
-						if(cvScore.getFp() != 0)
-							triplet.match.setRegEx(bls);
+						regEx.add(potentialMatch.match);
+						//CVScore cvScore = cv.testClassifier(snippets, regEx, null, labels);
+						//int start = bls.indexOf(potentialMatch.matchedString);
+						//int end = potentialMatch.matchedString.length();
+						potentialMatch.match.setRegEx(bls.replace(potentialMatch.matchedString, "[\\s\\S]+"));//triplet.getBLS().replaceAll("?:"+key, "(?:"+key+")");
+						//potentialMatch.match.setRegEx(bls.substring(0, start)+"[\\s\\S\\d\\p{Punct}]+"+bls.substring(end));//triplet.getBLS().replaceAll("?:"+key, "(?:"+key+")");
+						/*regEx = new ArrayList<ClassifierRegEx>();
+						regEx.add(triplet.match);*/
+						CVScore cvScore2 = cv.testClassifier(snippets, regEx, null, labels);
+						if(cvScore2.getFp() != 0)
+							potentialMatch.match.setRegEx(bls);
 					}
 				}
 			}
@@ -130,11 +151,12 @@ public class ClassifierRegExExtractor {
 		StringBuilder concatString = new StringBuilder("");
 		int count = 0;
 		List<Match> triplets = new ArrayList<>();
+		int size = termList.size();
 		for(int i=0;i<termList.size();i++){
 			if(i==termList.size()-1)
 				concatString.append(termList.get(i));
 			else
-				concatString.append(termList.get(i)+"(\\\\s\\{1,50\\}|\\\\p\\{Punct\\}|\\\\d)+");
+				concatString.append(termList.get(i)+"\\\\s\\{1,50\\}");
 		}
 		Pattern pattern = null;
 		String regex = concatString.toString();
@@ -150,10 +172,10 @@ public class ClassifierRegExExtractor {
 			if(matcher.find()){
 				count++;
 				String matchedString = matchAgainst.substring(matcher.start(), matcher.end());
-				triplets.add(new Match(triplet, matchedString));
+				triplets.add(new Match(triplet, matchedString, matcher.start(), matcher.end()));
 			}
 		}
-		PotentialMatchClassification match = new PotentialMatchClassification(termList, count, triplets);
+		PotentialMatchClassification match = new PotentialMatchClassification(termList, count, triplets, size);
 		return match;
 	}
 	
@@ -198,11 +220,13 @@ class PotentialMatchClassification {
 	List<String> terms;
 	int count;
 	List<Match> matches;
+	int termSize;
 	
-	public PotentialMatchClassification(List<String> terms, int count, List<Match> matches) {
+	public PotentialMatchClassification(List<String> terms, int count, List<Match> matches, int termSize) {
 		this.terms = terms;
 		this.count = count;
 		this.matches = matches;
+		this.termSize = termSize;
 	}
 	
 	/*@Override
@@ -222,9 +246,13 @@ class PotentialMatchClassification {
 class Match {
 	ClassifierRegEx match;
 	String matchedString;
+	int startPos;
+	int endPos;
 	
-	public Match(ClassifierRegEx match, String matchedString) {
+	public Match(ClassifierRegEx match, String matchedString, int startPos, int endPos) {
 		this.match = match;
 		this.matchedString = matchedString;
+		this.startPos = startPos;
+		this.endPos = endPos;
 	}
 }

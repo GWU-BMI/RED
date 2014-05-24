@@ -95,7 +95,11 @@ public class VTTReaderTest {
 	public void testExtractClassifier(){
 		VTTReader vttr = new VTTReader();
 		try {
-			vttr.extracteRegexClassifications(new File(CLASSIFIER_TEST_FILE), "", "classifier.txt");
+			List<String> yesLabels = new ArrayList<>();
+			yesLabels.add("yes");
+			List<String> noLabels = new ArrayList<>();
+			noLabels.add("no");
+			vttr.extracteRegexClassifications(new File(CLASSIFIER_TEST_FILE), yesLabels, noLabels, "classifier2.txt");
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
