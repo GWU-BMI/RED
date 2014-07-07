@@ -91,7 +91,7 @@ public class VTTReaderTest {
 		Assert.assertTrue("List of 'weight' labeled segment triplets was empty", ls3List.size() > 0);
 	}
 	
-	@Test
+//	@Test
 	public void testExtractClassifier(){
 		VTTReader vttr = new VTTReader();
 		try {
@@ -108,7 +108,7 @@ public class VTTReaderTest {
 	/**
 	 * Test method for {@link gov.va.research.red.VTTReader#extractRegexExpressions(java.io.File, java.lang.String)}.
 	 */
-	@Test
+//	@Test
 	public void testExtractRegexExpressions(){
 		VTTReader vttr = new VTTReader();
 		List<LSTriplet> regExpList = null;
