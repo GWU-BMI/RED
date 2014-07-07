@@ -52,4 +52,11 @@
   	<connection>scm:git:http://inlp.bmi.utah.edu/git/RED.git/</connection>
   	<url>http://inlp.bmi.utah.edu/git/RED.git/</url>
   </scm>
+  <distributionManagement>
+	<repository>
+		<id>nexus</id>
+		<name>Nexus Staging Repo</name>
+		<url>http://inlp.bmi.utah.edu/nexus/content/repositories/releases</url>
+	</repository>
+  </distributionManagement>
 </project>
