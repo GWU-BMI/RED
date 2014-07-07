@@ -1,5 +1,7 @@
 package gov.va.research.ree;
 
+import gov.va.research.rec.ClassifierRegEx;
+import gov.va.research.rec.ClassifierTester;
 import gov.va.research.red.CVScore;
 import gov.va.research.red.VTTReader;
 
@@ -176,6 +178,40 @@ public class CrossValidate {
 		return score;
 	}
 	
+	public CVScore testClassifier(List<Snippet> testing, List<ClassifierRegEx> regularExpressions, ClassifierTester tester, List<String> labels) {
+		CVScore score = new CVScore();
+		if(tester == null)
+			tester = new ClassifierTester();
+		for(Snippet testSnippet : testing){
+			boolean predicted = tester.test(regularExpressions, testSnippet);
+			boolean actual = false;
+			for(String label : labels){
+				LabeledSegment actualSegment = testSnippet.getLabeledSegment(label);
+				if(actualSegment != null) {
+					actual = true;
+					break;
+				}
+			}
+			if(actual && predicted)
+				score.setTp(score.getTp() + 1);
+			else if(!actual && !predicted)
+				score.setTn(score.getTn() + 1);
+			else if(predicted && !actual)
+				score.setFp(score.getFp() + 1);
+			else if(!predicted && actual)
+				score.setFn(score.getFn() + 1);
+			/*else if(predicted && !actual && !actual)
+				score.setFp(score.getFp() + 1);
+			else if(!predicted && !actual && !actual)
+				score.setFn(score.getFn() + 1);
+			else if(!predicted && !predicted && actual)
+				score.setFn(score.getFn() + 1);
+			else if(!predicted && !predicted && actual)
+				score.setTn(score.getTn() + 1);*/
+		}
+		return score;
+	}
+	
 	public boolean checkForFalsePositives(List<Snippet> testing,
 			LSExtractor ex) {
 		for (Snippet snippet : testing) {
@@ -211,7 +247,7 @@ public class CrossValidate {
 	 */
 	private LSExtractor trainExtractor(String label, VTTReader vttr,
 			List<Snippet> training, PrintWriter pw) throws IOException {
-		List<LSTriplet> trained = vttr.extractRegexExpressions(training, label);
+		List<LSTriplet> trained = vttr.extractRegexExpressions(training, label, "");
 		if (pw != null) {
 			pw.println("--- Training snippets:");
 			for (Snippet trainingSnippet : training) {

@@ -43,6 +43,8 @@ import org.junit.Test;
 public class VTTReaderTest {
 
 	private static final String TEST_VTT_FILENAME = "weight1000.vtt";
+	private static final String CLASSIFIER_TEST_FILE = "diabetes-snippets.vtt";
+	
 
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
@@ -89,6 +91,20 @@ public class VTTReaderTest {
 		Assert.assertTrue("List of 'weight' labeled segment triplets was empty", ls3List.size() > 0);
 	}
 	
+	@Test
+	public void testExtractClassifier(){
+		VTTReader vttr = new VTTReader();
+		try {
+			List<String> yesLabels = new ArrayList<>();
+			yesLabels.add("yes");
+			List<String> noLabels = new ArrayList<>();
+			noLabels.add("no");
+			vttr.extracteRegexClassifications(new File(CLASSIFIER_TEST_FILE), yesLabels, noLabels, "classifier2.txt");
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+	
 	/**
 	 * Test method for {@link gov.va.research.red.VTTReader#extractRegexExpressions(java.io.File, java.lang.String)}.
 	 */
@@ -97,52 +113,10 @@ public class VTTReaderTest {
 		VTTReader vttr = new VTTReader();
 		List<LSTriplet> regExpList = null;
 		try {
-			regExpList = vttr.extractRegexExpressions(new File(TEST_VTT_FILENAME), "weight");
+			regExpList = vttr.extractRegexExpressions(new File(TEST_VTT_FILENAME), "weight", "ree.txt");
 		} catch (IOException e) {
 			throw new AssertionError("Failed extract 'weight' labeled regular expressions from VTT file: " + TEST_VTT_FILENAME, e);
 		}
-		/*List<LSTriplet> ls3list = null;
-		try {
-			ls3list = vttr.extractLSTriplets(new File(TEST_VTT_FILENAME), "weight");
-		} catch (IOException e) {
-			throw new AssertionError("Failed extract 'weight' labeled segment triplets from VTT file: " + TEST_VTT_FILENAME, e);
-		}
-		StringBuilder dataToTestBld = new StringBuilder("");
-		for(LSTriplet triplet : ls3list){
-			dataToTestBld.append(triplet.toString()+" ");
-		}
-		Pattern pattern = null;
-		Matcher matcher = null;
-		boolean test = false;
-		System.out.println("Testing regular expressions against the document...");
-		for(LSTriplet triplet : regExpList){
-			pattern = Pattern.compile(triplet.toStringRegEx());
-			 matcher = pattern.matcher(dataToTestBld.toString());
-			 test = matcher.find();
-			 Assert.assertTrue(test);
-			 if(!test){
-				 System.out.println("false");
-				break;
-			 }else
-				 System.out.println("true");
-		}
-		System.out.println("Testing the document against the regular expressions...");
-		for(LSTriplet triplet : ls3list){
-			String toTest = triplet.toString();
-			test = false;
-			for(LSTriplet tripletRegEx : regExpList){
-				pattern = Pattern.compile(tripletRegEx.toStringRegEx());
-				 matcher = pattern.matcher(toTest);
-				 test = matcher.find();
-				 if(test){
-					 break;
-				 }
-			}
-			if(!test){
-				System.out.println(toTest);
-			}
-			Assert.assertTrue(test);
-		}*/
 	}
 
 	/**
