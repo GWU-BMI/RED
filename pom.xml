@@ -49,7 +49,7 @@
   	</dependency>
   </dependencies>
   <scm>
-  	<connection>scm:git:http://inlp.bmi.utah.edu/git/RED.git</connection>
-  	<url>http://inlp.bmi.utah.edu/git/RED.git</url>
+  	<connection>scm:git:http://inlp.bmi.utah.edu/git/RED.git/</connection>
+  	<url>http://inlp.bmi.utah.edu/git/RED.git/</url>
   </scm>
 </project>
