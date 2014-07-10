@@ -1,4 +1,4 @@
-package gov.va.research.ree;
+package gov.va.research.redex;
 
 import java.io.IOException;
 import java.util.List;

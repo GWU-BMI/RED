@@ -1,4 +1,4 @@
-package gov.va.research.ree;
+package gov.va.research.redex;
 
 import gov.va.research.redex.ExtractorLoader;
 import gov.va.research.redex.LSTriplet;
