@@ -14,7 +14,7 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License. 
  */
-package gov.va.research.ree;
+package gov.va.research.redex;
 
 import java.util.List;
 

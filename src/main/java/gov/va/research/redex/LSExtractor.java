@@ -1,4 +1,4 @@
-package gov.va.research.ree;
+package gov.va.research.redex;
 
 import java.util.ArrayList;
 import java.util.HashMap;

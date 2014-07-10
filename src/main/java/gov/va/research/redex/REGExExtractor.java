@@ -1,4 +1,4 @@
-package gov.va.research.ree;
+package gov.va.research.redex;
 
 import gov.va.research.red.CVScore;
 import gov.va.research.red.VTTReader;

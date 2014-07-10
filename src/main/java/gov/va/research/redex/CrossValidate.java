@@ -1,9 +1,9 @@
-package gov.va.research.ree;
+package gov.va.research.redex;
 
-import gov.va.research.rec.ClassifierRegEx;
-import gov.va.research.rec.ClassifierTester;
 import gov.va.research.red.CVScore;
 import gov.va.research.red.VTTReader;
+import gov.va.research.redcat.ClassifierRegEx;
+import gov.va.research.redcat.ClassifierTester;
 
 import java.io.File;
 import java.io.IOException;

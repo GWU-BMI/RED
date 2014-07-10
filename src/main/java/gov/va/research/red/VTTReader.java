@@ -18,14 +18,14 @@ package gov.va.research.red;
 
 import gov.nih.nlm.nls.vtt.Model.Markup;
 import gov.nih.nlm.nls.vtt.Model.VttDocument;
-import gov.va.research.rec.ClassifierRegEx;
-import gov.va.research.rec.ClassifierRegExExtractor;
-import gov.va.research.ree.CrossValidate;
-import gov.va.research.ree.LSExtractor;
-import gov.va.research.ree.LSTriplet;
-import gov.va.research.ree.LabeledSegment;
-import gov.va.research.ree.REGExExtractor;
-import gov.va.research.ree.Snippet;
+import gov.va.research.redcat.ClassifierRegEx;
+import gov.va.research.redcat.ClassifierRegExExtractor;
+import gov.va.research.redex.CrossValidate;
+import gov.va.research.redex.LSExtractor;
+import gov.va.research.redex.LSTriplet;
+import gov.va.research.redex.LabeledSegment;
+import gov.va.research.redex.REGExExtractor;
+import gov.va.research.redex.Snippet;
 
 import java.io.File;
 import java.io.FileWriter;

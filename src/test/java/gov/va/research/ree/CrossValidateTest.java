@@ -1,6 +1,7 @@
 package gov.va.research.ree;
 
 import gov.va.research.red.CVScore;
+import gov.va.research.redex.CrossValidate;
 
 import java.io.File;
 import java.io.IOException;

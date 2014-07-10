@@ -1,4 +1,4 @@
-package gov.va.research.ree;
+package gov.va.research.redex;
 
 public class MatchedElement {
 	private int startPos, endPos;

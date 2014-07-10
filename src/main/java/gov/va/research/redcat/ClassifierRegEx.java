@@ -1,4 +1,4 @@
-package gov.va.research.rec;
+package gov.va.research.redcat;
 
 public class ClassifierRegEx {
 	private String regEx;

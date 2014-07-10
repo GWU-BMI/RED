@@ -1,9 +1,9 @@
-package gov.va.research.rec;
+package gov.va.research.redcat;
 
 import gov.va.research.red.CVScore;
-import gov.va.research.ree.CrossValidate;
-import gov.va.research.ree.LabeledSegment;
-import gov.va.research.ree.Snippet;
+import gov.va.research.redex.CrossValidate;
+import gov.va.research.redex.LabeledSegment;
+import gov.va.research.redex.Snippet;
 
 import java.util.ArrayList;
 import java.util.Collections;

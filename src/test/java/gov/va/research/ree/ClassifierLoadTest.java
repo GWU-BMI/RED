@@ -5,8 +5,8 @@ import java.util.List;
 
 import org.junit.Test;
 
-import gov.va.research.rec.ClassifierLoader;
-import gov.va.research.rec.ClassifierRegEx;
+import gov.va.research.redcat.ClassifierLoader;
+import gov.va.research.redcat.ClassifierRegEx;
 
 public class ClassifierLoadTest {
 	

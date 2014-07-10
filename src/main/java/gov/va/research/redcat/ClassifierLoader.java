@@ -1,4 +1,4 @@
-package gov.va.research.rec;
+package gov.va.research.redcat;
 
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;

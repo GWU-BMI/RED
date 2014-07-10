@@ -1,5 +1,8 @@
 package gov.va.research.ree;
 
+import gov.va.research.redex.ExtractorLoader;
+import gov.va.research.redex.LSTriplet;
+
 import java.io.IOException;
 import java.util.List;
 
@@ -9,7 +12,7 @@ public class RegExLoadingTest {
 	
 	
 	/**
-	 * Test method for {@link gov.va.research.ree.ExtractorLoader#getRegularExpressions()}.
+	 * Test method for {@link gov.va.research.redex.ExtractorLoader#getRegularExpressions()}.
 	 */
 	@Test
 	public void testgetRegularExpressions() {

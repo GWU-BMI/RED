@@ -1,6 +1,6 @@
-package gov.va.research.rec;
+package gov.va.research.redcat;
 
-import gov.va.research.ree.Snippet;
+import gov.va.research.redex.Snippet;
 
 import java.util.HashMap;
 import java.util.List;

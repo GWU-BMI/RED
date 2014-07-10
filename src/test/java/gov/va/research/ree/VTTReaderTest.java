@@ -18,6 +18,9 @@ package gov.va.research.ree;
 
 import gov.nih.nlm.nls.vtt.Model.VttDocument;
 import gov.va.research.red.VTTReader;
+import gov.va.research.redex.LSTriplet;
+import gov.va.research.redex.LabeledSegment;
+import gov.va.research.redex.Snippet;
 
 import java.io.File;
 import java.io.IOException;
