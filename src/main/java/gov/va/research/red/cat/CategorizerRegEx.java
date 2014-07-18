@@ -1,9 +1,9 @@
-package gov.va.research.redcat;
+package gov.va.research.red.cat;
 
-public class ClassifierRegEx {
+public class CategorizerRegEx {
 	private String regEx;
 	
-	public ClassifierRegEx(String regEx) {
+	public CategorizerRegEx(String regEx) {
 		this.regEx = regEx;
 	}
 

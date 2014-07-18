@@ -1,4 +1,4 @@
-package gov.va.research.redcat;
+package gov.va.research.red.cat;
 
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
@@ -7,45 +7,45 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ClassifierLoader {
+public class CategorizerLoader {
 	private String regexFileName;
-	private List<ClassifierRegEx> regexYes;
-	private List<ClassifierRegEx> regexNo;
+	private List<CategorizerRegEx> regexYes;
+	private List<CategorizerRegEx> regexNo;
 	private static final String NO_REGEX = "no regex";
 	
-	public ClassifierLoader(String regexFileName) {
+	public CategorizerLoader(String regexFileName) {
 		this.regexFileName = regexFileName;
 	}
 	
-	public List<ClassifierRegEx> getYesRegEx() throws IOException{
+	public List<CategorizerRegEx> getYesRegEx() throws IOException{
 		if(regexYes == null || regexYes.isEmpty())
 			regexYes = readRegExYesFromFile();
 		return regexYes;
 	}
 	
-	public List<ClassifierRegEx> getNoRegEx() throws IOException{
+	public List<CategorizerRegEx> getNoRegEx() throws IOException{
 		if(regexNo == null || regexNo.isEmpty())
 			regexNo = readRegExNoFromFile();
 		return regexNo;
 	}
 	
-	private List<ClassifierRegEx> readRegExYesFromFile() throws IOException{
-		List<ClassifierRegEx> returnList = new ArrayList<>();
+	private List<CategorizerRegEx> readRegExYesFromFile() throws IOException{
+		List<CategorizerRegEx> returnList = new ArrayList<>();
 		BufferedReader br = loadFile();
 		br.readLine();
 		while(true){
 			String temp = br.readLine();
 			if(temp.equals(NO_REGEX))
 				break;
-			ClassifierRegEx tempClassifierRegEx = new ClassifierRegEx(temp);
+			CategorizerRegEx tempClassifierRegEx = new CategorizerRegEx(temp);
 			returnList.add(tempClassifierRegEx);
 		}
 		closeReader(br);
 		return returnList;
 	}
 	
-	private List<ClassifierRegEx> readRegExNoFromFile() throws IOException{
-		List<ClassifierRegEx> returnList = new ArrayList<>();
+	private List<CategorizerRegEx> readRegExNoFromFile() throws IOException{
+		List<CategorizerRegEx> returnList = new ArrayList<>();
 		BufferedReader br = loadFile();
 		while(true){
 			String temp = br.readLine();;
@@ -57,7 +57,7 @@ public class ClassifierLoader {
 			String temp = br.readLine();
 			if(temp == null)
 				break;
-			ClassifierRegEx tempClassifierRegEx = new ClassifierRegEx(temp);
+			CategorizerRegEx tempClassifierRegEx = new CategorizerRegEx(temp);
 			returnList.add(tempClassifierRegEx);
 		}
 		closeReader(br);

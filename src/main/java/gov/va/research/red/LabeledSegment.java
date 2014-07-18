@@ -1,4 +1,4 @@
-package gov.va.research.redex;
+package gov.va.research.red;
 
 public class LabeledSegment {
 	private String label;

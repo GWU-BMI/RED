@@ -1,6 +1,10 @@
-package gov.va.research.redex;
+package gov.va.research.red.ex;
 
 import gov.va.research.red.CVScore;
+import gov.va.research.red.LSTriplet;
+import gov.va.research.red.LabeledSegment;
+import gov.va.research.red.MatchedElement;
+import gov.va.research.red.Snippet;
 import gov.va.research.red.VTTReader;
 
 import java.io.File;
@@ -11,22 +15,20 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
+import java.util.TreeMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class REGExExtractor {
+public class REDExtractor {
 	
 	private static final Logger LOG = LoggerFactory.getLogger(VTTReader.class);
 	private LSExtractor leExt = new LSExtractor(null);
-	private CrossValidate cv = new CrossValidate();
-	
+
 	public List<LSTriplet> extractRegexExpressions(final List<Snippet> snippets, final String label, final String outputFileName) throws IOException {
 		List<LSTriplet> ls3list = new ArrayList<>(snippets.size());
 		for (Snippet snippet : snippets) {
@@ -46,10 +48,10 @@ public class REGExExtractor {
 			//replace the white spaces with regular expressions.
 			replaceWhiteSpaces(ls3list);
 			
-			Map<LSTriplet, CrossValidate.TripletMatches> tripsWithFP = CrossValidate.findTripletsWithFalsePositives(ls3list, snippets, label);
+			Map<LSTriplet, TripletMatches> tripsWithFP = findTripletsWithFalsePositives(ls3list, snippets, label);
 			if (tripsWithFP != null && tripsWithFP.size() > 0) {
 				LOG.warn("False positive regexes found before trimming");
-				for (Map.Entry<LSTriplet, CrossValidate.TripletMatches> twfp : tripsWithFP.entrySet()) {
+				for (Map.Entry<LSTriplet, TripletMatches> twfp : tripsWithFP.entrySet()) {
 					LOG.warn("RegEx: " + twfp.getKey().toStringRegEx());
 					LOG.warn("Correct matches:");
 					for (Snippet correct : twfp.getValue().getCorrect()) {
@@ -69,7 +71,7 @@ public class REGExExtractor {
 			//the process till we can't remove any regex's from the bls's.
 			trimRegEx(snippets, ls3list);
 			leExt.setRegExpressions(ls3list);
-			CVScore scoreAfterTrimming = cv.testExtractor(snippets, leExt);
+			CVScore scoreAfterTrimming = testExtractor(snippets, leExt);
 			
 			
 			// remove reduntant expressions
@@ -79,7 +81,7 @@ public class REGExExtractor {
 			for(LSTriplet triplet : ls3list){
 				testList.remove(triplet);
 				leExt.setRegExpressions(testList);
-				tempScore = cv.testExtractor(snippets, leExt);
+				tempScore = testExtractor(snippets, leExt);
 				if(tempScore.getFn() < fnToTestAgainst)
 					fnToTestAgainst = tempScore.getFn();
 				else
@@ -137,7 +139,7 @@ public class REGExExtractor {
 							regEx.add(triplet);
 							leExt.setRegExpressions(regEx);
 							//CVScore cvScore = cv.testExtractor(snippets, leExt);
-							if(cv.checkForFalsePositives(snippets, leExt))
+							if(checkForFalsePositives(snippets, leExt))
 								triplet.setBLS(bls);
 					}else{
 						String als = triplet.getALS();
@@ -147,7 +149,7 @@ public class REGExExtractor {
 							regEx.add(triplet);
 							leExt.setRegExpressions(regEx);
 							//CVScore cvScore = cv.testExtractor(snippets, leExt);
-							if(cv.checkForFalsePositives(snippets, leExt))
+							if(checkForFalsePositives(snippets, leExt))
 								triplet.setALS(als);
 					}
 				}
@@ -271,7 +273,7 @@ public class REGExExtractor {
 						regExList = new ArrayList<LSTriplet>();
 						regExList.add(triplet);
 						leExt.setRegExpressions(regExList);
-						if(cv.checkForFalsePositives(snippets, leExt)){
+						if(checkForFalsePositives(snippets, leExt)){
 							triplet.setBLS(bls);
 							prevTrimOpResultBLS.put(triplet, false);
 						}else{
@@ -311,7 +313,7 @@ public class REGExExtractor {
 						regExList = new ArrayList<LSTriplet>();
 						regExList.add(triplet);
 						leExt.setRegExpressions(regExList);
-						if(cv.checkForFalsePositives(snippets, leExt)){
+						if(checkForFalsePositives(snippets, leExt)){
 							triplet.setALS(als);
 							prevTrimOpResultALS.put(triplet, false);
 						}else{
@@ -325,84 +327,84 @@ public class REGExExtractor {
 		}
 	}
 	
-	/**
-	 * For every group it determines the frequent terms. It then replaces the frequent terms by the regular expression \bfrequent term\b.
-	 * It replaces the terms that are not frequent by .*{1,frequent term's length}
-	 * @param group The group of LSTriplets on which we are performing the operation.
-	 * @param snippetGroups The group of all snippets.
-	 */
-	private void processGroupTrimVersion(List<LSTriplet> group, Map<String,List<LSTriplet>> tempGroupMap, boolean processBLS, final List<Snippet> snippets){
-		Map<String, List<LSTriplet>> freqMap = new HashMap<String, List<LSTriplet>>();
-		for(LSTriplet triplet : group)
-			updateMFTMapTrimVersion(triplet, processBLS, freqMap);
-		List<Entry<String, List<LSTriplet>>> entryList = new ArrayList<Entry<String, List<LSTriplet>>>();
-		for(Entry<String, List<LSTriplet>> entry : freqMap.entrySet()){
-			if(entryList.isEmpty())
-				entryList.add(entry);
-			else{
-				int i=0;
-				for(i=0;i<entryList.size();i++){
-					Entry<String, List<LSTriplet>> entryListElem = entryList.get(i);
-					if(entry.getValue().size() < entryListElem.getValue().size())
-						break;
-				}
-				entryList.add(i, entry);
-			}
-		}
-		for(Entry<String, List<LSTriplet>> entry : entryList){
-			List<LSTriplet> value = entry.getValue();
-			String key = entry.getKey();
-			String bls=null,als=null;
-			for(LSTriplet triplet : value){
-				if(processBLS){
-					bls = triplet.getBLS();
-					//if(!key.equals("S")){
-						triplet.setBLS(triplet.getBLS().replaceAll("\\b(?<!\\\\)"+key+"\\b", "\\\\S{1,"+key.length()+"}"));//triplet.getBLS().replaceAll("?:"+key, "(?:"+key+")");
-						List<LSTriplet> regEx = new ArrayList<LSTriplet>();
-						regEx.add(triplet);
-						leExt.setRegExpressions(regEx);
-						//CVScore cvScore = cv.testExtractor(snippets, leExt);
-						if(cv.checkForFalsePositives(snippets, leExt))
-							triplet.setBLS(bls);
-				}else{
-					als = triplet.getALS();
-					//if(!key.equals("S")){
-						triplet.setALS(triplet.getALS().replaceAll("\\b(?<!\\\\)"+key+"\\b", "\\\\S{1,"+key.length()+"}"));//triplet.getALS().replaceAll("?:"+key, "(?:"+key+")");
-						List<LSTriplet> regEx = new ArrayList<LSTriplet>();
-						regEx.add(triplet);
-						leExt.setRegExpressions(regEx);
-						//CVScore cvScore = cv.testExtractor(snippets, leExt);
-						if(cv.checkForFalsePositives(snippets, leExt))
-							triplet.setALS(als);
-				}
-			}
-		}
-	}
-	
-	/**
-	 * Finds out all the groups that have sizes greater than 1. Calls processGroup on those groups.
-	 * @param tripletGroups A hashmap containing the groups. Key is LS and the value is a list of LSTriplet's.
-	 */
-	private void processSnippetGroupsTrimVersion(Map<String,List<LSTriplet>> tripletGroups, final List<Snippet> snippets){
-		Iterator<List<LSTriplet>> iteratorSnippetGroups = tripletGroups.values().iterator();
-		Map<String, List<LSTriplet>> tempGroupMap = new HashMap<String, List<LSTriplet>>();
-		while(iteratorSnippetGroups.hasNext()){
-			List<LSTriplet> group = iteratorSnippetGroups.next();
-			//if(group.size() > 1){
-			processGroupTrimVersion(group, tempGroupMap, true,snippets);
-			//}
-		}
-		
-		//repeat the above steps for ALS.
-		iteratorSnippetGroups = tripletGroups.values().iterator();
-		tempGroupMap = new HashMap<String, List<LSTriplet>>();
-		while(iteratorSnippetGroups.hasNext()){
-			List<LSTriplet> group = iteratorSnippetGroups.next();
-			//if(group.size() > 1){
-			processGroupTrimVersion(group, tempGroupMap, false,snippets);
-			//}
-		}
-	}
+//	/**
+//	 * For every group it determines the frequent terms. It then replaces the frequent terms by the regular expression \bfrequent term\b.
+//	 * It replaces the terms that are not frequent by .*{1,frequent term's length}
+//	 * @param group The group of LSTriplets on which we are performing the operation.
+//	 * @param snippetGroups The group of all snippets.
+//	 */
+//	private void processGroupTrimVersion(List<LSTriplet> group, Map<String,List<LSTriplet>> tempGroupMap, boolean processBLS, final List<Snippet> snippets){
+//		Map<String, List<LSTriplet>> freqMap = new HashMap<String, List<LSTriplet>>();
+//		for(LSTriplet triplet : group)
+//			updateMFTMapTrimVersion(triplet, processBLS, freqMap);
+//		List<Map.Entry<String, List<LSTriplet>>> entryList = new ArrayList<Map.Entry<String, List<LSTriplet>>>();
+//		for(Map.Entry<String, List<LSTriplet>> entry : freqMap.entrySet()){
+//			if(entryList.isEmpty())
+//				entryList.add(entry);
+//			else{
+//				int i=0;
+//				for(i=0;i<entryList.size();i++){
+//					Map.Entry<String, List<LSTriplet>> entryListElem = entryList.get(i);
+//					if(entry.getValue().size() < entryListElem.getValue().size())
+//						break;
+//				}
+//				entryList.add(i, entry);
+//			}
+//		}
+//		for(Map.Entry<String, List<LSTriplet>> entry : entryList){
+//			List<LSTriplet> value = entry.getValue();
+//			String key = entry.getKey();
+//			String bls=null,als=null;
+//			for(LSTriplet triplet : value){
+//				if(processBLS){
+//					bls = triplet.getBLS();
+//					//if(!key.equals("S")){
+//						triplet.setBLS(triplet.getBLS().replaceAll("\\b(?<!\\\\)"+key+"\\b", "\\\\S{1,"+key.length()+"}"));//triplet.getBLS().replaceAll("?:"+key, "(?:"+key+")");
+//						List<LSTriplet> regEx = new ArrayList<LSTriplet>();
+//						regEx.add(triplet);
+//						leExt.setRegExpressions(regEx);
+//						//CVScore cvScore = cv.testExtractor(snippets, leExt);
+//						if(checkForFalsePositives(snippets, leExt))
+//							triplet.setBLS(bls);
+//				}else{
+//					als = triplet.getALS();
+//					//if(!key.equals("S")){
+//						triplet.setALS(triplet.getALS().replaceAll("\\b(?<!\\\\)"+key+"\\b", "\\\\S{1,"+key.length()+"}"));//triplet.getALS().replaceAll("?:"+key, "(?:"+key+")");
+//						List<LSTriplet> regEx = new ArrayList<LSTriplet>();
+//						regEx.add(triplet);
+//						leExt.setRegExpressions(regEx);
+//						//CVScore cvScore = cv.testExtractor(snippets, leExt);
+//						if(checkForFalsePositives(snippets, leExt))
+//							triplet.setALS(als);
+//				}
+//			}
+//		}
+//	}
+//	
+//	/**
+//	 * Finds out all the groups that have sizes greater than 1. Calls processGroup on those groups.
+//	 * @param tripletGroups A hashmap containing the groups. Key is LS and the value is a list of LSTriplet's.
+//	 */
+//	private void processSnippetGroupsTrimVersion(Map<String,List<LSTriplet>> tripletGroups, final List<Snippet> snippets){
+//		java.util.Iterator<List<LSTriplet>> iteratorSnippetGroups = tripletGroups.values().iterator();
+//		Map<String, List<LSTriplet>> tempGroupMap = new HashMap<String, List<LSTriplet>>();
+//		while(iteratorSnippetGroups.hasNext()){
+//			List<LSTriplet> group = iteratorSnippetGroups.next();
+//			//if(group.size() > 1){
+//			processGroupTrimVersion(group, tempGroupMap, true,snippets);
+//			//}
+//		}
+//		
+//		//repeat the above steps for ALS.
+//		iteratorSnippetGroups = tripletGroups.values().iterator();
+//		tempGroupMap = new HashMap<String, List<LSTriplet>>();
+//		while(iteratorSnippetGroups.hasNext()){
+//			List<LSTriplet> group = iteratorSnippetGroups.next();
+//			//if(group.size() > 1){
+//			processGroupTrimVersion(group, tempGroupMap, false,snippets);
+//			//}
+//		}
+//	}
 	
 	/**
 	 * Creates a frequency map of terms contained inside the BLS/ALS.
@@ -515,8 +517,212 @@ public class REGExExtractor {
 		termList.addAll(freqMap.keySet());
 		performPermuation(null, termList, ls3List, false, potentialListALS);
 	}
+
+
+	/**
+	 * @param pw
+	 * @param testing
+	 * @param ex
+	 * @return
+	 */
+	public CVScore testExtractor(List<Snippet> testing,
+			LSExtractor ex, PrintWriter pw) {
+		if (pw != null) {
+			pw.println();
+		}
+		CVScore score = new CVScore();
+		for (Snippet snippet : testing) {
+			List<MatchedElement> candidates = ex.extract(snippet.getText());
+			String predicted = REDExtractor.chooseBestCandidate(candidates);
+			List<String> actual = snippet.getLabeledStrings();
+			if (pw != null) {
+				pw.println("--- Test Snippet:");
+				pw.println(snippet.getText());
+				pw.println("Predicted: " + predicted + ", Actual: " + actual);
+			}
+			// Score
+			if (predicted == null) {
+				if (actual == null || actual.size() == 0) {
+					score.setTn(score.getTn() + 1);
+				} else {
+					score.setFn(score.getFn() + 1);
+				}
+			} else if (actual == null || actual.size() == 0) {
+				score.setFp(score.getFp() + 1);
+			} else {
+				if (snippet.getLabeledStrings().contains(predicted.trim())) {
+					score.setTp(score.getTp() + 1);
+				} else {
+					score.setFp(score.getFp() + 1);
+				}
+			}
+		}
+		return score;
+	}
 	
+	/**
+	 * Method is used when trimming
+	 * regex's. It is used to see if any false positives are genereated
+	 * by the new regex.
+	 * @param testing
+	 * @param ex
+	 * @param pw
+	 * @return
+	 */
+	private CVScore testExtractor(List<Snippet> testing,
+			LSExtractor ex) {
+		return testExtractor(testing, ex, null);
+	}
+
 	
+	public boolean checkForFalsePositives(List<Snippet> testing,
+			LSExtractor ex) {
+		for (Snippet snippet : testing) {
+			List<MatchedElement> candidates = ex.extract(snippet.getText());
+			String predicted = chooseBestCandidate(candidates);
+			List<String> actual = snippet.getLabeledStrings();
+
+			// Score
+			
+			if (predicted == null) {
+				
+			} else if (actual == null || actual.size() == 0) {
+				//score.setFp(score.getFp() + 1);
+				return true;
+			} else {
+				if (snippet.getLabeledStrings().contains(predicted.trim())) {
+					//score.setTp(score.getTp() + 1);
+				} else {
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+
+	
+	public static Map<LSTriplet, TripletMatches> findTripletsWithFalsePositives(final List<LSTriplet> ls3list, final List<Snippet> snippets, final String label) {
+		Map<LSTriplet, TripletMatches> tripsWithFP = new HashMap<>();
+		for (LSTriplet ls3 : ls3list) {
+			List<Snippet> correct = new ArrayList<>();
+			List<Snippet> falsePositive = new ArrayList<>();
+			Pattern ls3pattern = Pattern.compile(ls3.toStringRegEx());
+			for (Snippet snippet : snippets) {
+				List<Snippet> lsCorrectMatch = new ArrayList<>();
+				List<Snippet> lsFalseMatch = new ArrayList<>();
+				for (LabeledSegment ls : snippet.getLabeledSegments()) {
+					if (label.equals(ls.getLabel())) {
+						Matcher m = ls3pattern.matcher(snippet.getText());
+						if (m.find()) {
+							String actual = ls.getLabeledString();
+							String predicted = m.group(1);
+							if ((predicted != null && actual == null) || (predicted != null && !snippet.getLabeledStrings().contains(predicted.trim()))) {
+								lsFalseMatch.add(snippet);
+							} else {
+								// The regex matched at least one of the snippets labeled segments correctly
+								lsCorrectMatch.add(snippet);
+								break;
+							}
+						}
+					}
+				}
+				if (lsCorrectMatch.size() == 0) {
+					// The regex did not match any labeled segments correctly
+					// count as a false positive.
+					correct.addAll(lsCorrectMatch);
+					falsePositive.addAll(lsFalseMatch);
+				}
+			}
+			if (falsePositive.size() > 0) {
+				tripsWithFP.put(ls3, new TripletMatches(correct, falsePositive));
+			}
+		}
+		return tripsWithFP;
+	}
+
+	/**
+	 * @param candidates
+	 * @return
+	 */
+	public static String chooseBestCandidate(List<MatchedElement> candidates) {
+		String category = null;
+		if (candidates != null && candidates.size() > 0) {
+			if (candidates.size() == 1) {
+				category = candidates.get(0).getMatch();
+			} else {
+				// Multiple candidates, count their frequencies.
+				Map<String, Integer> candidate2freq = new HashMap<String, Integer>();
+				for (MatchedElement c : candidates) {
+					Integer freq = candidate2freq.get(c.getMatch());
+					if (freq == null) {
+						freq = Integer.valueOf(1);
+					} else {
+						freq = Integer.valueOf(freq.intValue() + 1);
+					}
+					candidate2freq.put(c.getMatch(), freq);
+				}
+				// Sort by frequency
+				TreeMap<Integer, List<String>> freq2candidates = new TreeMap<>();
+				for (Map.Entry<String, Integer> c2f : candidate2freq.entrySet()) {
+					List<String> freqCandidates = freq2candidates.get(c2f.getValue());
+					if (freqCandidates == null) {
+						freqCandidates = new ArrayList<>();
+						freq2candidates.put(c2f.getValue(), freqCandidates);
+					}
+					freqCandidates.add(c2f.getKey());
+				}
+				List<String> mostFrequentCandidates = freq2candidates.lastEntry().getValue();
+				// If there is only one candidate in the group with the highest frequency then use it.
+				if (mostFrequentCandidates.size() == 1) {
+					category = mostFrequentCandidates.get(0);
+				} else {
+					// Multiple candidates with the highest frequency.
+					// Choose the longest one, and if there is a tie then choose the largest one lexicographically.
+					Collections.sort(mostFrequentCandidates, new Comparator<String>() {
+						@Override
+						public int compare(String o1, String o2) {
+							if (o1 == o2) {
+								return 0;
+							}
+							if (o1 == null) {
+								return 1;
+							}
+							if (o2 == null) {
+								return -1;
+							}
+							if (o1.length() == o2.length()) {
+								return o2.compareTo(o1);
+							}
+							return o2.length() - o1.length();
+						}
+					});
+					category = mostFrequentCandidates.get(0);
+				}
+			}
+		}
+		return category;
+	}
+
+	public static class TripletMatches {
+		private List<Snippet> correct;
+		private List<Snippet> falsePositive;
+		public TripletMatches(final List<Snippet> correct, final List<Snippet> falsePositive) {
+			this.correct = correct;
+			this.falsePositive = falsePositive;
+		}
+		public List<Snippet> getCorrect() {
+			return correct;
+		}
+		public void setCorrect(List<Snippet> correct) {
+			this.correct = correct;
+		}
+		public List<Snippet> getFalsePositive() {
+			return falsePositive;
+		}
+		public void setFalsePositive(List<Snippet> falsePositive) {
+			this.falsePositive = falsePositive;
+		}
+	}
 }
 
 class PotentialMatch {
@@ -544,3 +750,5 @@ class PotentialMatch {
 		return temp.toString();
 	}
 }
+
+

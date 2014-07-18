@@ -6,6 +6,13 @@
 FILE_SAVE|VTT.2010.0|VTT|2/21/14 9:21:49 AM
 FILE_SAVE|VTT.2010.0|VTT|2/21/14 11:48:23 AM
 FILE_SAVE|VTT.2010.0|VTT|3/20/14 5:50:13 PM
+FILE_SAVE|VTT.2010.0|VTT|4/7/14 9:26:37 PM
+FILE_SAVE|VTT.2010.0|VTT|4/8/14 12:54:21 PM
+FILE_SAVE|VTT.2010.0|VTT|4/8/14 2:06:48 PM
+FILE_SAVE|VTT.2010.0|VTT|4/8/14 2:16:13 PM
+FILE_SAVE|VTT.2010.0|VTT|4/8/14 3:38:09 PM
+FILE_SAVE|VTT.2010.0|VTT|4/10/14 12:18:47 AM
+FILE_SAVE|VTT.2010.0|VTT|4/11/14 5:56:03 PM
 #<---------------------------------------------------------------------->
 #<Text Content>
 #<---------------------------------------------------------------------->
@@ -11344,7 +11351,6 @@ unit||false|false|false|true|51|255|51|255|255|255|Monospaced|+0
    6302| 1|SnippetColumn  |               |snippetNumber="19"<::>columnNumber="2"<::>columnName="empty1"|1
    6312| 1|SnippetColumn  |               |snippetNumber="19"<::>columnNumber="3"<::>columnName="empty2"|1
    6329|243|SnippetColumn  |               |snippetNumber="19"<::>columnNumber="4"<::>columnName="SnippetText"|for two to three years with his primary  care physician.  Over the last few months, he experienced a 13 pound weight  loss.  This was accompanied by anorexia and fever.  Subsequently, he was  diagnosed to have a urinary tract infection.  He is
-   6433| 5|unit           |               ||pound
    6667|16|SnippetColumn  |               |snippetNumber="20"<::>columnNumber="1"<::>columnName="filename"|freport99601.txt
    6692| 1|SnippetColumn  |               |snippetNumber="20"<::>columnNumber="2"<::>columnName="empty1"|1
    6702| 1|SnippetColumn  |               |snippetNumber="20"<::>columnNumber="3"<::>columnName="empty2"|1
@@ -11434,8 +11440,6 @@ unit||false|false|false|true|51|255|51|255|255|255|Monospaced|+0
   14023| 1|SnippetColumn  |               |snippetNumber="40"<::>columnNumber="2"<::>columnName="empty1"|1
   14033| 1|SnippetColumn  |               |snippetNumber="40"<::>columnNumber="3"<::>columnName="empty2"|1
   14050|279|SnippetColumn  |               |snippetNumber="40"<::>columnNumber="4"<::>columnName="SnippetText"|incision site If any signs or symptoms of infection are noted regarding the surgical incisions please call your Cardiothoracic Surgeon Weight gain 3lbs/day or 5lbs/wk Unusual rashes Nausea or vomiting Fever associated with chills Temperature elevation greater than 101 F. degrees
-  14198| 3|unit           |               ||lbs
-  14210| 3|unit           |               ||lbs
   14424|16|SnippetColumn  |               |snippetNumber="41"<::>columnNumber="1"<::>columnName="filename"|freport99408.txt
   14449| 1|SnippetColumn  |               |snippetNumber="41"<::>columnNumber="2"<::>columnName="empty1"|1
   14459| 1|SnippetColumn  |               |snippetNumber="41"<::>columnNumber="3"<::>columnName="empty2"|1
@@ -11520,8 +11524,11 @@ unit||false|false|false|true|51|255|51|255|255|255|Monospaced|+0
   21142| 1|SnippetColumn  |               |snippetNumber="61"<::>columnNumber="2"<::>columnName="empty1"|1
   21152| 1|SnippetColumn  |               |snippetNumber="61"<::>columnNumber="3"<::>columnName="empty2"|1
   21169|80|SnippetColumn  |               |snippetNumber="61"<::>columnNumber="4"<::>columnName="SnippetText"|of 91.4 kg (or 201 pounds).  Her ideal body weight is 59 kg.  Her  adjusted body
+  21172| 4|weight         |               ||91.4
   21177| 2|unit           |               ||kg
+  21184| 3|weight         |               ||201
   21188| 6|unit           |               ||pounds
+  21223| 2|weight         |               ||59
   21226| 2|unit           |               ||kg
   21344|16|SnippetColumn  |               |snippetNumber="62"<::>columnNumber="1"<::>columnName="filename"|freport98674.txt
   21369| 1|SnippetColumn  |               |snippetNumber="62"<::>columnNumber="2"<::>columnName="empty1"|1
@@ -11614,11 +11621,11 @@ unit||false|false|false|true|51|255|51|255|255|255|Monospaced|+0
   28524| 1|SnippetColumn  |               |snippetNumber="82"<::>columnNumber="2"<::>columnName="empty1"|1
   28534| 1|SnippetColumn  |               |snippetNumber="82"<::>columnNumber="3"<::>columnName="empty2"|1
   28551|295|SnippetColumn  |               |snippetNumber="82"<::>columnNumber="4"<::>columnName="SnippetText"|assistance, and minimal assistance with his transfer.  He was  independent prior to admission. PAST MEDICAL HISTORY:   1.  Obesity with his weight greater than 400. 2.  Diabetes mellitus. 3.  Left foot fracture. FAMILY HISTORY:  Positive for emphysema, hypertension, and coronary artery  disease
+  28711| 3|weight         |               ||400
   28941|16|SnippetColumn  |               |snippetNumber="83"<::>columnNumber="1"<::>columnName="filename"|freport93975.txt
   28966| 1|SnippetColumn  |               |snippetNumber="83"<::>columnNumber="2"<::>columnName="empty1"|1
   28976| 1|SnippetColumn  |               |snippetNumber="83"<::>columnNumber="3"<::>columnName="empty2"|1
   28993|236|SnippetColumn  |               |snippetNumber="83"<::>columnNumber="4"<::>columnName="SnippetText"|undigested food.  There was no  blood or bilious material.  The patient denied any previous similar episode.   She has a 40-pound weight loss in the past 1-1/2 years which is on purpose.   There is no change in the caliber of the stools
-  29117| 5|unit           |               ||pound
   29324|16|SnippetColumn  |               |snippetNumber="84"<::>columnNumber="1"<::>columnName="filename"|freport44390.txt
   29349| 1|SnippetColumn  |               |snippetNumber="84"<::>columnNumber="2"<::>columnName="empty1"|1
   29359| 1|SnippetColumn  |               |snippetNumber="84"<::>columnNumber="3"<::>columnName="empty2"|1
@@ -11656,7 +11663,6 @@ unit||false|false|false|true|51|255|51|255|255|255|Monospaced|+0
   32331| 1|SnippetColumn  |               |snippetNumber="92"<::>columnNumber="2"<::>columnName="empty1"|1
   32341| 1|SnippetColumn  |               |snippetNumber="92"<::>columnNumber="3"<::>columnName="empty2"|1
   32358|246|SnippetColumn  |               |snippetNumber="92"<::>columnNumber="4"<::>columnName="SnippetText"|has not vomitted much. The compazine was given on an as needed basis but was helping. Her daughter reports 10-12lb weight loss over the last yr. She denies any dyspnea. She denies any bony pain. - - - - - Past Medical History: Condition 1: Recent
-  32470| 2|unit           |               ||lb
   32699|16|SnippetColumn  |               |snippetNumber="93"<::>columnNumber="1"<::>columnName="filename"|freport99201.txt
   32724| 1|SnippetColumn  |               |snippetNumber="93"<::>columnNumber="2"<::>columnName="empty1"|1
   32734| 1|SnippetColumn  |               |snippetNumber="93"<::>columnNumber="3"<::>columnName="empty2"|1
@@ -11977,7 +11983,6 @@ unit||false|false|false|true|51|255|51|255|255|255|Monospaced|+0
   59040| 1|SnippetColumn  |               |snippetNumber="167"<::>columnNumber="2"<::>columnName="empty1"|1
   59050| 1|SnippetColumn  |               |snippetNumber="167"<::>columnNumber="3"<::>columnName="empty2"|1
   59067|226|SnippetColumn  |               |snippetNumber="167"<::>columnNumber="4"<::>columnName="SnippetText"|feeling well for several weeks with some  abdominal discomfort, back pain, nausea, some sweats and a 5 to 10 pound  weight loss as well as anorexia.  She was seen at an outside hospital and it  was noted that her liver enzymes
-  59176| 5|unit           |               ||pound
   59388|16|SnippetColumn  |               |snippetNumber="168"<::>columnNumber="1"<::>columnName="filename"|freport30009.txt
   59413| 1|SnippetColumn  |               |snippetNumber="168"<::>columnNumber="2"<::>columnName="empty1"|1
   59423| 1|SnippetColumn  |               |snippetNumber="168"<::>columnNumber="3"<::>columnName="empty2"|1
@@ -12161,13 +12166,12 @@ unit||false|false|false|true|51|255|51|255|255|255|Monospaced|+0
   74705|248|SnippetColumn  |               |snippetNumber="210"<::>columnNumber="4"<::>columnName="SnippetText"|SIGNS ON ADMISSION:  The patient was afebrile.  Blood pressure 125/78,  heart rate 86, respiratory rate 16, O2 saturation 96%, and weight 236 pounds.   It is important to note that at the last office visit the patient weighed  268 pounds, which was
   74843| 3|weight         |               ||236
   74847| 6|unit           |               ||pounds
+  74932| 3|weight         |               ||268
   74936| 6|unit           |               ||pounds
   75048|16|SnippetColumn  |               |snippetNumber="211"<::>columnNumber="1"<::>columnName="filename"|freport48342.txt
   75073| 1|SnippetColumn  |               |snippetNumber="211"<::>columnNumber="2"<::>columnName="empty1"|1
   75083| 1|SnippetColumn  |               |snippetNumber="211"<::>columnNumber="3"<::>columnName="empty2"|1
   75100|263|SnippetColumn  |               |snippetNumber="211"<::>columnNumber="4"<::>columnName="SnippetText"|following were  noted:  New increased shortness of breath, new onset of chest pain,  lightheadedness, dizziness, fainting, ankle swelling, abdominal bloating,  weight gain of 2 pounds in 24 hours or 4 pounds in a week or less.  Pneumonia  vaccine dated 1999.  Flu
-  75277| 6|unit           |               ||pounds
-  75301| 6|unit           |               ||pounds
   75458|16|SnippetColumn  |               |snippetNumber="212"<::>columnNumber="1"<::>columnName="filename"|freport55437.txt
   75483| 1|SnippetColumn  |               |snippetNumber="212"<::>columnNumber="2"<::>columnName="empty1"|1
   75493| 1|SnippetColumn  |               |snippetNumber="212"<::>columnNumber="3"<::>columnName="empty2"|1
@@ -12430,7 +12434,6 @@ unit||false|false|false|true|51|255|51|255|255|255|Monospaced|+0
   97562| 1|SnippetColumn  |               |snippetNumber="275"<::>columnNumber="2"<::>columnName="empty1"|1
   97572| 1|SnippetColumn  |               |snippetNumber="275"<::>columnNumber="3"<::>columnName="empty2"|1
   97589|183|SnippetColumn  |               |snippetNumber="275"<::>columnNumber="4"<::>columnName="SnippetText"|which is significantly  underweight for  height.  She and her husband report a recent 10-pound weight  gain, although our records do not concur.  Our records report a significant  20%
-  97678| 5|unit           |               ||pound
   97867|16|SnippetColumn  |               |snippetNumber="276"<::>columnNumber="1"<::>columnName="filename"|freport37389.txt
   97892| 1|SnippetColumn  |               |snippetNumber="276"<::>columnNumber="2"<::>columnName="empty1"|1
   97902| 1|SnippetColumn  |               |snippetNumber="276"<::>columnNumber="3"<::>columnName="empty2"|1
@@ -12480,7 +12483,6 @@ unit||false|false|false|true|51|255|51|255|255|255|Monospaced|+0
  101656|143|SnippetColumn  |               |snippetNumber="286"<::>columnNumber="4"<::>columnName="SnippetText"|no prenatal care with  this child.  She did deliver at **INSTITUTION, and the baby did go home with  her.  Birth weight was 4 pounds 13 ounces.
  101780| 1|weight         |               ||4
  101782| 6|unit           |               ||pounds
- 101792| 6|unit           |               ||ounces
  101894|17|SnippetColumn  |               |snippetNumber="287"<::>columnNumber="1"<::>columnName="filename"|freport101248.txt
  101920| 1|SnippetColumn  |               |snippetNumber="287"<::>columnNumber="2"<::>columnName="empty1"|1
  101930| 1|SnippetColumn  |               |snippetNumber="287"<::>columnNumber="3"<::>columnName="empty2"|1
@@ -12646,6 +12648,7 @@ unit||false|false|false|true|51|255|51|255|255|255|Monospaced|+0
  115657| 1|SnippetColumn  |               |snippetNumber="326"<::>columnNumber="2"<::>columnName="empty1"|1
  115667| 1|SnippetColumn  |               |snippetNumber="326"<::>columnNumber="3"<::>columnName="empty2"|1
  115684|253|SnippetColumn  |               |snippetNumber="326"<::>columnNumber="4"<::>columnName="SnippetText"|He does not drink alcohol.    FAMILY HISTORY:  Unremarkable.    PHYSICAL EXAMINATION:  He is a white male who appears quite pale.  His weight  is 202 pounds.  Blood pressure 118/78 on the right and 114/72 on the left.   Pulse is 94.  Respirations are 18
+ 115830| 3|weight         |               ||202
  115834| 6|unit           |               ||pounds
  116032|17|SnippetColumn  |               |snippetNumber="327"<::>columnNumber="1"<::>columnName="filename"|freport100413.txt
  116058| 1|SnippetColumn  |               |snippetNumber="327"<::>columnNumber="2"<::>columnName="empty1"|1
@@ -12667,7 +12670,6 @@ unit||false|false|false|true|51|255|51|255|255|255|Monospaced|+0
  117426| 1|SnippetColumn  |               |snippetNumber="331"<::>columnNumber="2"<::>columnName="empty1"|1
  117436| 1|SnippetColumn  |               |snippetNumber="331"<::>columnNumber="3"<::>columnName="empty2"|1
  117453|181|SnippetColumn  |               |snippetNumber="331"<::>columnNumber="4"<::>columnName="SnippetText"|loss about 6 pounds during unknown duration  of time.  She attributes that weight loss to her quitting of Pepsi which she  used to drink about 5 glasses per day during the work, but
- 117466| 6|unit           |               ||pounds
  117729|17|SnippetColumn  |               |snippetNumber="332"<::>columnNumber="1"<::>columnName="filename"|freport100803.txt
  117755| 1|SnippetColumn  |               |snippetNumber="332"<::>columnNumber="2"<::>columnName="empty1"|1
  117765| 1|SnippetColumn  |               |snippetNumber="332"<::>columnNumber="3"<::>columnName="empty2"|1
@@ -12684,6 +12686,7 @@ unit||false|false|false|true|51|255|51|255|255|255|Monospaced|+0
  118945| 1|SnippetColumn  |               |snippetNumber="335"<::>columnNumber="2"<::>columnName="empty1"|1
  118955| 1|SnippetColumn  |               |snippetNumber="335"<::>columnNumber="3"<::>columnName="empty2"|1
  118972|92|SnippetColumn  |               |snippetNumber="335"<::>columnNumber="4"<::>columnName="SnippetText"|conversion (kg)          53.2 kg                          Admission weight (lb)     117.0 lb
+ 118997| 4|weight         |               ||53.2
  119002| 2|unit           |               ||kg
  119056| 5|weight         |               ||117.0
  119062| 2|unit           |               ||lb
@@ -12835,6 +12838,7 @@ unit||false|false|false|true|51|255|51|255|255|255|Monospaced|+0
  131602| 1|SnippetColumn  |               |snippetNumber="370"<::>columnNumber="2"<::>columnName="empty1"|1
  131612| 1|SnippetColumn  |               |snippetNumber="370"<::>columnNumber="3"<::>columnName="empty2"|1
  131629|355|SnippetColumn  |               |snippetNumber="370"<::>columnNumber="4"<::>columnName="SnippetText"|97.9 DegF                          Temperature Site          Oral                          Pulse                     59 BPM                          Respiratory Rate          20                          Systolic BP               112 mmHg                          Diastolic BP              50 mmHg                          Current weight conversion 97.6 kg
+ 131977| 4|weight         |               ||97.6
  131982| 2|unit           |               ||kg
  132079|17|SnippetColumn  |               |snippetNumber="371"<::>columnNumber="1"<::>columnName="filename"|freport101593.txt
  132105| 1|SnippetColumn  |               |snippetNumber="371"<::>columnNumber="2"<::>columnName="empty1"|1
@@ -12872,7 +12876,6 @@ unit||false|false|false|true|51|255|51|255|255|255|Monospaced|+0
  135024| 1|SnippetColumn  |               |snippetNumber="379"<::>columnNumber="2"<::>columnName="empty1"|1
  135034| 1|SnippetColumn  |               |snippetNumber="379"<::>columnNumber="3"<::>columnName="empty2"|1
  135051|240|SnippetColumn  |               |snippetNumber="379"<::>columnNumber="4"<::>columnName="SnippetText"|becoming incontinent with bowel and  bladder during the day and, in addition, she indicates he has had about a  40-pounds weight loss in the last 5 months.  The patient recently spiked a  fever approximately 4 days ago at which time patient
- 135166| 6|unit           |               ||pounds
  135386|17|SnippetColumn  |               |snippetNumber="380"<::>columnNumber="1"<::>columnName="filename"|freport101331.txt
  135412| 1|SnippetColumn  |               |snippetNumber="380"<::>columnNumber="2"<::>columnName="empty1"|1
  135422| 1|SnippetColumn  |               |snippetNumber="380"<::>columnNumber="3"<::>columnName="empty2"|1
@@ -12899,7 +12902,6 @@ unit||false|false|false|true|51|255|51|255|255|255|Monospaced|+0
  137245| 1|SnippetColumn  |               |snippetNumber="385"<::>columnNumber="2"<::>columnName="empty1"|1
  137255| 1|SnippetColumn  |               |snippetNumber="385"<::>columnNumber="3"<::>columnName="empty2"|1
  137272|237|SnippetColumn  |               |snippetNumber="385"<::>columnNumber="4"<::>columnName="SnippetText"|systems is pertinent for nausea and vomiting prior to admission to  **INSTITUTION on **DATE[Jan 12 2007].  He also had a weight loss of 40 pounds  over he past year.  He is now complaining of left upper quadrant abdominal  pain.  He does
- 137411| 6|unit           |               ||pounds
  137604|17|SnippetColumn  |               |snippetNumber="386"<::>columnNumber="1"<::>columnName="filename"|freport100419.txt
  137630| 1|SnippetColumn  |               |snippetNumber="386"<::>columnNumber="2"<::>columnName="empty1"|1
  137640| 1|SnippetColumn  |               |snippetNumber="386"<::>columnNumber="3"<::>columnName="empty2"|1
@@ -12920,7 +12922,6 @@ unit||false|false|false|true|51|255|51|255|255|255|Monospaced|+0
  138981| 1|SnippetColumn  |               |snippetNumber="390"<::>columnNumber="2"<::>columnName="empty1"|1
  138991| 1|SnippetColumn  |               |snippetNumber="390"<::>columnNumber="3"<::>columnName="empty2"|1
  139008|220|SnippetColumn  |               |snippetNumber="390"<::>columnNumber="4"<::>columnName="SnippetText"|as her son. Now, she is back to living on her own. The patient admits to an over 20 pound weight loss. However, the accuracy of this is somewhat unclear.  MEDICATIONS: At the present time, she is on methadone, Lovenox 40
- 139092| 5|unit           |               ||pound
  139323|16|SnippetColumn  |               |snippetNumber="391"<::>columnNumber="1"<::>columnName="filename"|freport23925.txt
  139348| 1|SnippetColumn  |               |snippetNumber="391"<::>columnNumber="2"<::>columnName="empty1"|1
  139358| 1|SnippetColumn  |               |snippetNumber="391"<::>columnNumber="3"<::>columnName="empty2"|1
@@ -13008,7 +13009,6 @@ unit||false|false|false|true|51|255|51|255|255|255|Monospaced|+0
  146431| 1|SnippetColumn  |               |snippetNumber="410"<::>columnNumber="2"<::>columnName="empty1"|1
  146441| 1|SnippetColumn  |               |snippetNumber="410"<::>columnNumber="3"<::>columnName="empty2"|1
  146458|183|SnippetColumn  |               |snippetNumber="410"<::>columnNumber="4"<::>columnName="SnippetText"|much better and feels  comfortable on the lower FIO2.  His saturations have been in the 91% to 93%  range.  His weight is checked and he has had a 27-pound increase from his  baseline
- 146608| 5|unit           |               ||pound
  146736|17|SnippetColumn  |               |snippetNumber="411"<::>columnNumber="1"<::>columnName="filename"|freport100081.txt
  146762| 1|SnippetColumn  |               |snippetNumber="411"<::>columnNumber="2"<::>columnName="empty1"|1
  146772| 1|SnippetColumn  |               |snippetNumber="411"<::>columnNumber="3"<::>columnName="empty2"|1
@@ -13120,6 +13120,7 @@ unit||false|false|false|true|51|255|51|255|255|255|Monospaced|+0
  156135| 1|SnippetColumn  |               |snippetNumber="437"<::>columnNumber="2"<::>columnName="empty1"|1
  156145| 1|SnippetColumn  |               |snippetNumber="437"<::>columnNumber="3"<::>columnName="empty2"|1
  156162|582|SnippetColumn  |               |snippetNumber="437"<::>columnNumber="4"<::>columnName="SnippetText"|26 2007] 11:16 AM      Temperature Conversion    36.7 DegC                          Pulse                     80 BPM                          Respiratory Rate          16                          Systolic BP               111                          Diastolic BP              68                          Weight Conversion         88.2 kg                          BMI from metric           26.36  **DATE[Feb 26 2007] 5:33 AM       PT                        10.7 sec  High                          INR                       1.2                          PTT                       76.6
+ 156493| 4|weight         |               ||88.2
  156498| 2|unit           |               ||kg
  156839|16|SnippetColumn  |               |snippetNumber="438"<::>columnNumber="1"<::>columnName="filename"|freport25710.txt
  156864| 1|SnippetColumn  |               |snippetNumber="438"<::>columnNumber="2"<::>columnName="empty1"|1
@@ -13129,6 +13130,7 @@ unit||false|false|false|true|51|255|51|255|255|255|Monospaced|+0
  157270| 1|SnippetColumn  |               |snippetNumber="439"<::>columnNumber="2"<::>columnName="empty1"|1
  157280| 1|SnippetColumn  |               |snippetNumber="439"<::>columnNumber="3"<::>columnName="empty2"|1
  157297|288|SnippetColumn  |               |snippetNumber="439"<::>columnNumber="4"<::>columnName="SnippetText"|Tonsillectomy.   MEDICATIONS:  None.   SOCIAL HISTORY:  He is single.  He lives with his parents.  He denies  alcohol, cigarettes, or drug use.  Weight 215 pounds.  Employment:  The  patient is unemployed.  A friend drove him here.    ALLERGIES:  NONE.   REVIEW OF SYSTEMS:  He denies any
+ 157449| 3|weight         |               ||215
  157453| 6|unit           |               ||pounds
  157680|16|SnippetColumn  |               |snippetNumber="440"<::>columnNumber="1"<::>columnName="filename"|freport96081.txt
  157705| 1|SnippetColumn  |               |snippetNumber="440"<::>columnNumber="2"<::>columnName="empty1"|1
@@ -13150,8 +13152,8 @@ unit||false|false|false|true|51|255|51|255|255|255|Monospaced|+0
  159102| 1|SnippetColumn  |               |snippetNumber="444"<::>columnNumber="2"<::>columnName="empty1"|1
  159112| 1|SnippetColumn  |               |snippetNumber="444"<::>columnNumber="3"<::>columnName="empty2"|1
  159129|293|SnippetColumn  |               |snippetNumber="444"<::>columnNumber="4"<::>columnName="SnippetText"|Gastrointestinal: obese, soft non tender. Musculoskeletal: persistent lymphedema lower extremeites. Neurological: A&O x3.  Impression and Plan  Plan 1. CV- CHF/SVT/Hyperlipidemia: Weight 148.1kg - up 0.6kg. . No overt signs of CHF at this time- still SOB with exertion. Changed to PO Lasix BID
+ 159316| 5|weight         |               ||148.1
  159321| 2|unit           |               ||kg
- 159332| 2|unit           |               ||kg
  159517|16|SnippetColumn  |               |snippetNumber="445"<::>columnNumber="1"<::>columnName="filename"|freport99625.txt
  159542| 1|SnippetColumn  |               |snippetNumber="445"<::>columnNumber="2"<::>columnName="empty1"|1
  159552| 1|SnippetColumn  |               |snippetNumber="445"<::>columnNumber="3"<::>columnName="empty2"|1
@@ -13244,6 +13246,7 @@ unit||false|false|false|true|51|255|51|255|255|255|Monospaced|+0
  167517| 1|SnippetColumn  |               |snippetNumber="467"<::>columnNumber="2"<::>columnName="empty1"|1
  167527| 1|SnippetColumn  |               |snippetNumber="467"<::>columnNumber="3"<::>columnName="empty2"|1
  167544|307|SnippetColumn  |               |snippetNumber="467"<::>columnNumber="4"<::>columnName="SnippetText"|alert, and obviously in pain. VITAL SIGNS:  Temperature is 97.8 orally.  Pulse 67 and regular.   Respirations 20, blood pressure 132/62.  Weight is 104.  HEENT:  Normal.  Mucous membranes moist. NECK:  Supple and nontender. LUNGS:  Clear. HEART:  Regular rhythm. ABDOMEN:  Nontender. MUSCULOSKELETAL:  There
+ 167692| 3|weight         |               ||104
  167946|17|SnippetColumn  |               |snippetNumber="468"<::>columnNumber="1"<::>columnName="filename"|freport100474.txt
  167972| 1|SnippetColumn  |               |snippetNumber="468"<::>columnNumber="2"<::>columnName="empty1"|1
  167982| 1|SnippetColumn  |               |snippetNumber="468"<::>columnNumber="3"<::>columnName="empty2"|1
@@ -13276,6 +13279,7 @@ unit||false|false|false|true|51|255|51|255|255|255|Monospaced|+0
  170585| 1|SnippetColumn  |               |snippetNumber="475"<::>columnNumber="2"<::>columnName="empty1"|1
  170595| 1|SnippetColumn  |               |snippetNumber="475"<::>columnNumber="3"<::>columnName="empty2"|1
  170612|273|SnippetColumn  |               |snippetNumber="475"<::>columnNumber="4"<::>columnName="SnippetText"|X10E+09/L                          ABS Monocytes             0.8 X10E+09/L                          Abs Eos, auto             0.2 X10E+09/L                          ABS Basophils             0.1 X10E+09/L  **DATE[Jun 14 2007] 6:00 AM       Current weight conversion 94.6 kg
+ 170878| 4|weight         |               ||94.6
  170883| 2|unit           |               ||kg
  170980|16|SnippetColumn  |               |snippetNumber="476"<::>columnNumber="1"<::>columnName="filename"|freport99315.txt
  171005| 1|SnippetColumn  |               |snippetNumber="476"<::>columnNumber="2"<::>columnName="empty1"|1
@@ -13313,7 +13317,9 @@ unit||false|false|false|true|51|255|51|255|255|255|Monospaced|+0
  173813| 1|SnippetColumn  |               |snippetNumber="484"<::>columnNumber="2"<::>columnName="empty1"|1
  173823| 1|SnippetColumn  |               |snippetNumber="484"<::>columnNumber="3"<::>columnName="empty2"|1
  173840|136|SnippetColumn  |               |snippetNumber="484"<::>columnNumber="4"<::>columnName="SnippetText"|was 711 pounds, her weight  currently during this admission is 139 kg. 3.  Asthma which appears to be stable, and by her account, it has
+ 173844| 3|weight         |               ||711
  173848| 6|unit           |               ||pounds
+ 173903| 3|weight         |               ||139
  173907| 2|unit           |               ||kg
  174071|17|SnippetColumn  |               |snippetNumber="485"<::>columnNumber="1"<::>columnName="filename"|freport101581.txt
  174097| 1|SnippetColumn  |               |snippetNumber="485"<::>columnNumber="2"<::>columnName="empty1"|1
@@ -13335,11 +13341,13 @@ unit||false|false|false|true|51|255|51|255|255|255|Monospaced|+0
  175545| 1|SnippetColumn  |               |snippetNumber="489"<::>columnNumber="2"<::>columnName="empty1"|1
  175555| 1|SnippetColumn  |               |snippetNumber="489"<::>columnNumber="3"<::>columnName="empty2"|1
  175572|289|SnippetColumn  |               |snippetNumber="489"<::>columnNumber="4"<::>columnName="SnippetText"|died at the age of **AGE[in 60s].    PHYSICAL EXAMINATION  A **AGE[in 50s]-year-old moderately obese female in no acute distress. Her weight was  102 kilograms. Blood pressure was 118/56. Temperature 97.3. Jugular venous  pulse and carotid pulses were unremarkable. Normal prosthetic heart
+ 175718| 3|weight         |               ||102
  175722| 9|unit           |               ||kilograms
  175956|16|SnippetColumn  |               |snippetNumber="490"<::>columnNumber="1"<::>columnName="filename"|freport98834.txt
  175981| 1|SnippetColumn  |               |snippetNumber="490"<::>columnNumber="2"<::>columnName="empty1"|1
  175991| 1|SnippetColumn  |               |snippetNumber="490"<::>columnNumber="3"<::>columnName="empty2"|1
  176008|119|SnippetColumn  |               |snippetNumber="490"<::>columnNumber="4"<::>columnName="SnippetText"|T:      BP:       P:    RR:    SaO2:    FiO2:    Ht:      Wt:  150 T:      BP: 94/50 P:100 RR: 22 SaO2:100 FiO2:  6 Ht:
+ 176071| 3|weight         |               ||150
  176222|16|SnippetColumn  |               |snippetNumber="491"<::>columnNumber="1"<::>columnName="filename"|freport75167.txt
  176247| 1|SnippetColumn  |               |snippetNumber="491"<::>columnNumber="2"<::>columnName="empty1"|1
  176257| 1|SnippetColumn  |               |snippetNumber="491"<::>columnNumber="3"<::>columnName="empty2"|1
@@ -13376,6 +13384,7 @@ unit||false|false|false|true|51|255|51|255|255|255|Monospaced|+0
  179075| 1|SnippetColumn  |               |snippetNumber="499"<::>columnNumber="2"<::>columnName="empty1"|1
  179085| 1|SnippetColumn  |               |snippetNumber="499"<::>columnNumber="3"<::>columnName="empty2"|1
  179102|235|SnippetColumn  |               |snippetNumber="499"<::>columnNumber="4"<::>columnName="SnippetText"|**DATE[Oct 03] 05:45 T:      BP:       P:    RR:    SaO2:    FiO2:    Ht:      Wt:  121 - - - - - Constitutional:  Other: In mild distress Eyes: EOMI; **NAME[VVV] Ears, Nose, Mouth & Throat: Moist mucosa;  Other: dentures in both upper
+ 179186| 3|weight         |               ||121
  179432|17|SnippetColumn  |               |snippetNumber="500"<::>columnNumber="1"<::>columnName="filename"|freport100316.txt
  179458| 1|SnippetColumn  |               |snippetNumber="500"<::>columnNumber="2"<::>columnName="empty1"|1
  179468| 1|SnippetColumn  |               |snippetNumber="500"<::>columnNumber="3"<::>columnName="empty2"|1
@@ -13420,7 +13429,9 @@ unit||false|false|false|true|51|255|51|255|255|255|Monospaced|+0
  183061| 1|SnippetColumn  |               |snippetNumber="510"<::>columnNumber="2"<::>columnName="empty1"|1
  183071| 1|SnippetColumn  |               |snippetNumber="510"<::>columnNumber="3"<::>columnName="empty2"|1
  183088|231|SnippetColumn  |               |snippetNumber="510"<::>columnNumber="4"<::>columnName="SnippetText"|blood pressure of 116/55, SaO2  of 94 with a FiO2 of 93 on 2 liters of O2 per minute.  Her weight is 190  pounds and 86.4 kilograms.  The skin is pale.  The skull is normocephalic.   The face, HEENT, essentially unremarkable.  Neck
+ 183189| 3|weight         |               ||190
  183194| 6|unit           |               ||pounds
+ 183205| 4|weight         |               ||86.4
  183210| 9|unit           |               ||kilograms
  183414|17|SnippetColumn  |               |snippetNumber="511"<::>columnNumber="1"<::>columnName="filename"|freport101616.txt
  183440| 1|SnippetColumn  |               |snippetNumber="511"<::>columnNumber="2"<::>columnName="empty1"|1
@@ -13442,6 +13453,7 @@ unit||false|false|false|true|51|255|51|255|255|255|Monospaced|+0
  184943| 1|SnippetColumn  |               |snippetNumber="515"<::>columnNumber="2"<::>columnName="empty1"|1
  184953| 1|SnippetColumn  |               |snippetNumber="515"<::>columnNumber="3"<::>columnName="empty2"|1
  184970|264|SnippetColumn  |               |snippetNumber="515"<::>columnNumber="4"<::>columnName="SnippetText"|or paralysis.   PHYSICAL EXAMINATION:  VITAL SIGNS:   Blood pressure on presentation 128/70, Heart rate is currently in the 80s.  Temperature 99.0, Weight 105 pounds, Height 5 feet, 1 1/2 inches.  GENERAL: She is alert and oriented x4 in no apparent distress.  She
+ 185125| 3|weight         |               ||105
  185129| 6|unit           |               ||pounds
  185329|16|SnippetColumn  |               |snippetNumber="516"<::>columnNumber="1"<::>columnName="filename"|freport99538.txt
  185354| 1|SnippetColumn  |               |snippetNumber="516"<::>columnNumber="2"<::>columnName="empty1"|1
@@ -13523,6 +13535,7 @@ unit||false|false|false|true|51|255|51|255|255|255|Monospaced|+0
  192052| 1|SnippetColumn  |               |snippetNumber="535"<::>columnNumber="2"<::>columnName="empty1"|1
  192062| 1|SnippetColumn  |               |snippetNumber="535"<::>columnNumber="3"<::>columnName="empty2"|1
  192079|272|SnippetColumn  |               |snippetNumber="535"<::>columnNumber="4"<::>columnName="SnippetText"|who is sleepy.  VITAL SIGNS:  Blood  pressure is ranging between 143-166 over 73-81 mmHg.  Pulse was 89 beats per  minute, weight was 62 kilogram.  HEART: Jugular venous pulses and carotid  pulses were unremarkable.  Both heart sounds were distant.  LUNGS:  Few  bilateral
+ 192213| 2|weight         |               ||62
  192216| 8|unit           |               ||kilogram
  192446|17|SnippetColumn  |               |snippetNumber="536"<::>columnNumber="1"<::>columnName="filename"|freport100391.txt
  192472| 1|SnippetColumn  |               |snippetNumber="536"<::>columnNumber="2"<::>columnName="empty1"|1
@@ -13552,6 +13565,7 @@ unit||false|false|false|true|51|255|51|255|255|255|Monospaced|+0
  194662| 1|SnippetColumn  |               |snippetNumber="542"<::>columnNumber="2"<::>columnName="empty1"|1
  194672| 1|SnippetColumn  |               |snippetNumber="542"<::>columnNumber="3"<::>columnName="empty2"|1
  194689|278|SnippetColumn  |               |snippetNumber="542"<::>columnNumber="4"<::>columnName="SnippetText"|appears comfortable lying in bed. VITAL SIGNS:  Temperature 97 orally, pulse 69 and regular, respirations 20,  blood pressure 153/76, and weight 250 pounds.  HEENT:  Head, eyes, ears, nose, and throat are normal.  Mucous membranes are  moist.  NECK:  Supple and nontender. LUNGS
+ 194834| 3|weight         |               ||250
  194838| 6|unit           |               ||pounds
  195062|16|SnippetColumn  |               |snippetNumber="543"<::>columnNumber="1"<::>columnName="filename"|freport19529.txt
  195087| 1|SnippetColumn  |               |snippetNumber="543"<::>columnNumber="2"<::>columnName="empty1"|1
@@ -13565,6 +13579,7 @@ unit||false|false|false|true|51|255|51|255|255|255|Monospaced|+0
  195675| 1|SnippetColumn  |               |snippetNumber="545"<::>columnNumber="2"<::>columnName="empty1"|1
  195685| 1|SnippetColumn  |               |snippetNumber="545"<::>columnNumber="3"<::>columnName="empty2"|1
  195702|169|SnippetColumn  |               |snippetNumber="545"<::>columnNumber="4"<::>columnName="SnippetText"|and his adjusted body weight used for  nutrition assessment is 75 kilograms.  His physical appearance is somewhat  overweight for height.  His GI function is significant
+ 195765| 2|weight         |               ||75
  195768| 9|unit           |               ||kilograms
  195966|17|SnippetColumn  |               |snippetNumber="546"<::>columnNumber="1"<::>columnName="filename"|freport100052.txt
  195992| 1|SnippetColumn  |               |snippetNumber="546"<::>columnNumber="2"<::>columnName="empty1"|1
@@ -13578,6 +13593,7 @@ unit||false|false|false|true|51|255|51|255|255|255|Monospaced|+0
  196748| 1|SnippetColumn  |               |snippetNumber="548"<::>columnNumber="2"<::>columnName="empty1"|1
  196758| 1|SnippetColumn  |               |snippetNumber="548"<::>columnNumber="3"<::>columnName="empty2"|1
  196775|306|SnippetColumn  |               |snippetNumber="548"<::>columnNumber="4"<::>columnName="SnippetText"|at ileocecal intubation and a biopsy.  PHYSICAL EXAMINATION:  Vital signs are stable.  General:  Alert and oriented.   Morbidly obese, current body weight more than 320 pounds.  Neck:  Supple.   Chest:  Clear to auscultation.  Abdomen:  Tender in the left lower quadrant.   CNS:  Nonfocal.  RECOMMENDATIONS
+ 196940| 3|weight         |               ||320
  196944| 6|unit           |               ||pounds
  197176|17|SnippetColumn  |               |snippetNumber="549"<::>columnNumber="1"<::>columnName="filename"|freport100254.txt
  197202| 1|SnippetColumn  |               |snippetNumber="549"<::>columnNumber="2"<::>columnName="empty1"|1
@@ -13727,7 +13743,9 @@ unit||false|false|false|true|51|255|51|255|255|255|Monospaced|+0
  209492| 1|SnippetColumn  |               |snippetNumber="585"<::>columnNumber="2"<::>columnName="empty1"|1
  209502| 1|SnippetColumn  |               |snippetNumber="585"<::>columnNumber="3"<::>columnName="empty2"|1
  209519|79|SnippetColumn  |               |snippetNumber="585"<::>columnNumber="4"<::>columnName="SnippetText"|conversion 72.7 kg                          Weight                    159.90 lb
+ 209530| 4|weight         |               ||72.7
  209535| 2|unit           |               ||kg
+ 209589| 6|weight         |               ||159.90
  209596| 2|unit           |               ||lb
  209693|17|SnippetColumn  |               |snippetNumber="586"<::>columnNumber="1"<::>columnName="filename"|freport100433.txt
  209719| 1|SnippetColumn  |               |snippetNumber="586"<::>columnNumber="2"<::>columnName="empty1"|1
@@ -13745,7 +13763,6 @@ unit||false|false|false|true|51|255|51|255|255|255|Monospaced|+0
  210741| 1|SnippetColumn  |               |snippetNumber="589"<::>columnNumber="2"<::>columnName="empty1"|1
  210751| 1|SnippetColumn  |               |snippetNumber="589"<::>columnNumber="3"<::>columnName="empty2"|1
  210768|276|SnippetColumn  |               |snippetNumber="589"<::>columnNumber="4"<::>columnName="SnippetText"|W/WO CONTRAST   **DATE[May 06 07]     2332 HOURS  CLINICAL HISTORY: Patient with jaundice and abdominal pain for 1 month. 30 pound weight loss. LFT is positive for acute hepatitis.  COMPARISON: None.  TECHNIQUE: 2.5mm helical axial images were obtained through the abdomen and
- 210893| 5|unit           |               ||pound
  211139|16|SnippetColumn  |               |snippetNumber="590"<::>columnNumber="1"<::>columnName="filename"|freport50803.txt
  211164| 1|SnippetColumn  |               |snippetNumber="590"<::>columnNumber="2"<::>columnName="empty1"|1
  211174| 1|SnippetColumn  |               |snippetNumber="590"<::>columnNumber="3"<::>columnName="empty2"|1
@@ -13754,7 +13771,6 @@ unit||false|false|false|true|51|255|51|255|255|255|Monospaced|+0
  211545| 1|SnippetColumn  |               |snippetNumber="591"<::>columnNumber="2"<::>columnName="empty1"|1
  211555| 1|SnippetColumn  |               |snippetNumber="591"<::>columnNumber="3"<::>columnName="empty2"|1
  211572|253|SnippetColumn  |               |snippetNumber="591"<::>columnNumber="4"<::>columnName="SnippetText"|continues to have abdominal pain.  She feels nauseated.  She denies any fevers, chills, or night sweats.  She  reports a 20-pound weight loss since **DATE[Apr 2007].  She reported that she is  having flatus, has not had a bowel movement for several days
- 211696| 5|unit           |               ||pound
  211920|16|SnippetColumn  |               |snippetNumber="592"<::>columnNumber="1"<::>columnName="filename"|freport61627.txt
  211945| 1|SnippetColumn  |               |snippetNumber="592"<::>columnNumber="2"<::>columnName="empty1"|1
  211955| 1|SnippetColumn  |               |snippetNumber="592"<::>columnNumber="3"<::>columnName="empty2"|1
@@ -13779,7 +13795,6 @@ unit||false|false|false|true|51|255|51|255|255|255|Monospaced|+0
  213880| 1|SnippetColumn  |               |snippetNumber="597"<::>columnNumber="2"<::>columnName="empty1"|1
  213890| 1|SnippetColumn  |               |snippetNumber="597"<::>columnNumber="3"<::>columnName="empty2"|1
  213907|286|SnippetColumn  |               |snippetNumber="597"<::>columnNumber="4"<::>columnName="SnippetText"|GERD. 3. Atrial fibrillation with a negative troponin. 4. C. difficile colitis. REVIEW OF SYSTEMS: Positive for dyspnea, a 20-pound weight loss, fatigue, dry mouth, insomnia  secondary to shortness of breath, and some anxiety.   ALLERGIES: NO DRUG ALLERGIES. MEDICATIONS: Medications in
- 214033| 5|unit           |               ||pound
  214288|16|SnippetColumn  |               |snippetNumber="598"<::>columnNumber="1"<::>columnName="filename"|freport74814.txt
  214313| 1|SnippetColumn  |               |snippetNumber="598"<::>columnNumber="2"<::>columnName="empty1"|1
  214323| 1|SnippetColumn  |               |snippetNumber="598"<::>columnNumber="3"<::>columnName="empty2"|1
@@ -13848,11 +13863,13 @@ unit||false|false|false|true|51|255|51|255|255|255|Monospaced|+0
  219901| 1|SnippetColumn  |               |snippetNumber="614"<::>columnNumber="2"<::>columnName="empty1"|1
  219911| 1|SnippetColumn  |               |snippetNumber="614"<::>columnNumber="3"<::>columnName="empty2"|1
  219928|260|SnippetColumn  |               |snippetNumber="614"<::>columnNumber="4"<::>columnName="SnippetText"|patient was born 36 weeks premature, but the mom notes no obvious developmental delays.  PHYSICAL EXAMINATION:  VITAL SIGNS:  Temperature 96.9, weight 10 kgs.  GENERAL: The patient is small for age, but well nourished.  HEENT: There was a reddish, pink bump in
+ 220079| 2|weight         |               ||10
  220082| 3|unit           |               ||kgs
  220283|16|SnippetColumn  |               |snippetNumber="615"<::>columnNumber="1"<::>columnName="filename"|freport60312.txt
  220308| 1|SnippetColumn  |               |snippetNumber="615"<::>columnNumber="2"<::>columnName="empty1"|1
  220318| 1|SnippetColumn  |               |snippetNumber="615"<::>columnNumber="3"<::>columnName="empty2"|1
  220335|353|SnippetColumn  |               |snippetNumber="615"<::>columnNumber="4"<::>columnName="SnippetText"|BPM                            Respiratory Rate          16                          O2 Saturation             94 %                          Systolic BP               128 mmHg                          Diastolic BP              52 mmHg                          BP Site                   Left Arm                          Current weight conversion 80.2 kg
+ 220681| 4|weight         |               ||80.2
  220686| 2|unit           |               ||kg
  220783|17|SnippetColumn  |               |snippetNumber="616"<::>columnNumber="1"<::>columnName="filename"|freport100400.txt
  220809| 1|SnippetColumn  |               |snippetNumber="616"<::>columnNumber="2"<::>columnName="empty1"|1
@@ -13862,12 +13879,12 @@ unit||false|false|false|true|51|255|51|255|255|255|Monospaced|+0
  221075| 1|SnippetColumn  |               |snippetNumber="617"<::>columnNumber="2"<::>columnName="empty1"|1
  221085| 1|SnippetColumn  |               |snippetNumber="617"<::>columnNumber="3"<::>columnName="empty2"|1
  221102|213|SnippetColumn  |               |snippetNumber="617"<::>columnNumber="4"<::>columnName="SnippetText"|anxiety. PAST SURGICAL HISTORY:  Includes hysterectomy, cholecystectomy, appendectomy,  omentectomy, and bilateral knee replacements. NUTRITION ASSESSMENT DATA:  Height 167.6 cm.  Admission weight 78.7 kg.   Usual
+ 221299| 4|weight         |               ||78.7
  221304| 2|unit           |               ||kg
  221410|16|SnippetColumn  |               |snippetNumber="618"<::>columnNumber="1"<::>columnName="filename"|freport86418.txt
  221435| 1|SnippetColumn  |               |snippetNumber="618"<::>columnNumber="2"<::>columnName="empty1"|1
  221445| 1|SnippetColumn  |               |snippetNumber="618"<::>columnNumber="3"<::>columnName="empty2"|1
  221462|269|SnippetColumn  |               |snippetNumber="618"<::>columnNumber="4"<::>columnName="SnippetText"|day for 6 years. Discontinued **DATE[May 2007]. Street drugs: Denies.  REVIEW OF SYSTEMS: CONSTITUTIONAL: There is anorexia and a 14-pound weight loss over the past month. There are no fevers or sweats. HEENT: No difficultly seeing, hearing, chewing, or swallowing. She
- 221595| 5|unit           |               ||pound
  221826|17|SnippetColumn  |               |snippetNumber="619"<::>columnNumber="1"<::>columnName="filename"|freport100754.txt
  221852| 1|SnippetColumn  |               |snippetNumber="619"<::>columnNumber="2"<::>columnName="empty1"|1
  221862| 1|SnippetColumn  |               |snippetNumber="619"<::>columnNumber="3"<::>columnName="empty2"|1
@@ -13960,7 +13977,6 @@ unit||false|false|false|true|51|255|51|255|255|255|Monospaced|+0
  229322| 1|SnippetColumn  |               |snippetNumber="641"<::>columnNumber="2"<::>columnName="empty1"|1
  229332| 1|SnippetColumn  |               |snippetNumber="641"<::>columnNumber="3"<::>columnName="empty2"|1
  229349|256|SnippetColumn  |               |snippetNumber="641"<::>columnNumber="4"<::>columnName="SnippetText"|4-day bout of progressive  diarrhea and nausea and inability to keep food substances down.  She also had  reported about 20-pound weight loss over the preceding 2 months.  She had  recently seen her primary care provider, Dr. **NAME[YYY ZZZ], in the office
- 229473| 5|unit           |               ||pound
  229700|17|SnippetColumn  |               |snippetNumber="642"<::>columnNumber="1"<::>columnName="filename"|freport100079.txt
  229726| 1|SnippetColumn  |               |snippetNumber="642"<::>columnNumber="2"<::>columnName="empty1"|1
  229736| 1|SnippetColumn  |               |snippetNumber="642"<::>columnNumber="3"<::>columnName="empty2"|1
@@ -13973,6 +13989,7 @@ unit||false|false|false|true|51|255|51|255|255|255|Monospaced|+0
  230419| 1|SnippetColumn  |               |snippetNumber="644"<::>columnNumber="2"<::>columnName="empty1"|1
  230429| 1|SnippetColumn  |               |snippetNumber="644"<::>columnNumber="3"<::>columnName="empty2"|1
  230446|271|SnippetColumn  |               |snippetNumber="644"<::>columnNumber="4"<::>columnName="SnippetText"|7.  Multiple coronary interventions in the right coronary in the past.   8.  Thalassemia.   PHYSICAL EXAMINATION:  A moderately overweight white female.  Weight 183  pounds.  Blood pressure 160/70.  Cardiac exam:  Normal S1 and S2.  There is  no S3.  There is an S4.  She
+ 230607| 3|weight         |               ||183
  230612| 6|unit           |               ||pounds
  230812|17|SnippetColumn  |               |snippetNumber="645"<::>columnNumber="1"<::>columnName="filename"|freport100745.txt
  230838| 1|SnippetColumn  |               |snippetNumber="645"<::>columnNumber="2"<::>columnName="empty1"|1
@@ -13982,10 +13999,13 @@ unit||false|false|false|true|51|255|51|255|255|255|Monospaced|+0
  231227| 1|SnippetColumn  |               |snippetNumber="646"<::>columnNumber="2"<::>columnName="empty1"|1
  231237| 1|SnippetColumn  |               |snippetNumber="646"<::>columnNumber="3"<::>columnName="empty2"|1
  231254|252|SnippetColumn  |               |snippetNumber="646"<::>columnNumber="4"<::>columnName="SnippetText"|**DATE[Sep 16] 09:44 T:      BP:       P:    RR:    SaO2:    FiO2:    Ht:      Wt:  143 - - - - - Constitutional: No acute distress;  Other: conversant and appropriate, appears debilitated and fatigued Eyes: EOMI; **NAME[UUU] Ears, Nose, Mouth & Throat
+ 231338| 3|weight         |               ||143
  231601|17|SnippetColumn  |               |snippetNumber="647"<::>columnNumber="1"<::>columnName="filename"|freport100096.txt
  231627| 1|SnippetColumn  |               |snippetNumber="647"<::>columnNumber="2"<::>columnName="empty1"|1
  231637| 1|SnippetColumn  |               |snippetNumber="647"<::>columnNumber="3"<::>columnName="empty2"|1
  231654|159|SnippetColumn  |               |snippetNumber="647"<::>columnNumber="4"<::>columnName="SnippetText"|Pre transplant, he was 213 and now he weighs about 125. This weight loss has been worse over the last month. He is mostly only able to keep down H2O or tea. He
+ 231677| 3|weight         |               ||213
+ 231705| 3|weight         |               ||125
  231908|16|SnippetColumn  |               |snippetNumber="648"<::>columnNumber="1"<::>columnName="filename"|freport99446.txt
  231933| 1|SnippetColumn  |               |snippetNumber="648"<::>columnNumber="2"<::>columnName="empty1"|1
  231943| 1|SnippetColumn  |               |snippetNumber="648"<::>columnNumber="3"<::>columnName="empty2"|1
@@ -14002,6 +14022,7 @@ unit||false|false|false|true|51|255|51|255|255|255|Monospaced|+0
  233017| 1|SnippetColumn  |               |snippetNumber="651"<::>columnNumber="2"<::>columnName="empty1"|1
  233027| 1|SnippetColumn  |               |snippetNumber="651"<::>columnNumber="3"<::>columnName="empty2"|1
  233044|239|SnippetColumn  |               |snippetNumber="651"<::>columnNumber="4"<::>columnName="SnippetText"|afebrile, and vital  signs are stable.  Skin is clear, warm, and dry.  Her height is 5 feet 2  inches and weight approximately 145 pounds.  She is afebrile, and vital signs  are stable.  Skin is clear, warm, and dry.  HEENT: Atraumatic and
+ 233171| 3|weight         |               ||145
  233175| 6|unit           |               ||pounds
  233378|17|SnippetColumn  |               |snippetNumber="652"<::>columnNumber="1"<::>columnName="filename"|freport101415.txt
  233404| 1|SnippetColumn  |               |snippetNumber="652"<::>columnNumber="2"<::>columnName="empty1"|1
@@ -14031,6 +14052,7 @@ unit||false|false|false|true|51|255|51|255|255|255|Monospaced|+0
  235312| 1|SnippetColumn  |               |snippetNumber="658"<::>columnNumber="2"<::>columnName="empty1"|1
  235322| 1|SnippetColumn  |               |snippetNumber="658"<::>columnNumber="3"<::>columnName="empty2"|1
  235339|214|SnippetColumn  |               |snippetNumber="658"<::>columnNumber="4"<::>columnName="SnippetText"|24 Hr Max Temp:39.2 36 Hr Max Temp:39.2 METRIC: Weight: 255 - - - - - Constitutional: No acute distress Eyes:  Other: Pupils 3mm-2mm Ears, Nose, Mouth & Throat: Moist mucosa Respiratory: CTA;  Other: no significant
+ 235395| 3|weight         |               ||255
  235648|16|SnippetColumn  |               |snippetNumber="659"<::>columnNumber="1"<::>columnName="filename"|freport98923.txt
  235673| 1|SnippetColumn  |               |snippetNumber="659"<::>columnNumber="2"<::>columnName="empty1"|1
  235683| 1|SnippetColumn  |               |snippetNumber="659"<::>columnNumber="3"<::>columnName="empty2"|1
@@ -14083,6 +14105,7 @@ unit||false|false|false|true|51|255|51|255|255|255|Monospaced|+0
  239945| 1|SnippetColumn  |               |snippetNumber="671"<::>columnNumber="2"<::>columnName="empty1"|1
  239955| 1|SnippetColumn  |               |snippetNumber="671"<::>columnNumber="3"<::>columnName="empty2"|1
  239972|315|SnippetColumn  |               |snippetNumber="671"<::>columnNumber="4"<::>columnName="SnippetText"|177.60 lb                          Weight Method             Bedscale                          Oral intake               240 mL                          Voided                    2 mL  **DATE[Oct 24 2007] 5:42 AM       Na                        140 mEq/L                          K                         4.0 mEq/L
+ 239972| 6|weight         |               ||177.60
  239979| 2|unit           |               ||lb
  240382|15|SnippetColumn  |               |snippetNumber="672"<::>columnNumber="1"<::>columnName="filename"|freport6079.txt
  240406| 1|SnippetColumn  |               |snippetNumber="672"<::>columnNumber="2"<::>columnName="empty1"|1
@@ -14184,6 +14207,7 @@ unit||false|false|false|true|51|255|51|255|255|255|Monospaced|+0
  248965| 1|SnippetColumn  |               |snippetNumber="696"<::>columnNumber="2"<::>columnName="empty1"|1
  248975| 1|SnippetColumn  |               |snippetNumber="696"<::>columnNumber="3"<::>columnName="empty2"|1
  248992|180|SnippetColumn  |               |snippetNumber="696"<::>columnNumber="4"<::>columnName="SnippetText"|T:      BP:       P:    RR:    SaO2:    FiO2:    Ht:      Wt:  120 24 Hr Max Temp:39.1 36 Hr Max Temp:39.1 VITALS TIME:**DATE[Dec 26 2009] 15:35 General Appearance: lying in bed on
+ 249055| 3|weight         |               ||120
  249267|16|SnippetColumn  |               |snippetNumber="697"<::>columnNumber="1"<::>columnName="filename"|freport84083.txt
  249292| 1|SnippetColumn  |               |snippetNumber="697"<::>columnNumber="2"<::>columnName="empty1"|1
  249302| 1|SnippetColumn  |               |snippetNumber="697"<::>columnNumber="3"<::>columnName="empty2"|1
@@ -14204,6 +14228,7 @@ unit||false|false|false|true|51|255|51|255|255|255|Monospaced|+0
  250656| 1|SnippetColumn  |               |snippetNumber="701"<::>columnNumber="2"<::>columnName="empty1"|1
  250666| 1|SnippetColumn  |               |snippetNumber="701"<::>columnNumber="3"<::>columnName="empty2"|1
  250683|277|SnippetColumn  |               |snippetNumber="701"<::>columnNumber="4"<::>columnName="SnippetText"|The patient is quite confused.   PHYSICAL EXAMINATION:  VITAL SIGNS: Temperature is 37.4. Vital signs are stable. Oxygen saturation  is 98%. Weight is 115 pounds.  HEENT: Eyes no icterus.  Normocephalic.  NECK:  Supple. HEART: Regular rate and rhythm with a 2/6 systolic murmur
+ 250834| 3|weight         |               ||115
  250838| 6|unit           |               ||pounds
  251055|15|SnippetColumn  |               |snippetNumber="702"<::>columnNumber="1"<::>columnName="filename"|freport8493.txt
  251079| 1|SnippetColumn  |               |snippetNumber="702"<::>columnNumber="2"<::>columnName="empty1"|1
@@ -14225,13 +14250,12 @@ unit||false|false|false|true|51|255|51|255|255|255|Monospaced|+0
  252568| 1|SnippetColumn  |               |snippetNumber="706"<::>columnNumber="2"<::>columnName="empty1"|1
  252578| 1|SnippetColumn  |               |snippetNumber="706"<::>columnNumber="3"<::>columnName="empty2"|1
  252595|234|SnippetColumn  |               |snippetNumber="706"<::>columnNumber="4"<::>columnName="SnippetText"|and heart failure, who I am seeing  today for palliative care. The patient was admitted, because she has had increasing weight gain of 10 to 20 pounds, with shortness of breath, headaches, back pain due to the ascites, and hiccups due
- 252739| 6|unit           |               ||pounds
  252924|16|SnippetColumn  |               |snippetNumber="707"<::>columnNumber="1"<::>columnName="filename"|freport39125.txt
  252949| 1|SnippetColumn  |               |snippetNumber="707"<::>columnNumber="2"<::>columnName="empty1"|1
  252959| 1|SnippetColumn  |               |snippetNumber="707"<::>columnNumber="3"<::>columnName="empty2"|1
  252976|118|SnippetColumn  |               |snippetNumber="707"<::>columnNumber="4"<::>columnName="SnippetText"|was 43.8 kg.  The patient has lost 30 pounds in the last 4  months.  The patient is 69% ideal body weight.  Ideal body
+ 252980| 4|weight         |               ||43.8
  252985| 2|unit           |               ||kg
- 253014| 6|unit           |               ||pounds
  253189|16|SnippetColumn  |               |snippetNumber="708"<::>columnNumber="1"<::>columnName="filename"|freport99995.txt
  253214| 1|SnippetColumn  |               |snippetNumber="708"<::>columnNumber="2"<::>columnName="empty1"|1
  253224| 1|SnippetColumn  |               |snippetNumber="708"<::>columnNumber="3"<::>columnName="empty2"|1
@@ -14244,6 +14268,7 @@ unit||false|false|false|true|51|255|51|255|255|255|Monospaced|+0
  253900| 1|SnippetColumn  |               |snippetNumber="710"<::>columnNumber="2"<::>columnName="empty1"|1
  253910| 1|SnippetColumn  |               |snippetNumber="710"<::>columnNumber="3"<::>columnName="empty2"|1
  253927|267|SnippetColumn  |               |snippetNumber="710"<::>columnNumber="4"<::>columnName="SnippetText"|35.6, respiratory rate 18, O2  saturation 98% on room air, pulse is 88 and regular, blood pressure is  148/86, and weight is 106.8 kilograms.  General Appearance: This is a  well-developed, well-nourished African American male who is in no apparent  distress, sitting
+ 254052| 5|weight         |               ||106.8
  254058| 9|unit           |               ||kilograms
  254289|16|SnippetColumn  |               |snippetNumber="711"<::>columnNumber="1"<::>columnName="filename"|freport12764.txt
  254314| 1|SnippetColumn  |               |snippetNumber="711"<::>columnNumber="2"<::>columnName="empty1"|1
@@ -14341,6 +14366,7 @@ unit||false|false|false|true|51|255|51|255|255|255|Monospaced|+0
  262406| 1|SnippetColumn  |               |snippetNumber="734"<::>columnNumber="2"<::>columnName="empty1"|1
  262416| 1|SnippetColumn  |               |snippetNumber="734"<::>columnNumber="3"<::>columnName="empty2"|1
  262433|300|SnippetColumn  |               |snippetNumber="734"<::>columnNumber="4"<::>columnName="SnippetText"|appears comfortable sitting in bed. VITAL SIGNS:  Temperature 97.6 orally.  Pulse 68 and regular.  Respirations  are 20.  Blood pressure 129/76.  Weight is 294 pounds.  HEENT:  Normal.  Mucous membranes moist. NECK:  Supple and nontender. LUNGS:  Clear. HEART:  Regular rhythm. ABDOMEN:  Soft.  There
+ 262589| 3|weight         |               ||294
  262593| 6|unit           |               ||pounds
  262828|17|SnippetColumn  |               |snippetNumber="735"<::>columnNumber="1"<::>columnName="filename"|freport100721.txt
  262854| 1|SnippetColumn  |               |snippetNumber="735"<::>columnNumber="2"<::>columnName="empty1"|1
@@ -14358,6 +14384,7 @@ unit||false|false|false|true|51|255|51|255|255|255|Monospaced|+0
  263785| 1|SnippetColumn  |               |snippetNumber="738"<::>columnNumber="2"<::>columnName="empty1"|1
  263795| 1|SnippetColumn  |               |snippetNumber="738"<::>columnNumber="3"<::>columnName="empty2"|1
  263812|224|SnippetColumn  |               |snippetNumber="738"<::>columnNumber="4"<::>columnName="SnippetText"|24 Hr Max Temp:36.6 VITALS TIME:**DATE[Jul 13 2009] 10:17 METRIC: Weight: 102 General Appearance: No acute distress; confused Skin: Not examined HEENT: Moist mucosa; **NAME[VVV]; scleral icterus Lymph: Not Examined Pulmonary
+ 263886| 3|weight         |               ||102
  264131|16|SnippetColumn  |               |snippetNumber="739"<::>columnNumber="1"<::>columnName="filename"|freport99228.txt
  264156| 1|SnippetColumn  |               |snippetNumber="739"<::>columnNumber="2"<::>columnName="empty1"|1
  264166| 1|SnippetColumn  |               |snippetNumber="739"<::>columnNumber="3"<::>columnName="empty2"|1
@@ -14390,6 +14417,7 @@ unit||false|false|false|true|51|255|51|255|255|255|Monospaced|+0
  266391| 1|SnippetColumn  |               |snippetNumber="746"<::>columnNumber="2"<::>columnName="empty1"|1
  266401| 1|SnippetColumn  |               |snippetNumber="746"<::>columnNumber="3"<::>columnName="empty2"|1
  266418|287|SnippetColumn  |               |snippetNumber="746"<::>columnNumber="4"<::>columnName="SnippetText"|still was 7 on admission.   PHYSICAL EXAMINATION:  T-max 100 F, blood pressure 154/78, pulse 106, respirations 20, oxygen  saturation 94%, weight 238 pounds.    HEENT: Normocephalic.  Neck is supple.   CARDIOVASCULAR: Regular rate and rhythm, 2/6 SEM in left sternal border. CHEST: Lungs
+ 266564| 3|weight         |               ||238
  266568| 6|unit           |               ||pounds
  266800|16|SnippetColumn  |               |snippetNumber="747"<::>columnNumber="1"<::>columnName="filename"|freport99918.txt
  266825| 1|SnippetColumn  |               |snippetNumber="747"<::>columnNumber="2"<::>columnName="empty1"|1
@@ -14451,6 +14479,8 @@ unit||false|false|false|true|51|255|51|255|255|255|Monospaced|+0
  271566| 1|SnippetColumn  |               |snippetNumber="761"<::>columnNumber="2"<::>columnName="empty1"|1
  271576| 1|SnippetColumn  |               |snippetNumber="761"<::>columnNumber="3"<::>columnName="empty2"|1
  271593|310|SnippetColumn  |               |snippetNumber="761"<::>columnNumber="4"<::>columnName="SnippetText"|MEDICAL HISTORY:  None.   SURGICAL HISTORY:  Tonsillectomy.   MEDICATIONS:  None.   SOCIAL HISTORY:  He is married.  He denies alcohol, cigarettes, or drug use.   Weight is 230 pounds.  The employment, the patient does desk work.    ALLERGIES:  NONE.   REVIEW OF SYSTEMS:  The patient states coughing increases
+ 271766| 3|weight         |               ||230
+ 271770| 6|unit           |               ||pounds
  271998|16|SnippetColumn  |               |snippetNumber="762"<::>columnNumber="1"<::>columnName="filename"|freport99387.txt
  272023| 1|SnippetColumn  |               |snippetNumber="762"<::>columnNumber="2"<::>columnName="empty1"|1
  272033| 1|SnippetColumn  |               |snippetNumber="762"<::>columnNumber="3"<::>columnName="empty2"|1
@@ -14487,6 +14517,7 @@ unit||false|false|false|true|51|255|51|255|255|255|Monospaced|+0
  274627| 1|SnippetColumn  |               |snippetNumber="770"<::>columnNumber="2"<::>columnName="empty1"|1
  274637| 1|SnippetColumn  |               |snippetNumber="770"<::>columnNumber="3"<::>columnName="empty2"|1
  274654|161|SnippetColumn  |               |snippetNumber="770"<::>columnNumber="4"<::>columnName="SnippetText"|**DATE[Nov 21] 06:55 T:      BP:       P:    RR:    SaO2:    FiO2:    Ht:      Wt:  171 **DATE[Nov 21] 06:08 T:      BP:108/41 P:    RR:    SaO2:    FiO2:    Ht:
+ 274738| 3|weight         |               ||171
  274910|17|SnippetColumn  |               |snippetNumber="771"<::>columnNumber="1"<::>columnName="filename"|freport101643.txt
  274936| 1|SnippetColumn  |               |snippetNumber="771"<::>columnNumber="2"<::>columnName="empty1"|1
  274946| 1|SnippetColumn  |               |snippetNumber="771"<::>columnNumber="3"<::>columnName="empty2"|1
@@ -14503,6 +14534,7 @@ unit||false|false|false|true|51|255|51|255|255|255|Monospaced|+0
  275935| 1|SnippetColumn  |               |snippetNumber="774"<::>columnNumber="2"<::>columnName="empty1"|1
  275945| 1|SnippetColumn  |               |snippetNumber="774"<::>columnNumber="3"<::>columnName="empty2"|1
  275962|226|SnippetColumn  |               |snippetNumber="774"<::>columnNumber="4"<::>columnName="SnippetText"|He is single.  He is here with his girl friend.  Admits to  social alcohol.  Does not smoke or use drugs.  Weight 210 pounds.    ALLERGIES:  None.   REVIEW OF SYSTEMS:  He denies any ear pain.  He states he has a little bit of
+ 276076| 3|weight         |               ||210
  276080| 6|unit           |               ||pounds
  276283|16|SnippetColumn  |               |snippetNumber="775"<::>columnNumber="1"<::>columnName="filename"|freport99949.txt
  276308| 1|SnippetColumn  |               |snippetNumber="775"<::>columnNumber="2"<::>columnName="empty1"|1
@@ -14540,6 +14572,7 @@ unit||false|false|false|true|51|255|51|255|255|255|Monospaced|+0
  279289| 1|SnippetColumn  |               |snippetNumber="783"<::>columnNumber="2"<::>columnName="empty1"|1
  279299| 1|SnippetColumn  |               |snippetNumber="783"<::>columnNumber="3"<::>columnName="empty2"|1
  279316|201|SnippetColumn  |               |snippetNumber="783"<::>columnNumber="4"<::>columnName="SnippetText"|24 Hr Max Temp:36.7 METRIC: Weight: 185 - - - - - Constitutional:  Other: mild distress Eyes: EOMI; **NAME[SSS] Ears, Nose, Mouth & Throat: Moist mucosa; Neck supple; Hearing grossly normal Respiratory
+ 279352| 3|weight         |               ||185
  279612|17|SnippetColumn  |               |snippetNumber="784"<::>columnNumber="1"<::>columnName="filename"|freport100605.txt
  279638| 1|SnippetColumn  |               |snippetNumber="784"<::>columnNumber="2"<::>columnName="empty1"|1
  279648| 1|SnippetColumn  |               |snippetNumber="784"<::>columnNumber="3"<::>columnName="empty2"|1
@@ -14560,6 +14593,7 @@ unit||false|false|false|true|51|255|51|255|255|255|Monospaced|+0
  281070| 1|SnippetColumn  |               |snippetNumber="788"<::>columnNumber="2"<::>columnName="empty1"|1
  281080| 1|SnippetColumn  |               |snippetNumber="788"<::>columnNumber="3"<::>columnName="empty2"|1
  281097|274|SnippetColumn  |               |snippetNumber="788"<::>columnNumber="4"<::>columnName="SnippetText"|The patient's vital signs include temperature of 36.1, heart rate 81,  respiratory rate 20, oxygen saturation 98%, blood pressure 104/74, weight  about 79.1 kilograms, height is 68 inches.  HEENT exam:  Pupils are equal,  round and reactive to light and accommodation.  Head
+ 281249| 4|weight         |               ||79.1
  281254| 9|unit           |               ||kilograms
  281466|17|SnippetColumn  |               |snippetNumber="789"<::>columnNumber="1"<::>columnName="filename"|freport101218.txt
  281492| 1|SnippetColumn  |               |snippetNumber="789"<::>columnNumber="2"<::>columnName="empty1"|1
@@ -14593,6 +14627,8 @@ unit||false|false|false|true|51|255|51|255|255|255|Monospaced|+0
  284100| 1|SnippetColumn  |               |snippetNumber="796"<::>columnNumber="2"<::>columnName="empty1"|1
  284110| 1|SnippetColumn  |               |snippetNumber="796"<::>columnNumber="3"<::>columnName="empty2"|1
  284127|253|SnippetColumn  |               |snippetNumber="796"<::>columnNumber="4"<::>columnName="SnippetText"|PHYSICAL EXAMINATION:  Temperature 97, heart rate 129, respirations 24, pulse  oximetry 100% on room air, which is normal, and a weight of 28 pounds.  The  patient has a 0.5-cm laceration noted to the midportion face between her  eyebrows, closer to the
+ 284266| 2|weight         |               ||28
+ 284269| 6|unit           |               ||pounds
  284475|15|SnippetColumn  |               |snippetNumber="797"<::>columnNumber="1"<::>columnName="filename"|freport7671.txt
  284499| 1|SnippetColumn  |               |snippetNumber="797"<::>columnNumber="2"<::>columnName="empty1"|1
  284509| 1|SnippetColumn  |               |snippetNumber="797"<::>columnNumber="3"<::>columnName="empty2"|1
@@ -14629,10 +14665,12 @@ unit||false|false|false|true|51|255|51|255|255|255|Monospaced|+0
  287587| 1|SnippetColumn  |               |snippetNumber="805"<::>columnNumber="2"<::>columnName="empty1"|1
  287597| 1|SnippetColumn  |               |snippetNumber="805"<::>columnNumber="3"<::>columnName="empty2"|1
  287614|161|SnippetColumn  |               |snippetNumber="805"<::>columnNumber="4"<::>columnName="SnippetText"|**DATE[Jul 21] 16:36 T:      BP:       P:    RR:    SaO2:    FiO2:    Ht:      Wt:  200 **DATE[Jul 21] 13:00 T: 39.4 BP:       P:    RR:    SaO2:    FiO2:    Ht:
+ 287698| 3|weight         |               ||200
  287870|16|SnippetColumn  |               |snippetNumber="806"<::>columnNumber="1"<::>columnName="filename"|freport84357.txt
  287895| 1|SnippetColumn  |               |snippetNumber="806"<::>columnNumber="2"<::>columnName="empty1"|1
  287905| 1|SnippetColumn  |               |snippetNumber="806"<::>columnNumber="3"<::>columnName="empty2"|1
  287922|308|SnippetColumn  |               |snippetNumber="806"<::>columnNumber="4"<::>columnName="SnippetText"|abdominal symptoms as above, otherwise, unremarkable complete review of  systems.  PHYSICAL EXAMINATION:  He has remained afebrile.  Vital signs are stable.  Weight is 178 pounds.   Oxygenation saturation is 97% on 4 liters.  HEENT - Normocephalic.  Neck -  Supple.  Cardiac - Regular rate and rhythm.  Lungs
+ 288090| 3|weight         |               ||178
  288094| 6|unit           |               ||pounds
  288325|17|SnippetColumn  |               |snippetNumber="807"<::>columnNumber="1"<::>columnName="filename"|freport100918.txt
  288351| 1|SnippetColumn  |               |snippetNumber="807"<::>columnNumber="2"<::>columnName="empty1"|1
@@ -14658,6 +14696,7 @@ unit||false|false|false|true|51|255|51|255|255|255|Monospaced|+0
  290059| 1|SnippetColumn  |               |snippetNumber="812"<::>columnNumber="2"<::>columnName="empty1"|1
  290069| 1|SnippetColumn  |               |snippetNumber="812"<::>columnNumber="3"<::>columnName="empty2"|1
  290086|243|SnippetColumn  |               |snippetNumber="812"<::>columnNumber="4"<::>columnName="SnippetText"|on **DATE[Mar 23 2007].    PATIENT PROFILE:  The patient is a **AGE[in 40s]-year-old male with history of morbid  obesity.  His current weight is 405 pounds.  He has multiple medical problems  and comorbidities.  Thus, he presents for elective
+ 290232| 3|weight         |               ||405
  290236| 6|unit           |               ||pounds
  290424|16|SnippetColumn  |               |snippetNumber="813"<::>columnNumber="1"<::>columnName="filename"|freport99049.txt
  290449| 1|SnippetColumn  |               |snippetNumber="813"<::>columnNumber="2"<::>columnName="empty1"|1
@@ -14679,6 +14718,8 @@ unit||false|false|false|true|51|255|51|255|255|255|Monospaced|+0
  291686| 1|SnippetColumn  |               |snippetNumber="817"<::>columnNumber="2"<::>columnName="empty1"|1
  291696| 1|SnippetColumn  |               |snippetNumber="817"<::>columnNumber="3"<::>columnName="empty2"|1
  291713|249|SnippetColumn  |               |snippetNumber="817"<::>columnNumber="4"<::>columnName="SnippetText"|well.      Vital signs:  Temperature 36.5, heart rate 72, respirations 18 and saturating  96% on 6 liters.  Blood pressure is 124/64 weight is 50 kg.  HEENT:  She is  somewhat pale.  Her mucous membranes are moist.  Her neck is supple.  There  is no
+ 291856| 2|weight         |               ||50
+ 291859| 2|unit           |               ||kg
  292057|17|SnippetColumn  |               |snippetNumber="818"<::>columnNumber="1"<::>columnName="filename"|freport100992.txt
  292083| 1|SnippetColumn  |               |snippetNumber="818"<::>columnNumber="2"<::>columnName="empty1"|1
  292093| 1|SnippetColumn  |               |snippetNumber="818"<::>columnNumber="3"<::>columnName="empty2"|1
@@ -14687,6 +14728,8 @@ unit||false|false|false|true|51|255|51|255|255|255|Monospaced|+0
  292467| 1|SnippetColumn  |               |snippetNumber="819"<::>columnNumber="2"<::>columnName="empty1"|1
  292477| 1|SnippetColumn  |               |snippetNumber="819"<::>columnNumber="3"<::>columnName="empty2"|1
  292494|185|SnippetColumn  |               |snippetNumber="819"<::>columnNumber="4"<::>columnName="SnippetText"|213.30 lb                          Weight Method             Bedscale  History of Present Illness The patient presents with complaint of  ..  It is characterized by patient had no acute
+ 292494| 6|weight         |               ||213.30
+ 292501| 2|unit           |               ||lb
  292774|16|SnippetColumn  |               |snippetNumber="820"<::>columnNumber="1"<::>columnName="filename"|freport56988.txt
  292799| 1|SnippetColumn  |               |snippetNumber="820"<::>columnNumber="2"<::>columnName="empty1"|1
  292809| 1|SnippetColumn  |               |snippetNumber="820"<::>columnNumber="3"<::>columnName="empty2"|1
@@ -14703,6 +14746,8 @@ unit||false|false|false|true|51|255|51|255|255|255|Monospaced|+0
  293920| 1|SnippetColumn  |               |snippetNumber="823"<::>columnNumber="2"<::>columnName="empty1"|1
  293930| 1|SnippetColumn  |               |snippetNumber="823"<::>columnNumber="3"<::>columnName="empty2"|1
  293947|166|SnippetColumn  |               |snippetNumber="823"<::>columnNumber="4"<::>columnName="SnippetText"|The patient also had an appendectomy and a cholecystectomy approximately  20 years ago.   NUTRITION ASSESSMENT DATA:  Height 152 cm.  Admission weight 64.1 kg.  Usual
+ 294098| 4|weight         |               ||64.1
+ 294103| 2|unit           |               ||kg
  294208|17|SnippetColumn  |               |snippetNumber="824"<::>columnNumber="1"<::>columnName="filename"|freport100001.txt
  294234| 1|SnippetColumn  |               |snippetNumber="824"<::>columnNumber="2"<::>columnName="empty1"|1
  294244| 1|SnippetColumn  |               |snippetNumber="824"<::>columnNumber="3"<::>columnName="empty2"|1
@@ -14803,6 +14848,10 @@ unit||false|false|false|true|51|255|51|255|255|255|Monospaced|+0
  302970| 1|SnippetColumn  |               |snippetNumber="848"<::>columnNumber="2"<::>columnName="empty1"|1
  302980| 1|SnippetColumn  |               |snippetNumber="848"<::>columnNumber="3"<::>columnName="empty2"|1
  302997|80|SnippetColumn  |               |snippetNumber="848"<::>columnNumber="4"<::>columnName="SnippetText"|is 77.1 kg due to fluid resuscitation.  Usual body weight  is 76 kg.  Ideal body
+ 303000| 4|weight         |               ||77.1
+ 303005| 2|unit           |               ||kg
+ 303059| 2|weight         |               ||76
+ 303062| 2|unit           |               ||kg
  303172|16|SnippetColumn  |               |snippetNumber="849"<::>columnNumber="1"<::>columnName="filename"|freport99518.txt
  303197| 1|SnippetColumn  |               |snippetNumber="849"<::>columnNumber="2"<::>columnName="empty1"|1
  303207| 1|SnippetColumn  |               |snippetNumber="849"<::>columnNumber="3"<::>columnName="empty2"|1
@@ -14831,6 +14880,7 @@ unit||false|false|false|true|51|255|51|255|255|255|Monospaced|+0
  305477| 1|SnippetColumn  |               |snippetNumber="855"<::>columnNumber="2"<::>columnName="empty1"|1
  305487| 1|SnippetColumn  |               |snippetNumber="855"<::>columnNumber="3"<::>columnName="empty2"|1
  305504|250|SnippetColumn  |               |snippetNumber="855"<::>columnNumber="4"<::>columnName="SnippetText"|EXAMINATION:  Vital Signs:  Blood pressure is 120/86.  Pulse is 85.   Respirations are 20.  Height 5 feet and 0 inches, and weight 173 pounds.  A  pleasant, cooperative white female in no acute distress.  Her skin is clear,  free of rashes or lesions
+ 305635| 3|weight         |               ||173
  305639| 6|unit           |               ||pounds
  305849|16|SnippetColumn  |               |snippetNumber="856"<::>columnNumber="1"<::>columnName="filename"|freport19844.txt
  305874| 1|SnippetColumn  |               |snippetNumber="856"<::>columnNumber="2"<::>columnName="empty1"|1
@@ -14864,6 +14914,8 @@ unit||false|false|false|true|51|255|51|255|255|255|Monospaced|+0
  308471| 1|SnippetColumn  |               |snippetNumber="863"<::>columnNumber="2"<::>columnName="empty1"|1
  308481| 1|SnippetColumn  |               |snippetNumber="863"<::>columnNumber="3"<::>columnName="empty2"|1
  308498|356|SnippetColumn  |               |snippetNumber="863"<::>columnNumber="4"<::>columnName="SnippetText"|Oral                          Pulse                     57 BPM                          Respiratory Rate          18                          Systolic BP               162 mmHg                          Diastolic BP              72 mmHg                          BP Site                   Right Arm                          Current weight conversion 123.1 kg
+ 308846| 5|weight         |               ||123.1
+ 308852| 2|unit           |               ||kg
  308949|16|SnippetColumn  |               |snippetNumber="864"<::>columnNumber="1"<::>columnName="filename"|freport50525.txt
  308974| 1|SnippetColumn  |               |snippetNumber="864"<::>columnNumber="2"<::>columnName="empty1"|1
  308984| 1|SnippetColumn  |               |snippetNumber="864"<::>columnNumber="3"<::>columnName="empty2"|1
@@ -14916,6 +14968,7 @@ unit||false|false|false|true|51|255|51|255|255|255|Monospaced|+0
  313493| 1|SnippetColumn  |               |snippetNumber="876"<::>columnNumber="2"<::>columnName="empty1"|1
  313503| 1|SnippetColumn  |               |snippetNumber="876"<::>columnNumber="3"<::>columnName="empty2"|1
  313520|165|SnippetColumn  |               |snippetNumber="876"<::>columnNumber="4"<::>columnName="SnippetText"|134 **DATE[Sep 02] 08:00 T:      BP:       P:    RR:    SaO2:    FiO2:    Ht:      Wt:  134 **DATE[Sep 02] 04:36 T: 36.6 BP:134/73 P: 84 RR: 18 SaO2: 95 FiO2:    Ht:
+ 313608| 3|weight         |               ||134
  313780|17|SnippetColumn  |               |snippetNumber="877"<::>columnNumber="1"<::>columnName="filename"|freport101101.txt
  313806| 1|SnippetColumn  |               |snippetNumber="877"<::>columnNumber="2"<::>columnName="empty1"|1
  313816| 1|SnippetColumn  |               |snippetNumber="877"<::>columnNumber="3"<::>columnName="empty2"|1
@@ -14928,6 +14981,7 @@ unit||false|false|false|true|51|255|51|255|255|255|Monospaced|+0
  314503| 1|SnippetColumn  |               |snippetNumber="879"<::>columnNumber="2"<::>columnName="empty1"|1
  314513| 1|SnippetColumn  |               |snippetNumber="879"<::>columnNumber="3"<::>columnName="empty2"|1
  314530|161|SnippetColumn  |               |snippetNumber="879"<::>columnNumber="4"<::>columnName="SnippetText"|**DATE[Dec 12] 11:02 T:      BP:       P:    RR:    SaO2:    FiO2:    Ht:      Wt:  160 **DATE[Dec 12] 10:30 T:      BP:       P:    RR:    SaO2: 95 FiO2:    Ht:
+ 314614| 3|weight         |               ||160
  314786|17|SnippetColumn  |               |snippetNumber="880"<::>columnNumber="1"<::>columnName="filename"|freport101628.txt
  314812| 1|SnippetColumn  |               |snippetNumber="880"<::>columnNumber="2"<::>columnName="empty1"|1
  314822| 1|SnippetColumn  |               |snippetNumber="880"<::>columnNumber="3"<::>columnName="empty2"|1
@@ -15032,6 +15086,7 @@ unit||false|false|false|true|51|255|51|255|255|255|Monospaced|+0
  323374| 1|SnippetColumn  |               |snippetNumber="905"<::>columnNumber="2"<::>columnName="empty1"|1
  323384| 1|SnippetColumn  |               |snippetNumber="905"<::>columnNumber="3"<::>columnName="empty2"|1
  323401|267|SnippetColumn  |               |snippetNumber="905"<::>columnNumber="4"<::>columnName="SnippetText"|rate 55, respiratory rate 18, pulse oximetry 100 on  2-L nasal O2, blood pressure 154/69.  Height 152.4 cm, 60 inches.  Weight  48.9 kg.  Eyes:  PERRL.  Throat:  Clear.  Neck:  No thyromegaly, no carotid  bruits.  Lungs:  Clear.  Cardiovascular:  Normal S1, S2 with a
+ 323529| 4|weight         |               ||48.9
  323534| 2|unit           |               ||kg
  323763|17|SnippetColumn  |               |snippetNumber="906"<::>columnNumber="1"<::>columnName="filename"|freport100612.txt
  323789| 1|SnippetColumn  |               |snippetNumber="906"<::>columnNumber="2"<::>columnName="empty1"|1
@@ -15065,6 +15120,7 @@ unit||false|false|false|true|51|255|51|255|255|255|Monospaced|+0
  326360| 1|SnippetColumn  |               |snippetNumber="913"<::>columnNumber="2"<::>columnName="empty1"|1
  326370| 1|SnippetColumn  |               |snippetNumber="913"<::>columnNumber="3"<::>columnName="empty2"|1
  326387|192|SnippetColumn  |               |snippetNumber="913"<::>columnNumber="4"<::>columnName="SnippetText"|116.50 lb                          Weight Method             Bedscale Most recent results  History of Present Illness The patient presents with complaint of  ..  It is characterized by Patient
+ 326387| 6|weight         |               ||116.50
  326394| 2|unit           |               ||lb
  326674|17|SnippetColumn  |               |snippetNumber="914"<::>columnNumber="1"<::>columnName="filename"|freport100863.txt
  326700| 1|SnippetColumn  |               |snippetNumber="914"<::>columnNumber="2"<::>columnName="empty1"|1
@@ -15134,6 +15190,7 @@ unit||false|false|false|true|51|255|51|255|255|255|Monospaced|+0
  332265| 1|SnippetColumn  |               |snippetNumber="930"<::>columnNumber="2"<::>columnName="empty1"|1
  332275| 1|SnippetColumn  |               |snippetNumber="930"<::>columnNumber="3"<::>columnName="empty2"|1
  332292|286|SnippetColumn  |               |snippetNumber="930"<::>columnNumber="4"<::>columnName="SnippetText"|HISTORY:  Von Willebrand disease.   PAST SURGICAL HISTORY:  None.   MEDICATIONS:  None.   SOCIAL HISTORY:  He is here with his mother.   ALLERGIES:  ASPIRIN.   WEIGHT:  57 pounds.   TETANUS SHOT:  Up-to-date.   REVIEW OF SYSTEMS:  He denies any other injury.  He did not hit his head or
+ 332461| 2|weight         |               ||57
  332464| 6|unit           |               ||pounds
  332673|16|SnippetColumn  |               |snippetNumber="931"<::>columnNumber="1"<::>columnName="filename"|freport98892.txt
  332698| 1|SnippetColumn  |               |snippetNumber="931"<::>columnNumber="2"<::>columnName="empty1"|1
@@ -15151,11 +15208,13 @@ unit||false|false|false|true|51|255|51|255|255|255|Monospaced|+0
  333777| 1|SnippetColumn  |               |snippetNumber="934"<::>columnNumber="2"<::>columnName="empty1"|1
  333787| 1|SnippetColumn  |               |snippetNumber="934"<::>columnNumber="3"<::>columnName="empty2"|1
  333804|249|SnippetColumn  |               |snippetNumber="934"<::>columnNumber="4"<::>columnName="SnippetText"|Blood pressure is 122/70, heart rate is 78, respiratory rate is 18,  temperature is 37.4, height is 150 cm with weight is 66 kilograms.  GENERAL:  This is a pleasant **AGE[in 70s]-year-old female in no acute distress, alert and  oriented times three
+ 333926| 2|weight         |               ||66
  333929| 9|unit           |               ||kilograms
  334148|16|SnippetColumn  |               |snippetNumber="935"<::>columnNumber="1"<::>columnName="filename"|freport98756.txt
  334173| 1|SnippetColumn  |               |snippetNumber="935"<::>columnNumber="2"<::>columnName="empty1"|1
  334183| 1|SnippetColumn  |               |snippetNumber="935"<::>columnNumber="3"<::>columnName="empty2"|1
  334200|215|SnippetColumn  |               |snippetNumber="935"<::>columnNumber="4"<::>columnName="SnippetText"|137 T:      BP:       P:    RR:    SaO2:    FiO2:    Ht:      Wt:  137 24 Hr Max Temp:36.9 36 Hr Max Temp:36.9 IO:        (7a-3p) (3p-12a) (12a-7a)    Total  (7a-3p) (3p-12a) (12a-7a) INTAKE:        720      **PHONE
+ 334267| 3|weight         |               ||137
  334510|16|SnippetColumn  |               |snippetNumber="936"<::>columnNumber="1"<::>columnName="filename"|freport99753.txt
  334535| 1|SnippetColumn  |               |snippetNumber="936"<::>columnNumber="2"<::>columnName="empty1"|1
  334545| 1|SnippetColumn  |               |snippetNumber="936"<::>columnNumber="3"<::>columnName="empty2"|1
@@ -15244,6 +15303,8 @@ unit||false|false|false|true|51|255|51|255|255|255|Monospaced|+0
  341964| 1|SnippetColumn  |               |snippetNumber="957"<::>columnNumber="2"<::>columnName="empty1"|1
  341974| 1|SnippetColumn  |               |snippetNumber="957"<::>columnNumber="3"<::>columnName="empty2"|1
  341991|199|SnippetColumn  |               |snippetNumber="957"<::>columnNumber="4"<::>columnName="SnippetText"|(lb)     130.0 lb                          Admission weight method   Estimation  History of Present Illness The patient presents with complaint of  ..  It is characterized by first episode of syncope
+ 342000| 5|weight         |               ||130.0
+ 342006| 2|unit           |               ||lb
  342285|16|SnippetColumn  |               |snippetNumber="958"<::>columnNumber="1"<::>columnName="filename"|freport99162.txt
  342310| 1|SnippetColumn  |               |snippetNumber="958"<::>columnNumber="2"<::>columnName="empty1"|1
  342320| 1|SnippetColumn  |               |snippetNumber="958"<::>columnNumber="3"<::>columnName="empty2"|1
@@ -15312,6 +15373,7 @@ unit||false|false|false|true|51|255|51|255|255|255|Monospaced|+0
  347714| 1|SnippetColumn  |               |snippetNumber="974"<::>columnNumber="2"<::>columnName="empty1"|1
  347724| 1|SnippetColumn  |               |snippetNumber="974"<::>columnNumber="3"<::>columnName="empty2"|1
  347741|286|SnippetColumn  |               |snippetNumber="974"<::>columnNumber="4"<::>columnName="SnippetText"|and Fortamet.   SOCIAL HISTORY:  She is married.  She is here with her husband.  She denies  alcohol, cigarettes, or drug use.  Weight is 180 pounds.  Employment, she  works at the cake decorating department at **INSTITUTION.    ALLERGIES:  GLUCOPHAGE.   REVIEW OF SYSTEMS:  The patient
+ 347879| 3|weight         |               ||180
  347883| 6|unit           |               ||pounds
  348122|16|SnippetColumn  |               |snippetNumber="975"<::>columnNumber="1"<::>columnName="filename"|freport99497.txt
  348147| 1|SnippetColumn  |               |snippetNumber="975"<::>columnNumber="2"<::>columnName="empty1"|1
@@ -15325,6 +15387,7 @@ unit||false|false|false|true|51|255|51|255|255|255|Monospaced|+0
  348810| 1|SnippetColumn  |               |snippetNumber="977"<::>columnNumber="2"<::>columnName="empty1"|1
  348820| 1|SnippetColumn  |               |snippetNumber="977"<::>columnNumber="3"<::>columnName="empty2"|1
  348837|186|SnippetColumn  |               |snippetNumber="977"<::>columnNumber="4"<::>columnName="SnippetText"|VITALS TIME:**DATE[May 27 2009] 14:06 METRIC: Weight: 172 General Appearance: No acute distress; More alert today Skin: jaundiced Pulmonary: CTA Cardiac: No murmur; No rubs Abdomen: Soft
+ 348891| 3|weight         |               ||172
  349118|17|SnippetColumn  |               |snippetNumber="978"<::>columnNumber="1"<::>columnName="filename"|freport101136.txt
  349144| 1|SnippetColumn  |               |snippetNumber="978"<::>columnNumber="2"<::>columnName="empty1"|1
  349154| 1|SnippetColumn  |               |snippetNumber="978"<::>columnNumber="3"<::>columnName="empty2"|1
@@ -15337,6 +15400,7 @@ unit||false|false|false|true|51|255|51|255|255|255|Monospaced|+0
  349717| 1|SnippetColumn  |               |snippetNumber="980"<::>columnNumber="2"<::>columnName="empty1"|1
  349727| 1|SnippetColumn  |               |snippetNumber="980"<::>columnNumber="3"<::>columnName="empty2"|1
  349744|258|SnippetColumn  |               |snippetNumber="980"<::>columnNumber="4"<::>columnName="SnippetText"|VITAL SIGNS: Blood pressure 169/74, heart rate 67, temperature 99.5, respiratory rate 20. The patient is **AGE[birth-12] feet 5 inches. Weight is 315 pounds. Oxygen saturation is 99% on room air.  GENERAL: This is a **AGE[in 60s]-year-old male who appears to
+ 349890| 3|weight         |               ||315
  349894| 6|unit           |               ||pounds
  350097|16|SnippetColumn  |               |snippetNumber="981"<::>columnNumber="1"<::>columnName="filename"|freport99505.txt
  350122| 1|SnippetColumn  |               |snippetNumber="981"<::>columnNumber="2"<::>columnName="empty1"|1
@@ -15346,6 +15410,7 @@ unit||false|false|false|true|51|255|51|255|255|255|Monospaced|+0
  350432| 1|SnippetColumn  |               |snippetNumber="982"<::>columnNumber="2"<::>columnName="empty1"|1
  350442| 1|SnippetColumn  |               |snippetNumber="982"<::>columnNumber="3"<::>columnName="empty2"|1
  350459|161|SnippetColumn  |               |snippetNumber="982"<::>columnNumber="4"<::>columnName="SnippetText"|**DATE[Nov 03] 05:13 T:      BP:       P:    RR:    SaO2:    FiO2:    Ht:      Wt:  130 **DATE[Nov 03] 04:38 T: 36.5 BP: 78/42 P: 76 RR: 15 SaO2:100 FiO2:  2 Ht:
+ 350543| 3|weight         |               ||130
  350715|17|SnippetColumn  |               |snippetNumber="983"<::>columnNumber="1"<::>columnName="filename"|freport100491.txt
  350741| 1|SnippetColumn  |               |snippetNumber="983"<::>columnNumber="2"<::>columnName="empty1"|1
  350751| 1|SnippetColumn  |               |snippetNumber="983"<::>columnNumber="3"<::>columnName="empty2"|1
@@ -15354,7 +15419,9 @@ unit||false|false|false|true|51|255|51|255|255|255|Monospaced|+0
  351095| 1|SnippetColumn  |               |snippetNumber="984"<::>columnNumber="2"<::>columnName="empty1"|1
  351105| 1|SnippetColumn  |               |snippetNumber="984"<::>columnNumber="3"<::>columnName="empty2"|1
  351122|79|SnippetColumn  |               |snippetNumber="984"<::>columnNumber="4"<::>columnName="SnippetText"|conversion 52.1 kg                          Weight                    114.60 lb
+ 351133| 4|weight         |               ||52.1
  351138| 2|unit           |               ||kg
+ 351192| 6|weight         |               ||114.60
  351199| 2|unit           |               ||lb
  351296|15|SnippetColumn  |               |snippetNumber="985"<::>columnNumber="1"<::>columnName="filename"|freport7144.txt
  351320| 1|SnippetColumn  |               |snippetNumber="985"<::>columnNumber="2"<::>columnName="empty1"|1
@@ -15372,6 +15439,7 @@ unit||false|false|false|true|51|255|51|255|255|255|Monospaced|+0
  352654| 1|SnippetColumn  |               |snippetNumber="988"<::>columnNumber="2"<::>columnName="empty1"|1
  352664| 1|SnippetColumn  |               |snippetNumber="988"<::>columnNumber="3"<::>columnName="empty2"|1
  352681|265|SnippetColumn  |               |snippetNumber="988"<::>columnNumber="4"<::>columnName="SnippetText"|liters of oxygen with oxymizer is 92%, blood pressure  126, diastolic blood pressure is 70, height 152.4 cm, 60 inches, weight is  106 pounds.  HEENT Exam:  Pupils equal, round, and reactive to light and  accommodation.  Tympanic membranes normal color.  Throat not
+ 352812| 3|weight         |               ||106
  352816| 6|unit           |               ||pounds
  353041|16|SnippetColumn  |               |snippetNumber="989"<::>columnNumber="1"<::>columnName="filename"|freport51044.txt
  353066| 1|SnippetColumn  |               |snippetNumber="989"<::>columnNumber="2"<::>columnName="empty1"|1

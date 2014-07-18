@@ -1,4 +1,7 @@
-package gov.va.research.redex;
+package gov.va.research.red.ex;
+
+import gov.va.research.red.LSTriplet;
+import gov.va.research.red.MatchedElement;
 
 import java.util.ArrayList;
 import java.util.HashMap;

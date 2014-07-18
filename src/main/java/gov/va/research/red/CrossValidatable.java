@@ -14,21 +14,18 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License. 
  */
-package gov.va.research.redex;
+package gov.va.research.red;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.List;
 
 /**
- * Interface for Information Extractors
+ * @author vhaislreddd
  *
  */
-public interface Extractor {
+public interface CrossValidatable {
 
-	/**
-	 * Extracts information from target strings.
-	 * @param targets String from which to extract information.
-	 * @return List of extracted information, one string for each target in the same order as the targets.
-	 */
-	public List<MatchedElement> extract(final String target);
+	public List<CVScore> crossValidate(List<File> vttFiles, String label, int folds) throws IOException;
 
 }

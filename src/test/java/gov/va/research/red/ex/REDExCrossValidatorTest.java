@@ -1,7 +1,7 @@
-package gov.va.research.redex;
+package gov.va.research.red.ex;
 
 import gov.va.research.red.CVScore;
-import gov.va.research.redex.CrossValidate;
+import gov.va.research.red.ex.REDExCrossValidator;
 
 import java.io.File;
 import java.io.IOException;
@@ -18,9 +18,9 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class CrossValidateTest {
+public class REDExCrossValidatorTest {
 
-	private static final Logger LOG = LoggerFactory.getLogger(CrossValidateTest.class);
+	private static final Logger LOG = LoggerFactory.getLogger(REDExCrossValidatorTest.class);
 
 	private static final String TEST_VTT_FILENAME = "weight1000.vtt";
 
@@ -41,11 +41,11 @@ public class CrossValidateTest {
 	}
 	
 	
-//	@Test
+	@Test
 	public void testCrossValidate() {
 		try {
-			CrossValidate cv = new CrossValidate();
-			List<CVScore> results = cv.crossValidate(Arrays.asList(new File[] { new File(TEST_VTT_FILENAME) }), "weight", 10);
+			REDExCrossValidator rexcv = new REDExCrossValidator();
+			List<CVScore> results = rexcv.crossValidate(Arrays.asList(new File[] { new File(TEST_VTT_FILENAME) }), "weight", 10);
 			int i = 0;
 			for (CVScore score : results) {
 				LOG.info("--- Run " + (i++) + " ---");

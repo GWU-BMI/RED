@@ -1,4 +1,4 @@
-package gov.va.research.redex;
+package gov.va.research.red;
 
 import java.util.ArrayList;
 import java.util.Collection;
