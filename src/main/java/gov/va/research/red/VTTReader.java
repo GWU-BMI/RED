@@ -90,21 +90,21 @@ public class VTTReader {
 			throws IOException {
 		VttDocument vttDoc = read(vttFile);
 		String docText = vttDoc.GetText();
-		Pattern snippetPattern = Pattern.compile("(?s)" + SNIPPET_TEXT_BEGIN_REGEX + "(.*?)" + SNIPPET_TEXT_END);
-		Matcher snippetMatcher = snippetPattern.matcher(docText);
 		TreeMap<SnippetPosition, Snippet> pos2snips = new TreeMap<>();
-		while (snippetMatcher.find()) {
-			SnippetPosition snipPos = new SnippetPosition(snippetMatcher.start(1), snippetMatcher.end(1));
-			Snippet snip = new Snippet(snippetMatcher.group(1), null);
-			pos2snips.put(snipPos, snip);
+		// Get SnippetText markup
+		for (Markup markup : vttDoc.GetMarkups().GetMarkups()) {
+			if ("SnippetColumn".equals(markup.GetTagName())) {
+				String annotation = markup.GetAnnotation();
+				if (annotation != null && annotation.contains("<::>columnNumber=\"4\"<::>")) {
+					int snippetOffset = markup.GetOffset();
+					int snippetLength = markup.GetLength();
+					int snippetEnd = snippetOffset + snippetLength;
+					String snippet = docText.substring(snippetOffset, snippetEnd);
+					SnippetPosition snipPos = new SnippetPosition(snippetOffset, snippetEnd);
+					pos2snips.put(snipPos, new Snippet(snippet, null));
+				}
+			}
 		}
-		// The last snippet in the file does not have a snippet end delimiter, so we must add it separately.
-		Matcher snippetBeginMatcher = SNIPPET_TEXT_BEGIN_PATTERN.matcher(docText);
-		snippetBeginMatcher.find(pos2snips.lastKey().end);
-
-		SnippetPosition snipPos = new SnippetPosition(snippetBeginMatcher.end(), docText.length());
-		Snippet snip = new Snippet(docText.substring(snippetBeginMatcher.end()), null);
-		pos2snips.put(snipPos, snip);
 
 		for (Markup markup : vttDoc.GetMarkups().GetMarkups()) {
 			// Check if the markup has the requested label
@@ -191,12 +191,12 @@ public class VTTReader {
 			if (start > o.start){
 				return 1;
 			}
-			if (end < o.end) {
-				return -1;
-			}
-			if (end > o.end) {
-				return 1;
-			}
+//			if (end < o.end) {
+//				return -1;
+//			}
+//			if (end > o.end) {
+//				return 1;
+//			}
 			return 0;
 		}
 		

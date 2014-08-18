@@ -14,5 +14,10 @@ public class CategorizerRegEx {
 	public void setRegEx(String regEx) {
 		this.regEx = regEx;
 	}
+
+	@Override
+	public String toString() {
+		return regEx;
+	}
 	
 }

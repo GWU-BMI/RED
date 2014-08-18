@@ -47,6 +47,11 @@
   		<artifactId>logback-core</artifactId>
   		<version>1.0.13</version>
   	</dependency>
+  	<dependency>
+  		<groupId>gov.va.vinci</groupId>
+  		<artifactId>krbUtils</artifactId>
+  		<version>2013.07.0</version>
+  	</dependency>
   </dependencies>
   <scm>
   	<connection>scm:git:http://inlp.bmi.utah.edu/git/RED.git/</connection>

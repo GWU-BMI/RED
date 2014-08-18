@@ -37,4 +37,35 @@ public class LabeledSegment {
 	public void setLength(int length) {
 		this.length = length;
 	}
+
+	@Override
+	public String toString() {
+		return "{label:" + label + ",labeledString:" + labeledString + ",start:" + start + ",length:" + length + "}";
+	}
+
+	@Override
+	public int hashCode() {
+		int result = 17;
+		result = 31 * result + (label == null ? 0 : label.hashCode());
+		result = 31 * result + (labeledString == null ? 0 : labeledString.hashCode());
+		result = 31 * result + start;
+		result = 31 * result + length;
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (!(obj instanceof LabeledSegment)) {
+			return false;
+		}
+		LabeledSegment ls = (LabeledSegment)obj;
+		return (label == ls.label || (label != null && label.equals(ls.label)))
+				&&
+				(labeledString == ls.labeledString || (labeledString != null && labeledString.equals(ls.labeledString)))
+				&&
+				(start == ls.start)
+				&&
+				(length == ls.length);
+	}
+	
 }
