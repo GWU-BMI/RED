@@ -83,7 +83,7 @@ public class RegExCategorizerTest {
 			yesLabels.add("yes");
 			List<String> noLabels = new ArrayList<>();
 			noLabels.add("no");
-			crex.extracteRegexClassifications(new File(CLASSIFIER_TEST_URI), yesLabels, noLabels, "classifier2.txt");
+			crex.findRegexes(new File(CLASSIFIER_TEST_URI), yesLabels, noLabels, "classifier2.txt");
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
