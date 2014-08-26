@@ -16,7 +16,6 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -29,9 +28,9 @@ public class RegExCategorizer {
 	
 	private Map<String, Pattern> patternCache = new HashMap<>();
 	
-	public Map<String, Collection<CategorizerRegEx>> findRegexes (
+	public Map<String, Collection<CategorizerRegEx>> findRegexesAndSaveInFile (
 			final File vttFile, List<String> yesLabels, List<String> noLabels,
-			final String classifierOutputFileName) throws IOException {
+			final String classifierOutputFileName, boolean printScore) throws IOException {
 		VTTReader vttr = new VTTReader();
 		List<Snippet> snippetsYes = new ArrayList<>();
 		for (String yesLabel : yesLabels) {
@@ -45,6 +44,21 @@ public class RegExCategorizer {
 		}
 		Map<LabeledSegment, CategorizerRegEx> ls2regExNo = extractRegexClassifications(
 				snippetsNo, noLabels);
+		saveOutputInFile(classifierOutputFileName, ls2regExNo, ls2regExYes);
+		if (printScore) {
+			CVScore score = testClassifier(snippetsYes, ls2regExYes.values(), null,
+					yesLabels);
+			System.out.println(score.getEvaluation());
+			score = testClassifier(snippetsNo, ls2regExNo.values(), null, noLabels);
+			System.out.println(score.getEvaluation());
+		}
+		Map<String, Collection<CategorizerRegEx>> returnMap = new HashMap<>();
+		returnMap.put("yes", ls2regExYes.values());
+		returnMap.put("no", ls2regExNo.values());
+		return returnMap;
+	}
+	
+	private void saveOutputInFile(final String classifierOutputFileName, Map<LabeledSegment, CategorizerRegEx> ls2regExNo, Map<LabeledSegment, CategorizerRegEx> ls2regExYes) throws IOException {
 		if (classifierOutputFileName != null
 				&& !classifierOutputFileName.equals("")) {
 			File outputFile = new File(classifierOutputFileName);
@@ -64,15 +78,6 @@ public class RegExCategorizer {
 			pWriter.close();
 			fWriter.close();
 		}
-		CVScore score = testClassifier(snippetsYes, ls2regExYes.values(), null,
-				yesLabels);
-		System.out.println(score.getEvaluation());
-		score = testClassifier(snippetsNo, ls2regExNo.values(), null, noLabels);
-		System.out.println(score.getEvaluation());
-		Map<String, Collection<CategorizerRegEx>> returnMap = new HashMap<>();
-		returnMap.put("yes", ls2regExYes.values());
-		returnMap.put("no", ls2regExNo.values());
-		return returnMap;
 	}
 	
 

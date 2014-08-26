@@ -83,7 +83,21 @@ public class RegExCategorizerTest {
 			yesLabels.add("yes");
 			List<String> noLabels = new ArrayList<>();
 			noLabels.add("no");
-			crex.findRegexes(new File(CLASSIFIER_TEST_URI), yesLabels, noLabels, "classifier2.txt");
+			crex.findRegexesAndSaveInFile(new File(CLASSIFIER_TEST_URI), yesLabels, noLabels, "classifier2.txt", true);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	@Test
+	public void testConfidenceMeasurer(){
+		CategorizerConfidenceMeasurer measurer = new CategorizerConfidenceMeasurer();
+		List<String> yesLabels = new ArrayList<>();
+		yesLabels.add("yes");
+		List<String> noLabels = new ArrayList<>();
+		noLabels.add("no");
+		try {
+			measurer.measureConfidence(new File(CLASSIFIER_TEST_URI), yesLabels, noLabels);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

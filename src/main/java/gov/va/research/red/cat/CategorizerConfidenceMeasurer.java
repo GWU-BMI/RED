@@ -56,6 +56,9 @@ public class CategorizerConfidenceMeasurer {
 				confidenceSnippets.add(new CategorizedSnippet(snippet, new Confidence(0, ConfidenceType.UNCERTAIN)));
 			}
 		}
+		for(CategorizedSnippet catSnippet : confidenceSnippets) {
+			System.out.println("Score "+catSnippet.getConfidence().getConfidence()+" Confidence Type "+catSnippet.getConfidence().getConfidenceType());
+		}
 	}
 	
 	private int measureScore(List<CategorizerRegEx> regExes, Snippet snippet, Map<CategorizerRegEx , Pattern> patternMap) {
