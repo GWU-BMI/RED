@@ -16,6 +16,12 @@
  */
 package gov.va.research.red.cat;
 
+import gov.va.research.red.ConfidenceMeasurer;
+import gov.va.research.red.RegEx;
+import gov.va.research.red.Confidence;
+import gov.va.research.red.ConfidenceSnippet;
+import gov.va.research.red.Snippet;
+import gov.va.research.red.VTTReader;
 import gov.va.research.red.VTTReaderTest;
 
 import java.io.File;
@@ -23,7 +29,9 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 import org.junit.After;
 import org.junit.AfterClass;
@@ -39,6 +47,8 @@ public class RegExCategorizerTest {
 	
 	private static final String CLASSIFIER_TEST_FILE = "diabetes-snippets.vtt";
 	private static final URI CLASSIFIER_TEST_URI;
+	private static final String YES = "yes";
+	private static final String NO = "no";
 	static {
 		try {
 			CLASSIFIER_TEST_URI = VTTReaderTest.class.getResource("/" + CLASSIFIER_TEST_FILE).toURI();
@@ -90,14 +100,26 @@ public class RegExCategorizerTest {
 	}
 	
 	@Test
-	public void testConfidenceMeasurer(){
-		CategorizerConfidenceMeasurer measurer = new CategorizerConfidenceMeasurer();
+	public void testConfidenceMeasurer() throws IOException{
+		ConfidenceMeasurer measurer = new ConfidenceMeasurer();
 		List<String> yesLabels = new ArrayList<>();
-		yesLabels.add("yes");
+		yesLabels.add(YES);
 		List<String> noLabels = new ArrayList<>();
-		noLabels.add("no");
+		noLabels.add(NO);
+		List<Snippet> snippets = new ArrayList<Snippet>();
+		VTTReader vttr = new VTTReader();
+		File vttFile = new File(CLASSIFIER_TEST_URI);
+		snippets.addAll(vttr.extractSnippets(vttFile, ""));
+		RegExCategorizer regExCategorizer = new RegExCategorizer();
+		Map<String, Collection<RegEx>> regExMap = regExCategorizer .findRegexesAndSaveInFile(vttFile, yesLabels, noLabels, null, false);
+		List<RegEx> yesRegExs = new ArrayList<RegEx>(regExMap.get(YES));
+		List<RegEx> noRegExs = new ArrayList<RegEx>(regExMap.get(NO));
 		try {
-			measurer.measureConfidence(new File(CLASSIFIER_TEST_URI), yesLabels, noLabels);
+			List<ConfidenceSnippet> confidenceSnippets = measurer.measureConfidence(snippets, yesRegExs, noRegExs);
+			for(ConfidenceSnippet catSnippet : confidenceSnippets) {
+				Confidence confidence = catSnippet.getConfidence();
+				System.out.println("Snippet confidence score "+confidence.getConfidence() + " confidence type "+confidence.getConfidenceType());
+			}
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -110,9 +132,9 @@ public class RegExCategorizerTest {
 	public void testgetYesRegEx() {
 		CategorizerLoader loader = new CategorizerLoader("classifier2.txt");
 		try {
-			List<CategorizerRegEx> regYesList = loader.getYesRegEx();
+			List<RegEx> regYesList = loader.getYesRegEx();
 			System.out.println("Yes List");
-			for(CategorizerRegEx regEx : regYesList){
+			for(RegEx regEx : regYesList){
 				System.out.println(regEx.getRegEx());
 			}
 		} catch (IOException e) {
@@ -127,9 +149,9 @@ public class RegExCategorizerTest {
 	public void testgetNoRegEx() {
 		CategorizerLoader loader = new CategorizerLoader("classifier2.txt");
 		try {
-			List<CategorizerRegEx> regNoList = loader.getNoRegEx();
+			List<RegEx> regNoList = loader.getNoRegEx();
 			System.out.println("No List");
-			for(CategorizerRegEx regEx : regNoList){
+			for(RegEx regEx : regNoList){
 				System.out.println(regEx.getRegEx());
 			}
 		} catch (IOException e) {

@@ -1,13 +1,12 @@
-package gov.va.research.red.cat;
+package gov.va.research.red;
 
-import gov.va.research.red.Snippet;
 
-public class CategorizedSnippet {
+public class ConfidenceSnippet {
 
 	private Snippet snippet;
 	private Confidence confidence;
 	
-	public CategorizedSnippet(Snippet snippet, Confidence confidence) {
+	public ConfidenceSnippet(Snippet snippet, Confidence confidence) {
 		this.snippet = snippet;
 		this.confidence = confidence;
 	}

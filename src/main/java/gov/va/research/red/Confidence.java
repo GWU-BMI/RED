@@ -1,4 +1,5 @@
-package gov.va.research.red.cat;
+package gov.va.research.red;
+
 
 public class Confidence {
 	

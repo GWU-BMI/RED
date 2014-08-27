@@ -16,17 +16,21 @@
  */
 package gov.va.research.red.ex;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.fail;
+import gov.va.research.red.Confidence;
+import gov.va.research.red.ConfidenceMeasurer;
+import gov.va.research.red.ConfidenceSnippet;
 import gov.va.research.red.LSTriplet;
+import gov.va.research.red.RegEx;
 import gov.va.research.red.Snippet;
 import gov.va.research.red.VTTReader;
 import gov.va.research.red.VTTReaderTest;
-import gov.va.research.red.ex.REDExtractor;
 
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.After;
@@ -44,6 +48,8 @@ public class REDExtractorTest {
 
 	private static final String TEST_VTT_FILENAME = "weight1000.vtt";
 	private static final URI TEST_VTT_URI;
+	private static final String YES = "yes";
+	private static final String NO = "no";
 	static {
 		try {
 			TEST_VTT_URI = VTTReaderTest.class.getResource("/" + TEST_VTT_FILENAME).toURI();
@@ -126,6 +132,38 @@ public class REDExtractorTest {
 	@Test
 	public void testReplaceWhiteSpaces() {
 		fail("Not yet implemented");
+	}
+	
+	@Test
+	public void testConfidenceMeasurer() throws IOException{
+		ConfidenceMeasurer measurer = new ConfidenceMeasurer();
+		List<String> yesLabels = new ArrayList<>();
+		yesLabels.add(YES);
+		List<String> noLabels = new ArrayList<>();
+		noLabels.add(NO);
+		List<Snippet> snippets = new ArrayList<Snippet>();
+		VTTReader vttr = new VTTReader();
+		File vttFile = new File(TEST_VTT_URI);
+		snippets.addAll(vttr.extractSnippets(vttFile, "weight"));
+		REDExtractor regExt = new REDExtractor();
+		List<LSTriplet> regExLSTriplets = regExt.extractRegexExpressions(snippets, "weight", null);
+		List<RegEx> yesRegExs = null;
+		if(regExLSTriplets != null) {
+			yesRegExs = new ArrayList<RegEx>();
+			for(LSTriplet triplet : regExLSTriplets) {
+				yesRegExs.add(new RegEx(triplet.toStringRegEx()));
+			}
+		}
+		List<RegEx> noRegExs = null;
+		try {
+			List<ConfidenceSnippet> confidenceSnippets = measurer.measureConfidence(snippets, yesRegExs, noRegExs);
+			for(ConfidenceSnippet confSnippet : confidenceSnippets) {
+				Confidence confidence = confSnippet.getConfidence();
+				System.out.println("Snippet confidence score "+confidence.getConfidence() + " confidence type "+confidence.getConfidenceType());
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 
 }

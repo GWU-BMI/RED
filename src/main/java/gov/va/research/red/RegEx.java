@@ -1,9 +1,9 @@
-package gov.va.research.red.cat;
+package gov.va.research.red;
 
-public class CategorizerRegEx {
+public class RegEx {
 	private String regEx;
 	
-	public CategorizerRegEx(String regEx) {
+	public RegEx(String regEx) {
 		this.regEx = regEx;
 	}
 
@@ -36,7 +36,7 @@ public class CategorizerRegEx {
 			return false;
 		if (getClass() != obj.getClass())
 			return false;
-		CategorizerRegEx other = (CategorizerRegEx) obj;
+		RegEx other = (RegEx) obj;
 		if (regEx == null) {
 			if (other.regEx != null)
 				return false;

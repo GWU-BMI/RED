@@ -1,5 +1,6 @@
 package gov.va.research.red.cat;
 
+import gov.va.research.red.RegEx;
 import gov.va.research.red.Snippet;
 
 import java.util.Collection;
@@ -12,8 +13,8 @@ public class CategorizerTester {
 	
 	private Map<String, Pattern> patternCache = new HashMap<>();
 	
-	public boolean test(Collection<CategorizerRegEx> regularExpressions, Snippet snippet){
-		for(CategorizerRegEx segment : regularExpressions){
+	public boolean test(Collection<RegEx> regularExpressions, Snippet snippet){
+		for(RegEx segment : regularExpressions){
 			Pattern pattern = null;
 			if(patternCache.containsKey(segment.getRegEx())){
 				pattern = patternCache.get(segment.getRegEx());

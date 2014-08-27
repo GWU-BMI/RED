@@ -1,6 +1,7 @@
 package gov.va.research.red.cat;
 
 import gov.va.research.red.CVScore;
+import gov.va.research.red.RegEx;
 import gov.va.research.red.LabeledSegment;
 import gov.va.research.red.Snippet;
 import gov.va.research.red.VTTReader;
@@ -28,7 +29,7 @@ public class RegExCategorizer {
 	
 	private Map<String, Pattern> patternCache = new HashMap<>();
 	
-	public Map<String, Collection<CategorizerRegEx>> findRegexesAndSaveInFile (
+	public Map<String, Collection<RegEx>> findRegexesAndSaveInFile (
 			final File vttFile, List<String> yesLabels, List<String> noLabels,
 			final String classifierOutputFileName, boolean printScore) throws IOException {
 		VTTReader vttr = new VTTReader();
@@ -36,13 +37,13 @@ public class RegExCategorizer {
 		for (String yesLabel : yesLabels) {
 			snippetsYes.addAll(vttr.extractSnippets(vttFile, yesLabel));
 		}
-		Map<LabeledSegment, CategorizerRegEx> ls2regExYes = extractRegexClassifications(
+		Map<LabeledSegment, RegEx> ls2regExYes = extractRegexClassifications(
 				snippetsYes, yesLabels);
 		List<Snippet> snippetsNo = new ArrayList<>();
 		for (String noLabel : noLabels) {
 			snippetsNo.addAll(vttr.extractSnippets(vttFile, noLabel));
 		}
-		Map<LabeledSegment, CategorizerRegEx> ls2regExNo = extractRegexClassifications(
+		Map<LabeledSegment, RegEx> ls2regExNo = extractRegexClassifications(
 				snippetsNo, noLabels);
 		saveOutputInFile(classifierOutputFileName, ls2regExNo, ls2regExYes);
 		if (printScore) {
@@ -52,13 +53,13 @@ public class RegExCategorizer {
 			score = testClassifier(snippetsNo, ls2regExNo.values(), null, noLabels);
 			System.out.println(score.getEvaluation());
 		}
-		Map<String, Collection<CategorizerRegEx>> returnMap = new HashMap<>();
+		Map<String, Collection<RegEx>> returnMap = new HashMap<>();
 		returnMap.put("yes", ls2regExYes.values());
 		returnMap.put("no", ls2regExNo.values());
 		return returnMap;
 	}
 	
-	private void saveOutputInFile(final String classifierOutputFileName, Map<LabeledSegment, CategorizerRegEx> ls2regExNo, Map<LabeledSegment, CategorizerRegEx> ls2regExYes) throws IOException {
+	private void saveOutputInFile(final String classifierOutputFileName, Map<LabeledSegment, RegEx> ls2regExNo, Map<LabeledSegment, RegEx> ls2regExYes) throws IOException {
 		if (classifierOutputFileName != null
 				&& !classifierOutputFileName.equals("")) {
 			File outputFile = new File(classifierOutputFileName);
@@ -68,11 +69,11 @@ public class RegExCategorizer {
 					false);
 			PrintWriter pWriter = new PrintWriter(fWriter);
 			pWriter.println("yes regex");
-			for (CategorizerRegEx regEx : ls2regExYes.values()) {
+			for (RegEx regEx : ls2regExYes.values()) {
 				pWriter.println(regEx.getRegEx());
 			}
 			pWriter.println("\nno regex");
-			for (CategorizerRegEx regEx : ls2regExNo.values()) {
+			for (RegEx regEx : ls2regExNo.values()) {
 				pWriter.println(regEx.getRegEx());
 			}
 			pWriter.close();
@@ -81,15 +82,15 @@ public class RegExCategorizer {
 	}
 	
 
-	public Map<LabeledSegment, CategorizerRegEx> extractRegexClassifications(final List<Snippet> snippets, final List<String> labels) {
+	public Map<LabeledSegment, RegEx> extractRegexClassifications(final List<Snippet> snippets, final List<String> labels) {
 		if(snippets == null || snippets.isEmpty())
 			return null;
-		Map<LabeledSegment, CategorizerRegEx> ls2regex = new HashMap<>(snippets.size());
+		Map<LabeledSegment, RegEx> ls2regex = new HashMap<>(snippets.size());
 		for(Snippet snippet : snippets) {
 			for(String label : labels) {
 				LabeledSegment labeledSegment = snippet.getLabeledSegment(label);
 				if(labeledSegment != null) {
-					ls2regex.put(labeledSegment, new CategorizerRegEx(labeledSegment.getLabeledString()));
+					ls2regex.put(labeledSegment, new RegEx(labeledSegment.getLabeledString()));
 				}
 			}
 		}
@@ -129,7 +130,7 @@ public class RegExCategorizer {
 		return ls2regex;
 	}
 
-	public CVScore testClassifier(List<Snippet> testing, Collection<CategorizerRegEx> regularExpressions, CategorizerTester tester, List<String> labels) {
+	public CVScore testClassifier(List<Snippet> testing, Collection<RegEx> regularExpressions, CategorizerTester tester, List<String> labels) {
 		CVScore score = new CVScore();
 		if(tester == null)
 			tester = new CategorizerTester();
@@ -162,7 +163,7 @@ public class RegExCategorizer {
 		}
 		return score;
 	}
-	private void replacePotentialMatchesClassification(List<PotentialMatchClassification> potentialMatches, Collection<CategorizerRegEx> regexList, final List<Snippet> snippets, List<String> labels){
+	private void replacePotentialMatchesClassification(List<PotentialMatchClassification> potentialMatches, Collection<RegEx> regexList, final List<Snippet> snippets, List<String> labels){
 		for(PotentialMatchClassification match : potentialMatches){
 			if(match.count == 1 && match.termSize > 1){
 				for(Match potentialMatch : match.matches){
@@ -170,7 +171,7 @@ public class RegExCategorizer {
 					String bls = potentialMatch.match.getRegEx();
 					if(bls.contains(potentialMatch.matchedString)){
 						//if(!key.equals("S")){
-						List<CategorizerRegEx> regEx = new ArrayList<CategorizerRegEx>();
+						List<RegEx> regEx = new ArrayList<RegEx>();
 						regEx.add(potentialMatch.match);
 						//CVScore cvScore = cv.testClassifier(snippets, regEx, null, labels);
 						//int start = bls.indexOf(potentialMatch.matchedString);
@@ -188,33 +189,33 @@ public class RegExCategorizer {
 		}
 	}
 	
-	private void updateMFTMapClassification(CategorizerRegEx regex, Map<String, List<CategorizerRegEx>> freqMap){
+	private void updateMFTMapClassification(RegEx regex, Map<String, List<RegEx>> freqMap){
 		String phrase = "";
 		phrase = regex.getRegEx();
 		String[] termArray = phrase.split("\\\\s\\{1,50\\}|\\\\p\\{Punct\\}|\\\\d\\+");
-		List<CategorizerRegEx> termContainingRegexes = null;
+		List<RegEx> termContainingRegexes = null;
 		for(String term : termArray){
 			if(!term.equals(" ") && !term.equals("")){
 				if(freqMap.containsKey(term))
 					termContainingRegexes = freqMap.get(term);
 				else
-					termContainingRegexes = new ArrayList<CategorizerRegEx>();
+					termContainingRegexes = new ArrayList<RegEx>();
 				termContainingRegexes.add(regex);
 				freqMap.put(term, termContainingRegexes);
 			}
 		}
 	}
 	
-	private void treeReplacementLogicClassification(Collection<CategorizerRegEx> regexList, Collection<PotentialMatchClassification> potentialList){
-		Map<String, List<CategorizerRegEx>> freqMap = new HashMap<String, List<CategorizerRegEx>>();
-		for(CategorizerRegEx regex : regexList)
+	private void treeReplacementLogicClassification(Collection<RegEx> regexList, Collection<PotentialMatchClassification> potentialList){
+		Map<String, List<RegEx>> freqMap = new HashMap<String, List<RegEx>>();
+		for(RegEx regex : regexList)
 			updateMFTMapClassification(regex, freqMap);
 		List<String> termList = new ArrayList<>();
 		termList.addAll(freqMap.keySet());
 		performPermuationClassification(null, termList, regexList, potentialList);
 	}
 	
-	private void performPermuationClassification(Collection<String> prefixList, List<String> termList, Collection<CategorizerRegEx> regexList, Collection<PotentialMatchClassification> potentialList){
+	private void performPermuationClassification(Collection<String> prefixList, List<String> termList, Collection<RegEx> regexList, Collection<PotentialMatchClassification> potentialList){
 		if(!termList.isEmpty()){
 			for(int i=0;i<termList.size();i++){
 				List<String> tempPrefixList = new ArrayList<>();
@@ -234,7 +235,7 @@ public class RegExCategorizer {
 		}
 	}
 	
-	private PotentialMatchClassification findMatchClassification(List<String> termList, Collection<CategorizerRegEx> regexList){
+	private PotentialMatchClassification findMatchClassification(List<String> termList, Collection<RegEx> regexList){
 		StringBuilder concatString = new StringBuilder("");
 		int count = 0;
 		List<Match> matches = new ArrayList<>();
@@ -252,7 +253,7 @@ public class RegExCategorizer {
 		} else {
 			pattern = Pattern.compile(regex);
 		}
-		for(CategorizerRegEx catRegex : regexList){
+		for(RegEx catRegex : regexList){
 			String matchAgainst = null;
 			matchAgainst = catRegex.getRegEx();
 			Matcher matcher = pattern.matcher(matchAgainst);
@@ -266,27 +267,27 @@ public class RegExCategorizer {
 		return match;
 	}
 	
-	public Collection<CategorizerRegEx> replaceDigitsClassification(Collection<CategorizerRegEx> regexColl)
+	public Collection<RegEx> replaceDigitsClassification(Collection<RegEx> regexColl)
 	{
-		for(CategorizerRegEx x : regexColl)
+		for(RegEx x : regexColl)
 		{
 			x.setRegEx(x.getRegEx().replaceAll("\\d+","\\\\d+"));
 		}
 		return regexColl;
 	}
 	
-	public Collection<CategorizerRegEx> replaceWhiteSpacesClassification(Collection<CategorizerRegEx> regexColl)
+	public Collection<RegEx> replaceWhiteSpacesClassification(Collection<RegEx> regexColl)
 	{
-		for(CategorizerRegEx x : regexColl)
+		for(RegEx x : regexColl)
 		{
 			x.setRegEx(x.getRegEx().replaceAll("\\s+","\\\\s{1,50}"));
 		}
 		return regexColl;
 	}
 	
-	public Collection<CategorizerRegEx> replacePunctClassification(Collection<CategorizerRegEx> regexColl)
+	public Collection<RegEx> replacePunctClassification(Collection<RegEx> regexColl)
 	{
-		for(CategorizerRegEx x : regexColl)
+		for(RegEx x : regexColl)
 		{
 			x.setRegEx(x.getRegEx().replaceAll("\\p{Punct}","\\\\p{Punct}"));
 		}
@@ -322,12 +323,12 @@ class PotentialMatchClassification {
 	}*/
 }
 class Match {
-	CategorizerRegEx match;
+	RegEx match;
 	String matchedString;
 	int startPos;
 	int endPos;
 	
-	public Match(CategorizerRegEx match, String matchedString, int startPos, int endPos) {
+	public Match(RegEx match, String matchedString, int startPos, int endPos) {
 		this.match = match;
 		this.matchedString = matchedString;
 		this.startPos = startPos;

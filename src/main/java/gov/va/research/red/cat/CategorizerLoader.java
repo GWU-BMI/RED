@@ -1,5 +1,7 @@
 package gov.va.research.red.cat;
 
+import gov.va.research.red.RegEx;
+
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
@@ -9,43 +11,43 @@ import java.util.List;
 
 public class CategorizerLoader {
 	private String regexFileName;
-	private List<CategorizerRegEx> regexYes;
-	private List<CategorizerRegEx> regexNo;
+	private List<RegEx> regexYes;
+	private List<RegEx> regexNo;
 	private static final String NO_REGEX = "no regex";
 	
 	public CategorizerLoader(String regexFileName) {
 		this.regexFileName = regexFileName;
 	}
 	
-	public List<CategorizerRegEx> getYesRegEx() throws IOException{
+	public List<RegEx> getYesRegEx() throws IOException{
 		if(regexYes == null || regexYes.isEmpty())
 			regexYes = readRegExYesFromFile();
 		return regexYes;
 	}
 	
-	public List<CategorizerRegEx> getNoRegEx() throws IOException{
+	public List<RegEx> getNoRegEx() throws IOException{
 		if(regexNo == null || regexNo.isEmpty())
 			regexNo = readRegExNoFromFile();
 		return regexNo;
 	}
 	
-	private List<CategorizerRegEx> readRegExYesFromFile() throws IOException{
-		List<CategorizerRegEx> returnList = new ArrayList<>();
+	private List<RegEx> readRegExYesFromFile() throws IOException{
+		List<RegEx> returnList = new ArrayList<>();
 		BufferedReader br = loadFile();
 		br.readLine();
 		while(true){
 			String temp = br.readLine();
 			if(temp.equals(NO_REGEX))
 				break;
-			CategorizerRegEx tempClassifierRegEx = new CategorizerRegEx(temp);
+			RegEx tempClassifierRegEx = new RegEx(temp);
 			returnList.add(tempClassifierRegEx);
 		}
 		closeReader(br);
 		return returnList;
 	}
 	
-	private List<CategorizerRegEx> readRegExNoFromFile() throws IOException{
-		List<CategorizerRegEx> returnList = new ArrayList<>();
+	private List<RegEx> readRegExNoFromFile() throws IOException{
+		List<RegEx> returnList = new ArrayList<>();
 		BufferedReader br = loadFile();
 		while(true){
 			String temp = br.readLine();;
@@ -57,7 +59,7 @@ public class CategorizerLoader {
 			String temp = br.readLine();
 			if(temp == null)
 				break;
-			CategorizerRegEx tempClassifierRegEx = new CategorizerRegEx(temp);
+			RegEx tempClassifierRegEx = new RegEx(temp);
 			returnList.add(tempClassifierRegEx);
 		}
 		closeReader(br);
