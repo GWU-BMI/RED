@@ -111,7 +111,7 @@ public class RegExCategorizerTest {
 		File vttFile = new File(CLASSIFIER_TEST_URI);
 		snippets.addAll(vttr.extractSnippets(vttFile, ""));
 		RegExCategorizer regExCategorizer = new RegExCategorizer();
-		Map<String, Collection<RegEx>> regExMap = regExCategorizer .findRegexesAndSaveInFile(vttFile, yesLabels, noLabels, null, false);
+		Map<String, List<RegEx>> regExMap = regExCategorizer .findRegexesAndSaveInFile(vttFile, yesLabels, noLabels, null, false);
 		List<RegEx> yesRegExs = new ArrayList<RegEx>(regExMap.get(YES));
 		List<RegEx> noRegExs = new ArrayList<RegEx>(regExMap.get(NO));
 		try {
