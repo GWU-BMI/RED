@@ -41,14 +41,32 @@ public class RegExCategorizer {
 		}
 		VTTReader vttr = new VTTReader();
 		List<Snippet> snippetsYes = new ArrayList<>();
+		List<Snippet> snippets = new ArrayList<>();
 		for (String yesLabel : yesLabels) {
-			snippetsYes.addAll(vttr.extractSnippets(vttFile, yesLabel));
-		}	
+			snippets.addAll(vttr.extractSnippets(vttFile, yesLabel));
+		}
+		for(Snippet snippet : snippets) {
+			for(String label : yesLabels) {
+				LabeledSegment labeledSegment = snippet.getLabeledSegment(label);
+				if(labeledSegment != null) {
+					snippetsYes.add(snippet);
+				}
+			}
+		}
+		snippets = new ArrayList<>();
 		List<Snippet> snippetsNo = new ArrayList<>();
 		for (String noLabel : noLabels) {
-			snippetsNo.addAll(vttr.extractSnippets(vttFile, noLabel));
+			snippets.addAll(vttr.extractSnippets(vttFile, noLabel));
 		}
-		Map<String, List<RegEx>> regExClassificationMap = extractRegExInChunks(snippetsYes, yesLabels, snippetsNo, noLabels);
+		for(Snippet snippet : snippets) {
+			for(String label : noLabels) {
+				LabeledSegment labeledSegment = snippet.getLabeledSegment(label);
+				if(labeledSegment != null) {
+					snippetsNo.add(snippet);
+				}
+			}
+		}
+		Map<String, List<RegEx>> regExClassificationMap = extractRegExInit(snippetsYes, yesLabels, snippetsNo, noLabels);
 		saveOutputInFile(classifierOutputFileName, regExClassificationMap);
 		if (printScore) {
 			CVScore score = testClassifier(snippetsYes, regExClassificationMap.get(YES), null,
@@ -60,17 +78,63 @@ public class RegExCategorizer {
 		return regExClassificationMap;
 	}
 	
-	private Map<String, List<RegEx>> extractRegExInChunks(List<Snippet> snippetsYes, List<String> yesLabels, List<Snippet> snippetsNo, List<String> noLabels) {
+	private Map<String, List<RegEx>> extractRegExInit(List<Snippet> snippetsYes, List<String> yesLabels, List<Snippet> snippetsNo, List<String> noLabels) {
+		if(snippetsYes == null || snippetsYes.isEmpty() || snippetsNo == null || snippetsNo.isEmpty())
+			return null;
 		List<RegEx> ls2regExYes = new ArrayList<RegEx>();
 		List<RegEx> ls2regExNo = new ArrayList<RegEx>();
-		ls2regExYes = extractRegexClassifications(
-				snippetsYes, yesLabels);
-		ls2regExNo = extractRegexClassifications(
+		ls2regExYes = extractRegexInChunks(snippetsYes, yesLabels);
+		ls2regExNo = extractRegexInChunks(
 				snippetsNo, noLabels);
 		Map<String, List<RegEx>> returnMap = new HashMap<>();
 		returnMap.put(YES, ls2regExYes);
 		returnMap.put(NO, ls2regExNo);
 		return returnMap;
+	}
+	
+	private List<RegEx> extractRegexInChunks(List<Snippet> snippets, List<String> labels) {
+		Map<Snippet, Integer> snippetScoreMap = new HashMap<Snippet, Integer>();
+		List<RegEx> regExs = new ArrayList<RegEx>();
+		Map<RegEx, Pattern> patternMap = new HashMap<RegEx, Pattern>();
+		for (Snippet snippet : snippets) {
+			snippetScoreMap.put(snippet, 0);
+		}
+		List<Snippet> snippetChunks = new ArrayList<Snippet>(snippets);
+		List<Snippet> snippetsTemp = null;
+		while (!snippetChunks.isEmpty()) {
+			Collections.shuffle(snippetChunks);
+			snippetsTemp = new ArrayList<Snippet>();
+			for (int i=0; i < SNIPPET_CHUNK_SIZE; i++) {
+				snippetsTemp.add(snippetChunks.get(i));
+			}
+			List<RegEx> returnedRegExes = extractRegexClassifications(snippetsTemp, labels);
+			for (Snippet snippet : snippetsTemp) {
+				int score = snippetScoreMap.get(snippet);
+				List<RegEx> matchedRegEx = calculateSnippetScore(snippet, returnedRegExes, patternMap);; 
+				score += matchedRegEx.size();
+				snippetScoreMap.put(snippet, score);
+				if (score >= SNIPPET_MATCH_COUNT) {
+					snippetChunks.remove(snippet);
+					regExs.addAll(matchedRegEx);
+				}
+			}
+		}
+		return regExs;
+	}
+	
+	private List<RegEx> calculateSnippetScore(Snippet snippet, List<RegEx> regexs, Map<RegEx, Pattern> patternMap) {
+		List<RegEx> matchedRegEx = new ArrayList<RegEx>();
+		for (RegEx regEx : regexs) {
+			Pattern pattern = patternMap.get(regEx);
+			if (pattern == null) {
+				pattern = Pattern.compile(regEx.getRegEx());
+			}
+			Matcher matcher = pattern.matcher(snippet.getText());
+			if (matcher.find()) {
+				matchedRegEx.add(regEx);
+			}
+		}
+		return matchedRegEx;
 	}
 	
 	private void saveOutputInFile(final String classifierOutputFileName, Map<String, List<RegEx>> regExClassificationMap) throws IOException {
@@ -102,9 +166,7 @@ public class RegExCategorizer {
 	}
 	
 
-	public List<RegEx> extractRegexClassifications(final List<Snippet> snippets, final List<String> labels) {
-		if(snippets == null || snippets.isEmpty())
-			return null;
+	private List<RegEx> extractRegexClassifications(final List<Snippet> snippets, final List<String> labels) {
 		List<RegEx> ls2regex = new ArrayList<RegEx>(snippets.size());
 		for(Snippet snippet : snippets) {
 			for(String label : labels) {
