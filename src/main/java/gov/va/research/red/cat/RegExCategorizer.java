@@ -104,7 +104,11 @@ public class RegExCategorizer {
 		while (!snippetChunks.isEmpty()) {
 			Collections.shuffle(snippetChunks);
 			snippetsTemp = new ArrayList<Snippet>();
-			for (int i=0; i < SNIPPET_CHUNK_SIZE; i++) {
+			int loopRange = SNIPPET_CHUNK_SIZE;
+			if (snippetChunks.size() < loopRange) {
+				loopRange = snippetChunks.size();
+			}
+			for (int i=0; i < loopRange; i++) {
 				snippetsTemp.add(snippetChunks.get(i));
 			}
 			List<RegEx> returnedRegExes = extractRegexClassifications(snippetsTemp, labels);
