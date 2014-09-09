@@ -15,8 +15,10 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -29,7 +31,7 @@ public class RegExCategorizer {
 	
 	private Map<String, Pattern> patternCache = new HashMap<>();
 	private static final int SNIPPET_MATCH_COUNT = 2;
-	private static final int SNIPPET_CHUNK_SIZE = 5;
+	private static final int SNIPPET_CHUNK_SIZE = 3;
 	private static final String YES = "yes";
 	private static final String NO = "no";
 	
@@ -83,18 +85,18 @@ public class RegExCategorizer {
 			return null;
 		List<RegEx> ls2regExYes = new ArrayList<RegEx>();
 		List<RegEx> ls2regExNo = new ArrayList<RegEx>();
-		ls2regExYes = extractRegexInChunks(snippetsYes, yesLabels);
-		ls2regExNo = extractRegexInChunks(
-				snippetsNo, noLabels);
+		ls2regExYes.addAll(extractRegexInChunks(snippetsYes, yesLabels));
+		ls2regExNo.addAll(extractRegexInChunks(
+				snippetsNo, noLabels));
 		Map<String, List<RegEx>> returnMap = new HashMap<>();
 		returnMap.put(YES, ls2regExYes);
 		returnMap.put(NO, ls2regExNo);
 		return returnMap;
 	}
 	
-	private List<RegEx> extractRegexInChunks(List<Snippet> snippets, List<String> labels) {
+	private Set<RegEx> extractRegexInChunks(List<Snippet> snippets, List<String> labels) {
 		Map<Snippet, Integer> snippetScoreMap = new HashMap<Snippet, Integer>();
-		List<RegEx> regExs = new ArrayList<RegEx>();
+		Set<RegEx> regExs = new HashSet<RegEx>();
 		Map<RegEx, Pattern> patternMap = new HashMap<RegEx, Pattern>();
 		for (Snippet snippet : snippets) {
 			snippetScoreMap.put(snippet, 0);
@@ -102,6 +104,7 @@ public class RegExCategorizer {
 		List<Snippet> snippetChunks = new ArrayList<Snippet>(snippets);
 		List<Snippet> snippetsTemp = null;
 		while (!snippetChunks.isEmpty()) {
+			System.out.println(" snippets remaining "+snippetChunks.size());
 			Collections.shuffle(snippetChunks);
 			snippetsTemp = new ArrayList<Snippet>();
 			int loopRange = SNIPPET_CHUNK_SIZE;
@@ -112,21 +115,23 @@ public class RegExCategorizer {
 				snippetsTemp.add(snippetChunks.get(i));
 			}
 			List<RegEx> returnedRegExes = extractRegexClassifications(snippetsTemp, labels);
+			// having unnecessary regexes as well
+			regExs.addAll(returnedRegExes);
 			for (Snippet snippet : snippetsTemp) {
 				int score = snippetScoreMap.get(snippet);
-				List<RegEx> matchedRegEx = calculateSnippetScore(snippet, returnedRegExes, patternMap);; 
+				List<RegEx> matchedRegEx = calculateSnippetScore(snippet, regExs, patternMap);
 				score += matchedRegEx.size();
 				snippetScoreMap.put(snippet, score);
 				if (score >= SNIPPET_MATCH_COUNT) {
 					snippetChunks.remove(snippet);
-					regExs.addAll(matchedRegEx);
+					//regExs.addAll(matchedRegEx);
 				}
 			}
 		}
 		return regExs;
 	}
 	
-	private List<RegEx> calculateSnippetScore(Snippet snippet, List<RegEx> regexs, Map<RegEx, Pattern> patternMap) {
+	private List<RegEx> calculateSnippetScore(Snippet snippet, Collection<RegEx> regexs, Map<RegEx, Pattern> patternMap) {
 		List<RegEx> matchedRegEx = new ArrayList<RegEx>();
 		for (RegEx regEx : regexs) {
 			Pattern pattern = patternMap.get(regEx);
@@ -266,9 +271,11 @@ public class RegExCategorizer {
 						//potentialMatch.match.setRegEx(bls.substring(0, start)+"[\\s\\S\\d\\p{Punct}]+"+bls.substring(end));//triplet.getBLS().replaceAll("?:"+key, "(?:"+key+")");
 						/*regEx = new ArrayList<ClassifierRegEx>();
 						regEx.add(triplet.match);*/
-						CVScore cvScore2 = testClassifier(snippets, regEx, null, labels);
+						
+						// just for testing purposes
+						/*CVScore cvScore2 = testClassifier(snippets, regEx, null, labels);
 						if(cvScore2.getFp() != 0)
-							potentialMatch.match.setRegEx(bls);
+							potentialMatch.match.setRegEx(bls);*/
 					}
 				}
 			}

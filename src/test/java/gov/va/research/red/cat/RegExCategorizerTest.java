@@ -16,10 +16,10 @@
  */
 package gov.va.research.red.cat;
 
-import gov.va.research.red.ConfidenceMeasurer;
-import gov.va.research.red.RegEx;
 import gov.va.research.red.Confidence;
+import gov.va.research.red.ConfidenceMeasurer;
 import gov.va.research.red.ConfidenceSnippet;
+import gov.va.research.red.RegEx;
 import gov.va.research.red.Snippet;
 import gov.va.research.red.VTTReader;
 import gov.va.research.red.VTTReaderTest;
@@ -29,7 +29,6 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
