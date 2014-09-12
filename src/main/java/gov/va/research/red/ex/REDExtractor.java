@@ -26,8 +26,18 @@ import org.slf4j.LoggerFactory;
 
 public class REDExtractor {
 	
-	private static final Logger LOG = LoggerFactory.getLogger(VTTReader.class);
+	private static final Logger LOG = LoggerFactory.getLogger(REDExtractor.class);
 	private LSExtractor leExt = new LSExtractor(null);
+
+	public List<LSTriplet> discoverRegexes(List<File> vttFiles, String label, String outputFileName) throws IOException {
+		// get snippets
+		VTTReader vttr = new VTTReader();
+		List<Snippet> snippets = new ArrayList<>();
+		for (File vttFile : vttFiles) {
+			snippets.addAll(vttr.extractSnippets(vttFile, label));
+		}
+		return extractRegexExpressions(snippets, label, outputFileName);
+	}
 
 	public List<LSTriplet> extractRegexExpressions(final List<Snippet> snippets, final String label, final String outputFileName) throws IOException {
 		List<LSTriplet> ls3list = new ArrayList<>(snippets.size());

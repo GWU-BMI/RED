@@ -87,7 +87,7 @@ public class REDExCrossValidator implements CrossValidatable {
 			}
 
 			// Train
-			LSExtractor ex = trainExtractor(label, vttr, training, pw);
+			LSExtractor ex = trainExtractor(label, training, pw);
 
 			// Test
 			REDExtractor rexe = new REDExtractor();
@@ -124,15 +124,23 @@ public class REDExCrossValidator implements CrossValidatable {
 	}
 
 	/**
-	 * @param label
-	 * @param vttr
-	 * @param pw
-	 * @param training
-	 * @return
+	 * @param label only snippets with this label will be used in the training.
+	 * @param training the snippets to be used for training.
+	 * @return an extractor containing regexes discovered during training.
 	 * @throws IOException
 	 */
-	private LSExtractor trainExtractor(String label, VTTReader vttr,
-			List<Snippet> training, PrintWriter pw) throws IOException {
+	private LSExtractor trainExtractor(String label, List<Snippet> training) throws IOException {
+		return trainExtractor(label, training, null);
+	}
+
+	/**
+	 * @param label only snippets with this label will be used in the training.
+	 * @param training the snippets to be used for training.
+	 * @param pw a print writer for displaying output of the training. May be <code>null</code>.
+	 * @return an extractor containing regexes discovered during training.
+	 * @throws IOException
+	 */
+	private LSExtractor trainExtractor(String label, List<Snippet> training, PrintWriter pw) throws IOException {
 		REDExtractor rexe = new REDExtractor();
 		List<LSTriplet> trained = rexe.extractRegexExpressions(training, label, null);
 		if (pw != null) {
