@@ -106,6 +106,8 @@ public class VTTReader {
 			}
 		}
 
+		List<Snippet> snippets = new ArrayList<>();
+
 		for (Markup markup : vttDoc.GetMarkups().GetMarkups()) {
 			// Check if the markup has the requested label
 			if (label.equalsIgnoreCase(markup.GetTagName())) {
@@ -143,10 +145,11 @@ public class VTTReader {
 						snippet.setLabeledSegments(labeledSegments);
 					}
 					labeledSegments.add(ls);
+					snippets.add(snippet);
 				}
 			}
 		}
-		return new ArrayList<Snippet>(pos2snips.values());
+		return snippets;
 	}
 	
 	public List<LSTriplet> removeDuplicates(List<LSTriplet> ls3list)
