@@ -16,10 +16,10 @@
  */
 package gov.va.research.red.cat;
 
-import gov.va.research.red.Confidence;
 import gov.va.research.red.ConfidenceMeasurer;
-import gov.va.research.red.ConfidenceSnippet;
 import gov.va.research.red.RegEx;
+import gov.va.research.red.Confidence;
+import gov.va.research.red.ConfidenceSnippet;
 import gov.va.research.red.Snippet;
 import gov.va.research.red.VTTReader;
 import gov.va.research.red.VTTReaderTest;
@@ -29,6 +29,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -110,7 +111,7 @@ public class RegExCategorizerTest {
 		File vttFile = new File(CLASSIFIER_TEST_URI);
 		snippets.addAll(vttr.extractSnippets(vttFile, ""));
 		RegExCategorizer regExCategorizer = new RegExCategorizer();
-		Map<String, List<RegEx>> regExMap = regExCategorizer .findRegexesAndSaveInFile(vttFile, yesLabels, noLabels, null, false);
+		Map<String, Collection<RegEx>> regExMap = regExCategorizer .findRegexesAndSaveInFile(vttFile, yesLabels, noLabels, null, false);
 		List<RegEx> yesRegExs = new ArrayList<RegEx>(regExMap.get(YES));
 		List<RegEx> noRegExs = new ArrayList<RegEx>(regExMap.get(NO));
 		try {
