@@ -1,0 +1,196 @@
+#<---------------------------------------------------------------------->
+#<Meta Data>
+#<Tags file|confirmation|path of default tags file>
+#<File History|VTT file format version|User name|Time stamp>
+#<---------------------------------------------------------------------->
+FILE_SAVE|VTT.2010.0|VTT|5/9/14 3:54:27 PM
+FILE_SAVE|VTT.2010.0|VTT|5/12/14 2:57:41 PM
+FILE_SAVE|VTT.2010.0|VTT|5/12/14 3:53:41 PM
+FILE_SAVE|VTT.2010.0|VTT|5/12/14 4:45:57 PM
+#<---------------------------------------------------------------------->
+#<Text Content>
+#<---------------------------------------------------------------------->
+PatientICN: 1
+Document: freport4.txt
+Snippet Num: 1
+Snippet Text: 
+
+and denies any 
+chest pain or shortness of breath.  No weakness, numbness, or tingling.  No 
+myalgias or joint pains.  No fevers or chills. 
+REVIEW OF SYSTEMS:  
+Otherwise negative as reviewed by me.
+PAST MEDICAL HISTORY:   
+1. Rheumatoid arthritis with rheumatoid lung.
+2. Pulmonary hypertension.
+3. Systemic hypertension.
+4. COPD.
+5. Diabetes.
+6. Leaky heart valve.
+7. Pancreatitis (chronic).
+8. Interstitial lung disease.
+9. Severe kyphoscoliosis.
+10. Paroxysmal atrial tachycardia.
+11. Right hip replacement.
+ALLERGIES:
+SULFA, ERYTHROMYCIN, FOSAMAX, PENICILLIN, CIPRO, ALLEGRA, AND ALL NARCOTICS.
+SOCIAL HISTORY:
+The patient does not smoke, drink, or use any drugs.  Home health nurse 
+visits 24/7.   
+MEDICATIONS:
+1
+
+----------------------------------------------------------------------------------
+PatientICN: 2
+Document: freport4.txt
+Snippet Num: 2
+Snippet Text: 
+
+and as confirmed by her family 
+members, she is somewhat confused.  She has no other acute complaints.   
+REVIEW OF SYSTEMS:
+No nausea.  No vomiting.  No headache.  No chest pain.  No shortness of 
+breath.  No abdominal pain.  All other systems are negative.  
+PRIOR MEDICAL HISTORY:
+1. Rheumatoid arthritis.
+2. COPD.
+3. Diabetes.
+4. Chronic pancreatitis.
+MEDICATIONS:
+Medications per the nursing notes.
+ALLERGIES:
+ALLERGIES PER THE NURSING NOTES.
+SOCIAL HISTORY:
+Positive tobacco.  No alcohol use.
+PHYSICAL EXAMINATION:
+General:  Appears well, visibly weak.  
+Vital Signs:  Vital signs are per the nursing notes.
+HEENT:  Normocephalic atraumatic.  Pupils are equal and reactive.  
+Extraocular muscles are intact.   
+Neck
+
+----------------------------------------------------------------------------------
+PatientICN: 3
+Document: freport10.txt
+Snippet Num: 3
+Snippet Text: 
+
+ID-NUM 
+**ID-NUM
+A5B/1 ___________________________________________________
+ 
+DATE OF CONSULTATION:    **DATE[Feb 15 06] 
+ 
+CONSULTING PHYSICIAN:    **NAME[VVV M. WWW], M.D. 
+ 
+ATTENDING PHYSICIAN:     **NAME[ZZZ YYY XXX]
+ 
+REQUESTING PHYSICIAN:   **NAME[UUU TTT], M.D. 
+ 
+RENAL
+ 
+REASON FOR CONSULTATION 
+Renal insufficiency.
+ 
+HISTORY OF PRESENT ILLNESS
+This is a very nice **AGE[in 80s]-year-old Caucasian gentleman with a longstanding 
+history of diabetes with what he tells me sounds like retinopathy with 
+retinal bleeding needing laser surgery with hypertension and chronic kidney 
+disease.  He has kidney function in the 20s dating back to 2004 where he had 
+a serum creatinine about 2.4 in **DATE[Feb 2004] which is three years ago.  He 
+also gives
+
+----------------------------------------------------------------------------------
+PatientICN: 4
+Document: freport10.txt
+Snippet Num: 4
+Snippet Text: 
+
+times twelve steps which is stable.  He denies any 
+orthopnea.  Denies any chest pain.  No focal numbness or weakness.  No 
+headache.  No fevers.  No chills.  No lymphadenopathy.  No bleeding, 
+hematemesis, melena, or bright red blood per rectum.  His sugars at home run 
+90 to 120. 
+ 
+PAST MEDICAL & SURGICAL HISTORY
+1. Diabetes diagnosed ten years ago with bilateral retinopathy with bleeding 
+status post laser surgery. 
+2. Hypertension.
+3. CHF.
+4. Hypothyroidism.
+5. Anemia followed by Dr. **NAME[SSS]. 
+6. Appendectomy.
+7. Cholecystectomy.
+8. History of prostate biopsy.
+ 
+FAMILY HISTORY 
+There is no renal failure, lupus, or cancer in the family.
+ 
+SOCIAL HISTORY 
+He
+
+----------------------------------------------------------------------------------
+PatientICN: 5
+Document: freport13.txt
+Snippet Num: 5
+Snippet Text: 
+
+rashes.   
+REVIEW OF SYSTEMS:    
+Review of systems as per HPI; all other systems negative.
+PAST MEDICAL HISTORY:   
+Chronic foot pain, anemia, gastric ulcers, pancreatitis, multiple sclerosis.
+Medications:
+1.   Albuterol.
+2.   Percocet.
+ALLERGIES:  MORPHINE.
+Social history:  The patient does not smoke.  She denies the use of alcohol 
+or drugs.   
+Family history:  Diabetes, coronary artery disease.
+PHYSICAL EXAM:  
+Vital signs:  Temperature is 36.9.  Heart rate:  87.  Blood pressure:  
+118/72.  Respiratory rate:  16.  O2 saturation:  98% on room air.   
+General:  The patient is alert and oriented times three, cooperative in no 
+apparent distress.   
+HEENT:  Normocephalic, atraumatic.  Pupils are equally round and reactive to 
+light
+
+#<---------------------------------------------------------------------->
+#<Tags Configuration>
+#<Name|Category|Bold|Italic|Underline|Display|FR|FG|FB|BR|BG|BB|FontFamily|FontSize>
+#<---------------------------------------------------------------------->
+Text/Clear||false|false|false|true|255|255|255|0|51|153|Monospaced|12
+#<---------------------------------------------------------------------->
+Yes||true|false|false|true|0|0|0|200|255|200|Monospaced|12
+No||true|false|false|true|255|255|255|255|0|0|Monospaced|12
+Uncertain||true|false|false|true|0|0|0|255|255|0|Monospaced|12
+SnippetColumn||false|false|false|false|0|0|0|255|255|255|Monospaced|+0
+#<---------------------------------------------------------------------->
+#<MarkUps Information>
+#<Offset|Length|TagName|TagCategory|Annotation|TagText>
+#<---------------------------------------------------------------------->
+     12| 1|SnippetColumn  |               |snippetNumber="1"<::>columnNumber="1"<::>columnName="PatientICN"|1
+     24|12|SnippetColumn  |               |snippetNumber="1"<::>columnNumber="2"<::>columnName="Document"|freport4.txt
+     50| 1|SnippetColumn  |               |snippetNumber="1"<::>columnNumber="3"<::>columnName="Snippet Num"|1
+     68|720|SnippetColumn  |               |snippetNumber="1"<::>columnNumber="4"<::>columnName="Snippet Text"|and denies any  chest pain or shortness of breath.  No weakness, numbness, or tingling.  No  myalgias or joint pains.  No fevers or chills.  REVIEW OF SYSTEMS:   Otherwise negative as reviewed by me. PAST MEDICAL HISTORY:    1. Rheumatoid arthritis with rheumatoid lung. 2. Pulmonary hypertension. 3. Systemic hypertension. 4. COPD. 5. Diabetes. 6. Leaky heart valve. 7. Pancreatitis (chronic). 8. Interstitial lung disease. 9. Severe kyphoscoliosis. 10. Paroxysmal atrial tachycardia. 11. Right hip replacement. ALLERGIES: SULFA, ERYTHROMYCIN, FOSAMAX, PENICILLIN, CIPRO, ALLEGRA, AND ALL NARCOTICS. SOCIAL HISTORY: The patient does not smoke, drink, or use any drugs.  Home health nurse  visits 24/7.    MEDICATIONS: 1
+    268|145|Yes            |               ||PAST MEDICAL HISTORY:    1. Rheumatoid arthritis with rheumatoid lung. 2. Pulmonary hypertension. 3. Systemic hypertension. 4. COPD. 5. Diabetes.
+    885| 1|SnippetColumn  |               |snippetNumber="2"<::>columnNumber="1"<::>columnName="PatientICN"|2
+    897|12|SnippetColumn  |               |snippetNumber="2"<::>columnNumber="2"<::>columnName="Document"|freport4.txt
+    923| 1|SnippetColumn  |               |snippetNumber="2"<::>columnNumber="3"<::>columnName="Snippet Num"|2
+    941|721|SnippetColumn  |               |snippetNumber="2"<::>columnNumber="4"<::>columnName="Snippet Text"|and as confirmed by her family  members, she is somewhat confused.  She has no other acute complaints.    REVIEW OF SYSTEMS: No nausea.  No vomiting.  No headache.  No chest pain.  No shortness of  breath.  No abdominal pain.  All other systems are negative.   PRIOR MEDICAL HISTORY: 1. Rheumatoid arthritis. 2. COPD. 3. Diabetes. 4. Chronic pancreatitis. MEDICATIONS: Medications per the nursing notes. ALLERGIES: ALLERGIES PER THE NURSING NOTES. SOCIAL HISTORY: Positive tobacco.  No alcohol use. PHYSICAL EXAMINATION: General:  Appears well, visibly weak.   Vital Signs:  Vital signs are per the nursing notes. HEENT:  Normocephalic atraumatic.  Pupils are equal and reactive.   Extraocular muscles are intact.    Neck
+   1202|69|Yes            |               ||PRIOR MEDICAL HISTORY: 1. Rheumatoid arthritis. 2. COPD. 3. Diabetes.
+   1759| 1|SnippetColumn  |               |snippetNumber="3"<::>columnNumber="1"<::>columnName="PatientICN"|3
+   1771|13|SnippetColumn  |               |snippetNumber="3"<::>columnNumber="2"<::>columnName="Document"|freport10.txt
+   1798| 1|SnippetColumn  |               |snippetNumber="3"<::>columnNumber="3"<::>columnName="Snippet Num"|3
+   1816|756|SnippetColumn  |               |snippetNumber="3"<::>columnNumber="4"<::>columnName="Snippet Text"|ID-NUM  **ID-NUM A5B/1 ___________________________________________________   DATE OF CONSULTATION:    **DATE[Feb 15 06]    CONSULTING PHYSICIAN:    **NAME[VVV M. WWW], M.D.    ATTENDING PHYSICIAN:     **NAME[ZZZ YYY XXX]   REQUESTING PHYSICIAN:   **NAME[UUU TTT], M.D.    RENAL   REASON FOR CONSULTATION  Renal insufficiency.   HISTORY OF PRESENT ILLNESS This is a very nice **AGE[in 80s]-year-old Caucasian gentleman with a longstanding  history of diabetes with what he tells me sounds like retinopathy with  retinal bleeding needing laser surgery with hypertension and chronic kidney  disease.  He has kidney function in the 20s dating back to 2004 where he had  a serum creatinine about 2.4 in **DATE[Feb 2004] which is three years ago.  He  also gives
+   2241|33|Yes            |               ||longstanding  history of diabetes
+   2669| 1|SnippetColumn  |               |snippetNumber="4"<::>columnNumber="1"<::>columnName="PatientICN"|4
+   2681|13|SnippetColumn  |               |snippetNumber="4"<::>columnNumber="2"<::>columnName="Document"|freport10.txt
+   2708| 1|SnippetColumn  |               |snippetNumber="4"<::>columnNumber="3"<::>columnName="Snippet Num"|4
+   2726|673|SnippetColumn  |               |snippetNumber="4"<::>columnNumber="4"<::>columnName="Snippet Text"|times twelve steps which is stable.  He denies any  orthopnea.  Denies any chest pain.  No focal numbness or weakness.  No  headache.  No fevers.  No chills.  No lymphadenopathy.  No bleeding,  hematemesis, melena, or bright red blood per rectum.  His sugars at home run  90 to 120.    PAST MEDICAL & SURGICAL HISTORY 1. Diabetes diagnosed ten years ago with bilateral retinopathy with bleeding  status post laser surgery.  2. Hypertension. 3. CHF. 4. Hypothyroidism. 5. Anemia followed by Dr. **NAME[SSS].  6. Appendectomy. 7. Cholecystectomy. 8. History of prostate biopsy.   FAMILY HISTORY  There is no renal failure, lupus, or cancer in the family.   SOCIAL HISTORY  He
+   3012|108|Yes            |               ||PAST MEDICAL & SURGICAL HISTORY 1. Diabetes diagnosed ten years ago with bilateral retinopathy with bleeding
+   3496| 1|SnippetColumn  |               |snippetNumber="5"<::>columnNumber="1"<::>columnName="PatientICN"|5
+   3508|13|SnippetColumn  |               |snippetNumber="5"<::>columnNumber="2"<::>columnName="Document"|freport13.txt
+   3535| 1|SnippetColumn  |               |snippetNumber="5"<::>columnNumber="3"<::>columnName="Snippet Num"|5
+   3553|741|SnippetColumn  |               |snippetNumber="5"<::>columnNumber="4"<::>columnName="Snippet Text"|rashes.    REVIEW OF SYSTEMS:     Review of systems as per HPI; all other systems negative. PAST MEDICAL HISTORY:    Chronic foot pain, anemia, gastric ulcers, pancreatitis, multiple sclerosis. Medications: 1.   Albuterol. 2.   Percocet. ALLERGIES:  MORPHINE. Social history:  The patient does not smoke.  She denies the use of alcohol  or drugs.    Family history:  Diabetes, coronary artery disease. PHYSICAL EXAM:   Vital signs:  Temperature is 36.9.  Heart rate:  87.  Blood pressure:   118/72.  Respiratory rate:  16.  O2 saturation:  98% on room air.    General:  The patient is alert and oriented times three, cooperative in no  apparent distress.    HEENT:  Normocephalic, atraumatic.  Pupils are equally round and reactive to  light
+   3903|25|No             |               ||Family history:  Diabetes
