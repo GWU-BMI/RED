@@ -39,7 +39,7 @@ public class RegExCategorizer {
 	private static final int PUNCTUATIONS_INT = 1;
 	private static final int DIGITS_INT = 2;
 	private static final int SPACES_INT = 3;
-	private static final int SAMPLE_SIZE = 5;
+	private static final int SAMPLE_SIZE = 2;
 	private static final int REGEX_COUNTER_SIZE = 2;
 	
 	public RegExCategorizer() {
@@ -153,6 +153,9 @@ public class RegExCategorizer {
 	private void permuteList(List<Integer> prefix, List<Integer> remaining, boolean breakRecursion) {
 		if (!breakRecursion && !remaining.isEmpty()) {
 			for (Integer elem : remaining) {
+				if (breakRecursion) {
+					break;
+				}
 				List<Integer> remainingCopy = new LinkedList<Integer>(remaining);
 				List<Integer> candidateList = new LinkedList<Integer>(prefix);
 				candidateList.add(elem);
@@ -322,46 +325,5 @@ public class RegExCategorizer {
 			x.setRegEx(x.getRegEx().replaceAll("\\p{Punct}",Integer.toString(PUNCTUATIONS_INT)));
 		}
 		return regexColl;
-	}
-}
-
-class PotentialMatchClassification {
-	List<String> terms;
-	int count;
-	List<Match> matches;
-	int termSize;
-	
-	public PotentialMatchClassification(List<String> terms, int count, List<Match> matches, int termSize) {
-		this.terms = terms;
-		this.count = count;
-		this.matches = matches;
-		this.termSize = termSize;
-	}
-	
-	/*@Override
-	public String toString() {
-		if(terms == null || terms.isEmpty())
-			return " The match is empty";
-		StringBuilder temp = new StringBuilder();
-		for(int i=0;i<terms.size();i++){
-			if(i==terms.size()-1)
-				temp.append(terms.get(i));
-			else
-				temp.append(terms.get(i)+"\\s{1,50}*|\\p{punct}*|\\d*");
-		}
-		return temp.toString();
-	}*/
-}
-class Match {
-	RegEx match;
-	String matchedString;
-	int startPos;
-	int endPos;
-	
-	public Match(RegEx match, String matchedString, int startPos, int endPos) {
-		this.match = match;
-		this.matchedString = matchedString;
-		this.startPos = startPos;
-		this.endPos = endPos;
 	}
 }
