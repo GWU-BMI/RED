@@ -39,8 +39,12 @@ public class RegExCategorizer {
 	private static final int PUNCTUATIONS_INT = 1;
 	private static final int DIGITS_INT = 2;
 	private static final int SPACES_INT = 3;
-	private static final int SAMPLE_SIZE = 2;
+	private static final int SAMPLE_SIZE = 5;
 	private static final int REGEX_COUNTER_SIZE = 2;
+	private static final int PERMUTATION_BREAKER_TIME = 10000;
+	private static final int CLASSIFIER_BREAKER_TIME = 3000000;
+	private long timer_for_permutation;
+	private List<List<Integer>> positiveTermIdsCopy;
 	
 	public RegExCategorizer() {
 		termIDMap.put(PUNCTUATIONS, PUNCTUATIONS_INT);
@@ -119,8 +123,18 @@ public class RegExCategorizer {
 	}
 	
 	private void extractRegExes() {
-		List<List<Integer>> positiveTermIdsCopy = new LinkedList<List<Integer>>(positiveTermIds);
+		positiveTermIdsCopy = new LinkedList<List<Integer>>(positiveTermIds);
+		long time_start = System.currentTimeMillis();
+		int initial_size = positiveTermIdsCopy.size();
 		while (positiveTermIdsCopy.size() > 0) {
+			if ((System.currentTimeMillis() - time_start) > CLASSIFIER_BREAKER_TIME) {
+				//if (positiveTermIdsCopy.size() == initial_size) {
+					break;
+				/*} else {
+					initial_size = positiveTermIdsCopy.size();
+					time_start = System.currentTimeMillis();
+				}*/
+			}
 			int randomSetSize = -1;
 			if (SAMPLE_SIZE > positiveTermIdsCopy.size()) {
 				randomSetSize = positiveTermIdsCopy.size();
@@ -133,6 +147,7 @@ public class RegExCategorizer {
 				workingTermIDs.addAll(positiveTermIdsCopy.get(randomIndex));
 			}
 			boolean breakRecursion = false;
+			timer_for_permutation = System.currentTimeMillis();
 			permuteList(new LinkedList<Integer>(), workingTermIDs, breakRecursion);
 			Iterator<List<Integer>> it = positiveTermIdsCopy.iterator();
 			while (it.hasNext()) {
@@ -144,7 +159,7 @@ public class RegExCategorizer {
 		}
 		for (List<Integer> candidateList : candidateListSet) {
 			for (Integer term : candidateList) {
-				System.out.print(IDtermMap.get(term));
+				System.out.print(IDtermMap.get(term)+" ");
 			}
 			System.out.println();
 		}
@@ -153,7 +168,8 @@ public class RegExCategorizer {
 	private void permuteList(List<Integer> prefix, List<Integer> remaining, boolean breakRecursion) {
 		if (!breakRecursion && !remaining.isEmpty()) {
 			for (Integer elem : remaining) {
-				if (breakRecursion) {
+				if (breakRecursion || (System.currentTimeMillis() - timer_for_permutation) > PERMUTATION_BREAKER_TIME) {
+					breakRecursion = true;
 					break;
 				}
 				List<Integer> remainingCopy = new LinkedList<Integer>(remaining);
@@ -167,6 +183,8 @@ public class RegExCategorizer {
 							breakRecursion = true;
 						}
 					}
+				} else {
+					break;
 				}
 				if (!breakRecursion) {
 					permuteList(candidateList, remainingCopy, breakRecursion);
@@ -177,7 +195,7 @@ public class RegExCategorizer {
 	
 	private boolean checkIfMatchesPositives(List<Integer> candidateList) {
 		boolean matchedPositive = false;
-		for (List<Integer> posList : positiveTermIds) {
+		for (List<Integer> posList : positiveTermIdsCopy) {
 			if (checkIfListContainsOther(posList, candidateList)) {
 				matchedPositive = true;
 				posRegExCounterMap.put(posList, posRegExCounterMap.get(posList)+1);
