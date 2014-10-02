@@ -26,6 +26,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
@@ -110,13 +111,78 @@ public class VTTReaderTest {
 		try {
 			snippets = vttr.extractSnippets(vttFile, "weight");
 		} catch (IOException e) {
-			throw new AssertionError("Failed extract 'weight' labeled segment triplets from VTT file: " + vttFile, e);
+			throw new AssertionError("Failed extract 'weight' labeled segment snippets from VTT file: " + vttFile, e);
+		}
+		Assert.assertNotNull(snippets);
+		Assert.assertEquals(115, snippets.size());
+
+		Iterator<Snippet> snipIt = snippets.iterator();
+		{
+			Snippet snip = snipIt.next();
+			Assert.assertEquals(1, snip.getLabeledSegments().size());
+			LabeledSegment ls = snip.getLabeledSegments().iterator().next();
+			Assert.assertEquals("151", ls.getLabeledString());
+		}
+		{
+			Snippet snip = snipIt.next();
+			Assert.assertEquals(1, snip.getLabeledSegments().size());
+			LabeledSegment ls = snip.getLabeledSegments().iterator().next();
+			Assert.assertEquals("160", ls.getLabeledString());
+		}
+		{
+			Snippet snip = snipIt.next();
+			Assert.assertEquals(1, snip.getLabeledSegments().size());
+			LabeledSegment ls = snip.getLabeledSegments().iterator().next();
+			Assert.assertEquals("60.0", ls.getLabeledString());
+		}
+		{
+			Snippet snip = snipIt.next();
+			Assert.assertEquals(1, snip.getLabeledSegments().size());
+			LabeledSegment ls = snip.getLabeledSegments().iterator().next();
+			Assert.assertEquals("70", ls.getLabeledString());
+		}
+		{
+			Snippet snip = snipIt.next();
+			Assert.assertEquals(3, snip.getLabeledSegments().size());
+			Iterator<LabeledSegment> lsIt = snip.getLabeledSegments().iterator();
+			LabeledSegment ls1 = lsIt.next();
+			Assert.assertEquals("91.4", ls1.getLabeledString());
+			LabeledSegment ls2 = lsIt.next();
+			Assert.assertEquals("201", ls2.getLabeledString());
+			LabeledSegment ls3 = lsIt.next();
+			Assert.assertEquals("59", ls3.getLabeledString());
+		}
+		// Last snippet
+		{
+			Snippet snip = null;
+			while (snipIt.hasNext()) {
+				snip = snipIt.next();
+			}
+			Assert.assertEquals(1, snip.getLabeledSegments().size());
+			LabeledSegment ls = snip.getLabeledSegments().iterator().next();
+			Assert.assertEquals("106", ls.getLabeledString());
+		}
+	}
+	
+	/**
+	 * Test method for {@link gov.va.research.red.VTTReader#extractSnippets(java.io.File, java.lang.String)}.
+	 */
+	@Test
+	public void testExtractSnippetsNoLabel() {
+		VTTReader vttr = new VTTReader();
+		File vttFile = new File(TEST_VTT_URI);
+
+		Collection<Snippet> snippets = null;
+		try {
+			snippets = vttr.extractSnippets(vttFile);
+		} catch (IOException e) {
+			throw new AssertionError("Failed extract snippets from VTT file: " + vttFile, e);
 		}
 		Assert.assertNotNull(snippets);
 		Assert.assertEquals(1000, snippets.size());
 
-		// first 25 snippets should have no labeled segements
 		Iterator<Snippet> snipIt = snippets.iterator();
+		// first 24 snippets should have no labeled segments
 		for (int i = 0; i < 24; i++) {
 			Snippet snip = snipIt.next();
 			Assert.assertEquals(0, snip.getLabeledSegments().size());
@@ -143,19 +209,49 @@ public class VTTReaderTest {
 			LabeledSegment ls = snip.getLabeledSegments().iterator().next();
 			Assert.assertEquals("60.0", ls.getLabeledString());
 		}
-		// Snippet 60 should have multiple labeled segments
-		{
-			Snippet snip = snippets.get(60);
-			Assert.assertEquals(3, snip.getLabeledSegments().size());
-			Iterator<LabeledSegment> lsIt = snip.getLabeledSegments().iterator();
-			LabeledSegment ls1 = lsIt.next();
-			Assert.assertEquals("91.4", ls1.getLabeledString());
-			LabeledSegment ls2 = lsIt.next();
-			Assert.assertEquals("201", ls2.getLabeledString());
-			LabeledSegment ls3 = lsIt.next();
-			Assert.assertEquals("59", ls3.getLabeledString());
+		for (int i = 0; i < 6; i++) {
+			Snippet snip = snipIt.next();
+			Assert.assertEquals(0, snip.getLabeledSegments().size());
 		}
-		// Last snippet should have no labeled segments
+		{
+			Snippet snip = snipIt.next();
+			Assert.assertEquals(2, snip.getLabeledSegments().size());
+			Iterator<LabeledSegment> lsIt = snip.getLabeledSegments().iterator();
+			LabeledSegment ls = lsIt.next();
+			Assert.assertEquals("weight", ls.getLabel());
+			Assert.assertEquals("70", ls.getLabeledString());
+			ls = lsIt.next();
+			Assert.assertEquals("unit", ls.getLabel());
+			Assert.assertEquals("kg", ls.getLabeledString());
+		}
+		for (int i = 0; i < 22; i++) {
+			Snippet snip = snipIt.next();
+			Assert.assertEquals(0, snip.getLabeledSegments().size());
+		}
+		{
+			Snippet snip = snipIt.next();
+			Assert.assertEquals(6, snip.getLabeledSegments().size());
+			Iterator<LabeledSegment> lsIt = snip.getLabeledSegments().iterator();
+			LabeledSegment ls = lsIt.next();
+			Assert.assertEquals("weight", ls.getLabel());
+			Assert.assertEquals("91.4", ls.getLabeledString());
+			ls = lsIt.next();
+			Assert.assertEquals("unit", ls.getLabel());
+			Assert.assertEquals("kg", ls.getLabeledString());
+			ls = lsIt.next();
+			Assert.assertEquals("weight", ls.getLabel());
+			Assert.assertEquals("201", ls.getLabeledString());
+			ls = lsIt.next();
+			Assert.assertEquals("unit", ls.getLabel());
+			Assert.assertEquals("pounds", ls.getLabeledString());
+			ls = lsIt.next();
+			Assert.assertEquals("weight", ls.getLabel());
+			Assert.assertEquals("59", ls.getLabeledString());
+			ls = lsIt.next();
+			Assert.assertEquals("unit", ls.getLabel());
+			Assert.assertEquals("kg", ls.getLabeledString());
+		}
+		// Last snippet
 		{
 			Snippet snip = null;
 			while (snipIt.hasNext()) {

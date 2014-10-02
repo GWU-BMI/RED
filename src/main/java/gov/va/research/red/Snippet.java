@@ -59,4 +59,11 @@ public class Snippet {
 		}
 		return labeledStrings;
 	}
+
+	@Override
+	public String toString() {
+		return "" + text + " " + labeledSegments;
+	}
+	
+	
 }
