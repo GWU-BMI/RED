@@ -181,10 +181,11 @@ public class VTTReader {
 				}
 			}
 		}
-
+		
+		Tags tags = vttDoc.GetTags();
 		for (Markup markup : vttDoc.GetMarkups().GetMarkups()) {
 			// Check if the markup is not a SnippetColumn
-			if (!"SnippetColumn".equalsIgnoreCase(markup.GetTagName())) {
+			if (!"SnippetColumn".equalsIgnoreCase(markup.GetTagName()) && !tags.GetTagNames().contains(markup.GetTagName())) {
 
 				// Get the labeled text boundaries
 				int labeledOffset = markup.GetOffset();

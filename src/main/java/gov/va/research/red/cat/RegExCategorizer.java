@@ -30,23 +30,28 @@ public class RegExCategorizer {
 	private Map<RegEx, Pattern> patternCache = new HashMap<RegEx, Pattern>();
 	private Map<String, Integer> wordFreqMap = new HashMap<String, Integer>();
 	private int freqWordRemovalLevel = 1;
+	private List<String> yesLabels;
+	private List<String> noLabels;
 	
 	public void findRegexesAndSaveInFile (
-			final File vttFile, List<String> yesLabels, List<String> noLabels,
+			final File vttFile, List<String> yesLabelsParam, List<String> noLabelsParam,
 			final String classifierOutputFileName, boolean printScore) throws IOException {
 		VTTReader vttr = new VTTReader();
+		yesLabels = yesLabelsParam;
+		noLabels = noLabelsParam;
 		snippetsYes = new ArrayList<>();
-		for (String yesLabel : yesLabels) {
+		for (String yesLabel : yesLabelsParam) {
 			snippetsYes.addAll(vttr.extractSnippets(vttFile, yesLabel));
 		}
 		snippetsNo = new ArrayList<>();
-		for (String noLabel : noLabels) {
+		for (String noLabel : noLabelsParam) {
 			snippetsNo.addAll(vttr.extractSnippets(vttFile, noLabel));
 		}
-		extractRegexClassifications(yesLabels, noLabels);
+		snippetsNo.addAll(vttr.extractSnippets(vttFile));
+		extractRegexClassifications();
 	}
 
-	public void extractRegexClassifications(List<String> yesLabels, List<String> noLabels) {
+	public void extractRegexClassifications() {
 		if(snippetsYes == null || snippetsYes.isEmpty() || snippetsNo == null || snippetsNo.isEmpty())
 			return;
 		initialPositiveRegExs = new ArrayList<RegEx>(snippetsYes.size());
@@ -65,7 +70,7 @@ public class RegExCategorizer {
 		removeWordsOnFrequency();
 		
 		for (RegEx regEx : initialPositiveRegExs) {
-			System.out.println(regEx.getRegEx());
+			System.out.println(regEx.getRegEx()+"\n");
 		}
 	}
 	
@@ -89,7 +94,7 @@ public class RegExCategorizer {
 		if (freqWordRemovalLevel > (size/2)) {
 			freqWordRemovalLevel = size/2;
 		}
-		for (int i=0;i<freqWordRemovalLevel;i++) {
+		for (int i=1;i<=freqWordRemovalLevel;i++) {
 			Entry<String, Integer> leastFreqEntry = sortedEntryList.get(i);
 			Entry<String, Integer> mostFreqEntry = sortedEntryList.get(size-i);
 			for (RegEx regEx : initialPositiveRegExs) {
@@ -142,6 +147,8 @@ public class RegExCategorizer {
 					int trimNegScore = calculateNegativeScore(frontTrimRegEx);
 					if (trimPosScore < posScore || trimNegScore > negScore) {
 						frontTrim = false;
+					} else if (trimPosScore == posScore && trimNegScore == negScore) {
+						frontTrim = false;
 					} else {
 						regEx.setRegEx(frontTrimRegEx.getRegEx());
 					}
@@ -152,11 +159,13 @@ public class RegExCategorizer {
 					int trimNegScore = calculateNegativeScore(backTrimRegEx);
 					if (trimPosScore < posScore || trimNegScore > negScore) {
 						backTrim = false;
+					} else if (trimPosScore == posScore && trimNegScore == negScore) {
+						backTrim = false;
 					} else {
 						regEx.setRegEx(backTrimRegEx.getRegEx());
 					}
 				}
-				if (frontTrim && backTrim) {
+				if (!frontTrim && !backTrim) {
 					break;
 				}
 			}
@@ -169,6 +178,10 @@ public class RegExCategorizer {
 		int cutLocation=1;
 		if (start == '\\') {
 			while(true){
+				if (cutLocation == regExStr.length()) {
+					cutLocation = 0;
+					break;
+				}
 				char currentChar = regExStr.charAt(cutLocation++);
 				if (currentChar == '+' || currentChar == '}') {
 					break;
@@ -176,8 +189,13 @@ public class RegExCategorizer {
 			}
 		} else {
 			while(true){
+				if (cutLocation == regExStr.length()) {
+					cutLocation = 0;
+					break;
+				}
 				char currentChar = regExStr.charAt(cutLocation++);
 				if (currentChar == '\\') {
+					cutLocation = cutLocation - 1;
 					break;
 				}
 			}
@@ -191,13 +209,22 @@ public class RegExCategorizer {
 		int cutLocation=regExStr.length()-2;
 		if (end == '+' || end == '}') {
 			while(true){
+				if (cutLocation < 0) {
+					cutLocation = regExStr.length();
+					break;
+				}
 				char currentChar = regExStr.charAt(cutLocation--);
 				if (currentChar == '\\') {
+					cutLocation = cutLocation+1;
 					break;
 				}
 			}
 		} else {
 			while(true){
+				if (cutLocation < 0) {
+					cutLocation = regExStr.length();
+					break;
+				}
 				char currentChar = regExStr.charAt(cutLocation--);
 				if (currentChar == '+' || currentChar == '}') {
 					cutLocation = cutLocation+2;
@@ -216,9 +243,13 @@ public class RegExCategorizer {
 			patternCache.put(regEx, pattern);
 		}
 		for (Snippet snippet : snippetsYes) {
-			Matcher matcher = pattern.matcher(snippet.getText());
-			if (matcher.find()) {
-				posScore++;
+			for (String label : yesLabels) {
+				if (snippet.getLabeledSegment(label) != null && snippet.getLabeledSegment(label).getLabeledString() != null && !snippet.getLabeledSegment(label).getLabeledString().equals("")) {
+					Matcher matcher = pattern.matcher(snippet.getLabeledSegment(label).getLabeledString());
+					if (matcher.find()) {
+						posScore++;
+					}
+				}
 			}
 		}
 		return posScore;
