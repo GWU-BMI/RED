@@ -1,12 +1,17 @@
 package gov.va.research.red.cat;
 
+import gov.va.research.red.CVScore;
 import gov.va.research.red.LabeledSegment;
+import gov.va.research.red.MatchedElement;
 import gov.va.research.red.RegEx;
 import gov.va.research.red.Snippet;
 import gov.va.research.red.VTTReader;
+import gov.va.research.red.ex.LSExtractor;
+import gov.va.research.red.ex.REDExtractor;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -56,10 +61,10 @@ public class RegExCategorizer {
 			return;
 		initialPositiveRegExs = new ArrayList<RegEx>(snippetsYes.size());
 		initializeInitialRegEx(snippetsYes, yesLabels, initialPositiveRegExs);
-		
-		replaceDigits(initialPositiveRegExs);
 
 		replacePunct(initialPositiveRegExs);
+		
+		replaceDigits(initialPositiveRegExs);
 		
 		replaceWhiteSpaces(initialPositiveRegExs);
 		
@@ -72,8 +77,9 @@ public class RegExCategorizer {
 		for (RegEx regEx : initialPositiveRegExs) {
 			System.out.println(regEx.getRegEx()+"\n");
 		}
+		
 	}
-	
+		
 	private void removeWordsOnFrequency(){
 		Set<Entry<String, Integer>> entries = wordFreqMap.entrySet();
 		List<Entry<String, Integer>> sortedEntryList = new ArrayList<Map.Entry<String,Integer>>(entries);
@@ -101,20 +107,20 @@ public class RegExCategorizer {
 				int posScore = calculatePositiveScore(regEx);
 				int negScore = calculateNegativeScore(regEx);
 				String regExStr = regEx.getRegEx();
-				regExStr.replace(mostFreqEntry.getKey(), "\\\\S+");
-				RegEx temp = new RegEx(regExStr);
+				String replacedString = regExStr.replaceAll("(?i)"+mostFreqEntry.getKey(), "\\\\S+");
+				RegEx temp = new RegEx(replacedString);
 				int tempPosScore = calculatePositiveScore(temp);
 				int tempNegScore = calculateNegativeScore(temp);
 				if (tempPosScore >= posScore && tempNegScore <= negScore) {
-					regEx.setRegEx(regExStr);
+					regEx.setRegEx(replacedString);
 				}
 				regExStr = regEx.getRegEx();
-				regExStr.replace(leastFreqEntry.getKey(), "\\\\S+");
-				temp = new RegEx(regExStr);
+				replacedString = regExStr.replaceAll("(?i)"+leastFreqEntry.getKey(), "\\\\S+");
+				temp = new RegEx(replacedString);
 				tempPosScore = calculatePositiveScore(temp);
 				tempNegScore = calculateNegativeScore(temp);
 				if (tempPosScore >= posScore && tempNegScore <= negScore) {
-					regEx.setRegEx(regExStr);
+					regEx.setRegEx(replacedString);
 				}
 			}
 		}
@@ -124,11 +130,13 @@ public class RegExCategorizer {
 		for (RegEx regEx : initialPositiveRegExs) {
 			String[] regExStrArray = regEx.getRegEx().split("\\\\s\\{1,50\\}|\\\\p\\{Punct\\}|\\\\d\\+");
 			for (String word : regExStrArray) {
-				if (wordFreqMap.containsKey(word)) {
-					int count = wordFreqMap.get(word);
-					wordFreqMap.put(word, ++count);
-				} else {
-					wordFreqMap.put(word, 1);
+				if (!word.equals("")) {
+					if (wordFreqMap.containsKey(word)) {
+						int count = wordFreqMap.get(word);
+						wordFreqMap.put(word, ++count);
+					} else {
+						wordFreqMap.put(word, 1);
+					}
 				}
 			}
 		}
