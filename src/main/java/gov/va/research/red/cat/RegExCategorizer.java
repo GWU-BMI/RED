@@ -136,7 +136,7 @@ public class RegExCategorizer {
 		}
 		
 		int orgPos = initialPositiveRegExs.size();
-		int orgNeg = initialPositiveRegExs.size();
+		int orgNeg = initialNegativeRegExs.size();
 		
 		Iterator<Entry<RegEx, List<LabeledSegment>>> entrySetIt = reg2Ls.entrySet().iterator();
 		while (entrySetIt.hasNext()) {
