@@ -13,7 +13,8 @@ public class CategorizerTester {
 	
 	private Map<String, Pattern> patternCache = new HashMap<>();
 	
-	public boolean test(Collection<RegEx> regularExpressions, Snippet snippet){
+	public boolean test(Collection<RegEx> regularExpressions, Collection<RegEx> negativeregularExpressions, Snippet snippet){
+		int posScore = 0,negScore = 0;
 		for(RegEx segment : regularExpressions){
 			Pattern pattern = null;
 			if(patternCache.containsKey(segment.getRegEx())){
@@ -24,8 +25,26 @@ public class CategorizerTester {
 			}
 			Matcher matcher = pattern.matcher(snippet.getText());
 			boolean test = matcher.find();
-			if(test)
-				return true;
+			if(test) {
+				posScore++;
+			}
+		}
+		for(RegEx segment : negativeregularExpressions){
+			Pattern pattern = null;
+			if(patternCache.containsKey(segment.getRegEx())){
+				pattern = patternCache.get(segment.getRegEx());
+			}else {
+				pattern = Pattern.compile(segment.getRegEx());
+				patternCache.put(segment.getRegEx(), pattern);
+			}
+			Matcher matcher = pattern.matcher(snippet.getText());
+			boolean test = matcher.find();
+			if(test) {
+				negScore++;
+			}
+		}
+		if (posScore > negScore) {
+			return true;
 		}
 		return false;
 	}

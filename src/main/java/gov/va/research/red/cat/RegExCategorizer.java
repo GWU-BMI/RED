@@ -15,27 +15,35 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
  * starting off with un-labeled segments
+ * 
+ * please check if no label snippet getter works properly
  */
 public class RegExCategorizer {
 	
 	private List<Snippet> snippetsYes;
 	private List<Snippet> snippetsNo;
+	private List<Snippet> snippetsNoLabel;
 	private List<RegEx> initialPositiveRegExs;
+	private List<RegEx> initialNegativeRegExs;
 	private Map<RegEx, Pattern> patternCache = new HashMap<RegEx, Pattern>();
 	private Map<String, Integer> wordFreqMap = new HashMap<String, Integer>();
 	private int mostfreqWordRemovalLevel = 10;
 	private int leastfreqWordRemovalLevel = 10;
 	private List<String> yesLabels;
 	private List<String> noLabels;
+	private Map<RegEx, List<LabeledSegment>> reg2Ls = new HashMap<RegEx, List<LabeledSegment>>();
+	private Map<LabeledSegment, List<RegEx>> lS2Reg = new HashMap<LabeledSegment, List<RegEx>>();
+	private Map<RegEx, List<LabeledSegment>> reg2LsNeg = new HashMap<RegEx, List<LabeledSegment>>();
+	private Map<LabeledSegment, List<RegEx>> lS2RegNeg = new HashMap<LabeledSegment, List<RegEx>>();
 	
 	public void findRegexesAndSaveInFile (
 			final File vttFile, List<String> yesLabelsParam, List<String> noLabelsParam,
@@ -51,8 +59,9 @@ public class RegExCategorizer {
 		for (String noLabel : noLabelsParam) {
 			snippetsNo.addAll(vttr.extractSnippets(vttFile, noLabel));
 		}
-		snippetsNo.addAll(vttr.extractSnippets(vttFile));
-		writeSnippetsToFile();
+		snippetsNoLabel = new ArrayList<Snippet>();
+		snippetsNoLabel.addAll(vttr.extractSnippets(vttFile));
+		//writeSnippetsToFile();
 		extractRegexClassifications();
 	}
 	
@@ -100,24 +109,100 @@ public class RegExCategorizer {
 		snippetsAll.addAll(snippetsYes);
 		snippetsAll.addAll(snippetsNo);
 		CVScore cvScore = null;
-		initialPositiveRegExs = initialize();
 		
-		/*performTrimming();
+		initialPositiveRegExs = initialize(true);
+		performTrimming(true);
+		
+		initialNegativeRegExs = initialize(false);
+		performTrimming(false);
 		
 		for (RegEx regEx : initialPositiveRegExs) {
-			System.out.println(regEx.getRegEx()+"\n");
+			int posScore = calculatePositiveScore(regEx, true, true);
+			regEx.setSpecifity(posScore);
 		}
 		
-		cvScore = testClassifier(snippetsAll, initialPositiveRegExs, null, yesLabels);
+		for (RegEx regEx : initialNegativeRegExs) {
+			int negScore = calculateNegativeScore(regEx, false, true);
+			regEx.setSpecifity(negScore);
+		}
+		
+		System.out.println("Pos regex");
+		for (RegEx regEx : initialPositiveRegExs) {
+			System.out.println(regEx.getRegEx()+" "+regEx.getSpecifity()+"\n");
+		}
+		System.out.println("\nNeg regex");
+		for (RegEx regEx : initialNegativeRegExs) {
+			System.out.println(regEx.getRegEx()+" "+regEx.getSpecifity()+"\n");
+		}
+		
+		int orgPos = initialPositiveRegExs.size();
+		int orgNeg = initialPositiveRegExs.size();
+		
+		Iterator<Entry<RegEx, List<LabeledSegment>>> entrySetIt = reg2Ls.entrySet().iterator();
+		while (entrySetIt.hasNext()) {
+			Entry<RegEx, List<LabeledSegment>> entry = entrySetIt.next();
+			List<LabeledSegment> lsList = entry.getValue();
+			boolean remove = false;
+			for (LabeledSegment ls : lsList) {
+				List<RegEx> regExLs = lS2Reg.get(ls);
+				if (regExLs != null && regExLs.size() > 5){
+					remove = true;
+				}else {
+					remove = false;
+				}
+			}
+			if (remove) {
+				entrySetIt.remove();
+				initialPositiveRegExs.remove(entry.getKey());
+			}
+		}
+		
+		entrySetIt = reg2LsNeg.entrySet().iterator();
+		while (entrySetIt.hasNext()) {
+			Entry<RegEx, List<LabeledSegment>> entry = entrySetIt.next();
+			List<LabeledSegment> lsList = entry.getValue();
+			boolean remove = false;
+			for (LabeledSegment ls : lsList) {
+				List<RegEx> regExLs = lS2RegNeg.get(ls);
+				if (regExLs != null && regExLs.size() > 5){
+					remove = true;
+				}else {
+					remove = false;
+				}
+			}
+			if (remove) {
+				entrySetIt.remove();
+				initialNegativeRegExs.remove(entry.getKey());
+			}
+		}
+		
+		System.out.println("\nPos regex");
+		for (RegEx regEx : initialPositiveRegExs) {
+			System.out.println(regEx.getRegEx()+" "+regEx.getSpecifity()+"\n");
+		}
+		System.out.println("\nNeg regex");
+		for (RegEx regEx : initialNegativeRegExs) {
+			System.out.println(regEx.getRegEx()+" "+regEx.getSpecifity()+"\n");
+		}
+		
+		if (orgPos != initialPositiveRegExs.size()) {
+			System.out.println("pos difference made " +(orgPos - initialPositiveRegExs.size()));
+		}
+		
+		if (orgNeg != initialNegativeRegExs.size()) {
+			System.out.println("neg difference made " +(orgNeg - initialNegativeRegExs.size()));
+		}
+		
+		cvScore = testClassifier(snippetsAll, initialPositiveRegExs, initialNegativeRegExs, null, yesLabels);
 		try {
 			System.out.println(cvScore.getEvaluation());
 		} catch (IOException e) {
 			e.printStackTrace();
-		}*/
+		}
 		
 		//initialPositiveRegExs = initialize();
 		
-		createFrequencyMap();
+		//createFrequencyMap();
 		
 		/*removeMostFrequent();
 		
@@ -141,9 +226,9 @@ public class RegExCategorizer {
 			e.printStackTrace();
 		}*/
 		
-		Map<String, Integer> snippetPosFreq = createFrequencyMapList(convertSnippetToRegEx(snippetsYes));
+		/*Map<String, Integer> snippetPosFreq = createFrequencyMapList(convertSnippetToRegEx(snippetsYes));
 		Map<String, Integer> snippetNegFreq = createFrequencyMapList(convertSnippetToRegEx(snippetsNo));
-		storeSortedWordsTofiles(snippetPosFreq, snippetNegFreq);
+		storeSortedWordsTofiles(snippetPosFreq, snippetNegFreq);*/
 	}
 	
 	private void storeSortedWordsTofiles(Map<String, Integer> snippetPosFreq, Map<String, Integer> snippetNegFreq) throws IOException{
@@ -204,20 +289,26 @@ public class RegExCategorizer {
 		writer.close();
 	}
 	
-	private List<RegEx> initialize() {
-		List<RegEx> initialPositiveRegExs = new ArrayList<RegEx>(snippetsYes.size());
-		initializeInitialRegEx(snippetsYes, yesLabels, initialPositiveRegExs);
+	private List<RegEx> initialize(boolean positive) {
+		List<RegEx> initialRegExs = null;
+		if (positive) {
+			initialRegExs = new ArrayList<RegEx>(snippetsYes.size());
+			initializeInitialRegEx(snippetsYes, yesLabels, initialRegExs);
+		} else {
+			initialRegExs = new ArrayList<RegEx>(snippetsNo.size());
+			initializeInitialRegEx(snippetsNo, noLabels, initialRegExs);
+		}
 
-		replacePunct(initialPositiveRegExs);
+		replacePunct(initialRegExs);
 		
-		replaceDigits(initialPositiveRegExs);
+		replaceDigits(initialRegExs);
 		
-		replaceWhiteSpaces(initialPositiveRegExs);
+		replaceWhiteSpaces(initialRegExs);
 		
-		return initialPositiveRegExs;
+		return initialRegExs;
 	}
 		
-	private void removeMostFrequent(){
+	/*private void removeMostFrequent(){
 		Set<Entry<String, Integer>> entries = wordFreqMap.entrySet();
 		List<Entry<String, Integer>> sortedEntryList = new ArrayList<Map.Entry<String,Integer>>(entries);
 		Collections.sort(sortedEntryList, new Comparator<Entry<String, Integer>>() {
@@ -252,9 +343,9 @@ public class RegExCategorizer {
 				//}
 			}
 		}
-	}
+	}*/
 	
-	private void removeLeastFrequent(){
+	/*private void removeLeastFrequent(){
 		Set<Entry<String, Integer>> entries = wordFreqMap.entrySet();
 		List<Entry<String, Integer>> sortedEntryList = new ArrayList<Map.Entry<String,Integer>>(entries);
 		Collections.sort(sortedEntryList, new Comparator<Entry<String, Integer>>() {
@@ -289,7 +380,7 @@ public class RegExCategorizer {
 				//}
 			}
 		}
-	}
+	}*/
 	
 	private void createFrequencyMap(){
 		for (RegEx regEx : initialPositiveRegExs) {
@@ -347,24 +438,51 @@ public class RegExCategorizer {
 		return freqMap;
 	}
 	
-	private void performTrimming() {
-		for (RegEx regEx : initialPositiveRegExs) {
+	private void performTrimming(boolean positiveTrim) {
+		List<RegEx> regExToTrim = null;
+		if (positiveTrim) {
+			regExToTrim = initialPositiveRegExs;
+		} else {
+			regExToTrim = initialNegativeRegExs;
+		}
+		for (RegEx regEx : regExToTrim) {
 			boolean frontTrim = true;
 			boolean backTrim = true;
 			while (true) {
-				int posScore = calculatePositiveScore(regEx);
-				int negScore = calculateNegativeScore(regEx);
+				int posScore = calculatePositiveScore(regEx, positiveTrim, false);
+				int negScore = calculateNegativeScore(regEx, positiveTrim, false);
+				int noLabelScore = calculateNoLabelScore(regEx);
+				if (positiveTrim) {
+					negScore += noLabelScore;
+					//regEx.setSpecifity(posScore);
+				} else {
+					posScore += noLabelScore;
+					//regEx.setSpecifity(negScore);
+				}
 				if (frontTrim) {
 					RegEx frontTrimRegEx = frontTrim(regEx);
 					if (frontTrimRegEx == null) {
 						frontTrim = false;
 					} else {
-						int trimPosScore = calculatePositiveScore(frontTrimRegEx);
-						int trimNegScore = calculateNegativeScore(frontTrimRegEx);
-						if (trimPosScore < posScore || trimNegScore > negScore) {
-							frontTrim = false;
+						int trimPosScore = calculatePositiveScore(frontTrimRegEx, positiveTrim, false);
+						int trimNegScore = calculateNegativeScore(frontTrimRegEx, positiveTrim, false);
+						int trimNoLabelScore = calculateNoLabelScore(frontTrimRegEx);
+						if (positiveTrim) {
+							trimNegScore += trimNoLabelScore;
+							if (trimPosScore < posScore || trimNegScore > negScore) {
+								frontTrim = false;
+							} else {
+								regEx.setRegEx(frontTrimRegEx.getRegEx());
+								//regEx.setSpecifity(trimPosScore);
+							}
 						} else {
-							regEx.setRegEx(frontTrimRegEx.getRegEx());
+							trimPosScore += trimNoLabelScore;
+							if (trimPosScore > posScore || trimNegScore < negScore) {
+								frontTrim = false;
+							} else {
+								regEx.setRegEx(frontTrimRegEx.getRegEx());
+								//regEx.setSpecifity(trimNegScore);
+							}
 						}
 					}
 				}
@@ -373,12 +491,25 @@ public class RegExCategorizer {
 					if (backTrimRegEx == null) {
 						backTrim = false;
 					} else {
-						int trimPosScore = calculatePositiveScore(backTrimRegEx);
-						int trimNegScore = calculateNegativeScore(backTrimRegEx);
-						if (trimPosScore < posScore || trimNegScore > negScore) {
-							backTrim = false;
+						int trimPosScore = calculatePositiveScore(backTrimRegEx, positiveTrim, false);
+						int trimNegScore = calculateNegativeScore(backTrimRegEx, positiveTrim, false);
+						int trimNoLabelScore = calculateNoLabelScore(backTrimRegEx);
+						if (positiveTrim) {
+							trimNegScore += trimNoLabelScore;
+							if (trimPosScore < posScore || trimNegScore > negScore) {
+								backTrim = false;
+							} else {
+								regEx.setRegEx(backTrimRegEx.getRegEx());
+								//regEx.setSpecifity(trimPosScore);
+							}
 						} else {
-							regEx.setRegEx(backTrimRegEx.getRegEx());
+							trimPosScore += trimNoLabelScore;
+							if (trimPosScore > posScore || trimNegScore < negScore) {
+								backTrim = false;
+							} else {
+								regEx.setRegEx(backTrimRegEx.getRegEx());
+								//regEx.setSpecifity(trimNegScore);
+							}
 						}
 					}
 				}
@@ -448,7 +579,7 @@ public class RegExCategorizer {
 		return new RegEx(regExStr.substring(0,cutLocation));
 	}
 	
-	private int calculatePositiveScore(RegEx regEx) {
+	private int calculatePositiveScore(RegEx regEx, boolean positiveTrim, boolean mapEntry) {
 		Pattern pattern = patternCache.get(regEx);
 		int posScore = 0;
 		if (pattern == null) {
@@ -456,19 +587,40 @@ public class RegExCategorizer {
 			patternCache.put(regEx, pattern);
 		}
 		for (Snippet snippet : snippetsYes) {
-			for (String label : yesLabels) {
-				if (snippet.getLabeledSegment(label) != null && snippet.getLabeledSegment(label).getLabeledString() != null && !snippet.getLabeledSegment(label).getLabeledString().equals("")) {
-					Matcher matcher = pattern.matcher(snippet.getLabeledSegment(label).getLabeledString());
-					if (matcher.find()) {
-						posScore++;
+			if (positiveTrim) {
+				for (String label : yesLabels) {
+					if (snippet.getLabeledSegment(label) != null && snippet.getLabeledSegment(label).getLabeledString() != null && !snippet.getLabeledSegment(label).getLabeledString().equals("")) {
+						Matcher matcher = pattern.matcher(snippet.getLabeledSegment(label).getLabeledString());
+						if (matcher.find()) {
+							posScore++;
+							if (mapEntry) {
+								List<LabeledSegment> listLS = reg2Ls.get(regEx);
+								if (listLS == null) {
+									listLS = new ArrayList<LabeledSegment>();
+									reg2Ls.put(regEx, listLS);
+								}
+								listLS.add(snippet.getLabeledSegment(label));
+								List<RegEx> listRegEx = lS2Reg.get(snippet.getLabeledSegment(label));
+								if (listRegEx == null) {
+									listRegEx = new ArrayList<RegEx>();
+									lS2Reg.put(snippet.getLabeledSegment(label), listRegEx);
+								}
+								listRegEx.add(regEx);
+							}
+						}
 					}
+				}
+			} else {
+				Matcher matcher = pattern.matcher(snippet.getText());
+				if (matcher.find()) {
+					posScore++;
 				}
 			}
 		}
 		return posScore;
 	}
 	
-	private int calculateNegativeScore(RegEx regEx) {
+	private int calculateNegativeScore(RegEx regEx, boolean positiveTrim, boolean mapEntry) {
 		Pattern pattern = patternCache.get(regEx);
 		int negScore = 0;
 		if (pattern == null) {
@@ -476,12 +628,53 @@ public class RegExCategorizer {
 			patternCache.put(regEx, pattern);
 		}
 		for (Snippet snippet : snippetsNo) {
-			Matcher matcher = pattern.matcher(snippet.getText());
-			if (matcher.find()) {
-				negScore++;
+			if (positiveTrim) {
+				Matcher matcher = pattern.matcher(snippet.getText());
+				if (matcher.find()) {
+					negScore++;
+				}
+			} else {
+				for (String label : noLabels) {
+					if (snippet.getLabeledSegment(label) != null && snippet.getLabeledSegment(label).getLabeledString() != null && !snippet.getLabeledSegment(label).getLabeledString().equals("")) {
+						Matcher matcher = pattern.matcher(snippet.getLabeledSegment(label).getLabeledString());
+						if (matcher.find()) {
+							negScore++;
+							if (mapEntry) {
+								List<LabeledSegment> listLS = reg2LsNeg.get(regEx);
+								if (listLS == null) {
+									listLS = new ArrayList<LabeledSegment>();
+									reg2LsNeg.put(regEx, listLS);
+								}
+								listLS.add(snippet.getLabeledSegment(label));
+								List<RegEx> listRegEx = lS2RegNeg.get(snippet.getLabeledSegment(label));
+								if (listRegEx == null) {
+									listRegEx = new ArrayList<RegEx>();
+									lS2RegNeg.put(snippet.getLabeledSegment(label), listRegEx);
+								}
+								listRegEx.add(regEx);
+							}
+						}
+					}
+				}
 			}
 		}
 		return negScore;
+	}
+	
+	private int calculateNoLabelScore(RegEx regEx) {
+		Pattern pattern = patternCache.get(regEx);
+		int noLabelScore = 0;
+		if (pattern == null) {
+			pattern = Pattern.compile(regEx.getRegEx());
+			patternCache.put(regEx, pattern);
+		}
+		for (Snippet snippet : snippetsNoLabel) {
+			Matcher matcher = pattern.matcher(snippet.getText());
+			if (matcher.find()) {
+				noLabelScore++;
+			}
+		}
+		return noLabelScore;
 	}
 	
 	private void initializeInitialRegEx(final List<Snippet> snippets,
@@ -499,12 +692,12 @@ public class RegExCategorizer {
 		}
 	}
 	
-	public CVScore testClassifier(List<Snippet> testing, Collection<RegEx> regularExpressions, CategorizerTester tester, List<String> labels) {
+	public CVScore testClassifier(List<Snippet> testing, Collection<RegEx> regularExpressions, Collection<RegEx> negativeRegularExpressions, CategorizerTester tester, List<String> labels) {
 		CVScore score = new CVScore();
 		if(tester == null)
 			tester = new CategorizerTester();
 		for(Snippet testSnippet : testing){
-			boolean predicted = tester.test(regularExpressions, testSnippet);
+			boolean predicted = tester.test(regularExpressions, negativeRegularExpressions, testSnippet);
 			boolean actual = false;
 			for(String label : labels){
 				LabeledSegment actualSegment = testSnippet.getLabeledSegment(label);

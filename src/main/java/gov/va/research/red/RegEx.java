@@ -2,6 +2,7 @@ package gov.va.research.red;
 
 public class RegEx {
 	private String regEx;
+	private int specifity = 1;
 	
 	public RegEx(String regEx) {
 		this.regEx = regEx;
@@ -43,6 +44,14 @@ public class RegEx {
 		} else if (!regEx.equals(other.regEx))
 			return false;
 		return true;
+	}
+
+	public int getSpecifity() {
+		return specifity;
+	}
+
+	public void setSpecifity(int specifity) {
+		this.specifity = specifity;
 	}
 	
 }
