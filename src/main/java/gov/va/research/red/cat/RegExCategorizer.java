@@ -6,9 +6,7 @@ import gov.va.research.red.RegEx;
 import gov.va.research.red.Snippet;
 import gov.va.research.red.VTTReader;
 
-import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -19,6 +17,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -35,7 +34,8 @@ public class RegExCategorizer {
 	private List<RegEx> initialPositiveRegExs;
 	private List<RegEx> initialNegativeRegExs;
 	private Map<RegEx, Pattern> patternCache = new HashMap<RegEx, Pattern>();
-	private Map<String, Integer> wordFreqMap = new HashMap<String, Integer>();
+	private Map<String, Integer> wordFreqMapPos = new HashMap<String, Integer>();
+	private Map<String, Integer> wordFreqMapNeg = new HashMap<String, Integer>();
 	private int mostfreqWordRemovalLevel = 10;
 	private int leastfreqWordRemovalLevel = 10;
 	private List<String> yesLabels;
@@ -61,53 +61,17 @@ public class RegExCategorizer {
 		}
 		snippetsNoLabel = new ArrayList<Snippet>();
 		snippetsNoLabel.addAll(vttr.extractSnippets(vttFile));
-		//writeSnippetsToFile();
 		extractRegexClassifications();
 	}
 	
-	private void writeSnippetsToFile() throws IOException {
-		File file = new File("snippets-text-positive.txt");
-		file.createNewFile();
-		BufferedWriter writer = new BufferedWriter(new FileWriter(file));
-		writer.write("Positive Snippets");
-		writer.newLine();
-		for (Snippet yes : snippetsYes) {
-			writer.newLine();
-			writer.write("Snippet");
-			writer.newLine();
-			writer.newLine();
-			writer.write(yes.getText());
-			writer.newLine();
-			writer.newLine();
-			writer.write("Labeled Segment");
-			writer.newLine();
-			writer.newLine();
-			writer.write(yes.getLabeledSegment("yes").getLabeledString());
-			writer.newLine();
-		}
-		writer.close();
-		file = new File("snippets-text-negative.txt");
-		file.createNewFile();
-		writer = new BufferedWriter(new FileWriter(file));
-		writer.write("Negative Snippets");
-		writer.newLine();
-		for (Snippet no : snippetsNo) {
-			writer.newLine();
-			writer.write("Snippet");
-			writer.newLine();
-			writer.newLine();
-			writer.write(no.getText());
-			writer.newLine();
-		}
-		writer.close();
-	}
-
 	public void extractRegexClassifications() throws IOException {
 		if(snippetsYes == null || snippetsYes.isEmpty() || snippetsNo == null || snippetsNo.isEmpty())
 			return;
 		List<Snippet> snippetsAll = new ArrayList<Snippet>();
 		snippetsAll.addAll(snippetsYes);
 		snippetsAll.addAll(snippetsNo);
+		snippetsAll.addAll(snippetsNoLabel);
+		System.out.println(snippetsAll.size());
 		CVScore cvScore = null;
 		
 		initialPositiveRegExs = initialize(true);
@@ -115,178 +79,37 @@ public class RegExCategorizer {
 		
 		initialNegativeRegExs = initialize(false);
 		performTrimming(false);
-		
-		for (RegEx regEx : initialPositiveRegExs) {
-			int posScore = calculatePositiveScore(regEx, true, true);
-			regEx.setSpecifity(posScore);
+
+		Iterator<RegEx> it = initialPositiveRegExs.iterator();
+		while (it.hasNext()) {
+			int negscore = calculateNegativeScore(it.next(), true, false);
+			if (negscore > 0) {
+				it.remove();
+			}
 		}
 		
-		for (RegEx regEx : initialNegativeRegExs) {
-			int negScore = calculateNegativeScore(regEx, false, true);
-			regEx.setSpecifity(negScore);
+		it = initialNegativeRegExs.iterator();
+		while (it.hasNext()) {
+			int posscore = calculatePositiveScore(it.next(), false, false);
+			if (posscore > 0) {
+				it.remove();
+			}
 		}
 		
+		createFrequencyMapPos();
+		createFrequencyMapNeg();
+		removeLeastFrequentPos();
+		removeLeastFrequentNeg();
+		cvScore = testClassifier(snippetsAll, initialPositiveRegExs, initialNegativeRegExs, null, yesLabels);
 		System.out.println("Pos regex");
 		for (RegEx regEx : initialPositiveRegExs) {
-			System.out.println(regEx.getRegEx()+" "+regEx.getSpecifity()+"\n");
+			System.out.println(regEx.getRegEx()+"\n");
 		}
 		System.out.println("\nNeg regex");
 		for (RegEx regEx : initialNegativeRegExs) {
-			System.out.println(regEx.getRegEx()+" "+regEx.getSpecifity()+"\n");
+			System.out.println(regEx.getRegEx()+"\n");
 		}
-		
-		int orgPos = initialPositiveRegExs.size();
-		int orgNeg = initialNegativeRegExs.size();
-		
-		Iterator<Entry<RegEx, List<LabeledSegment>>> entrySetIt = reg2Ls.entrySet().iterator();
-		while (entrySetIt.hasNext()) {
-			Entry<RegEx, List<LabeledSegment>> entry = entrySetIt.next();
-			List<LabeledSegment> lsList = entry.getValue();
-			boolean remove = false;
-			for (LabeledSegment ls : lsList) {
-				List<RegEx> regExLs = lS2Reg.get(ls);
-				if (regExLs != null && regExLs.size() > 5){
-					remove = true;
-				}else {
-					remove = false;
-				}
-			}
-			if (remove) {
-				entrySetIt.remove();
-				initialPositiveRegExs.remove(entry.getKey());
-			}
-		}
-		
-		entrySetIt = reg2LsNeg.entrySet().iterator();
-		while (entrySetIt.hasNext()) {
-			Entry<RegEx, List<LabeledSegment>> entry = entrySetIt.next();
-			List<LabeledSegment> lsList = entry.getValue();
-			boolean remove = false;
-			for (LabeledSegment ls : lsList) {
-				List<RegEx> regExLs = lS2RegNeg.get(ls);
-				if (regExLs != null && regExLs.size() > 5){
-					remove = true;
-				}else {
-					remove = false;
-				}
-			}
-			if (remove) {
-				entrySetIt.remove();
-				initialNegativeRegExs.remove(entry.getKey());
-			}
-		}
-		
-		System.out.println("\nPos regex");
-		for (RegEx regEx : initialPositiveRegExs) {
-			System.out.println(regEx.getRegEx()+" "+regEx.getSpecifity()+"\n");
-		}
-		System.out.println("\nNeg regex");
-		for (RegEx regEx : initialNegativeRegExs) {
-			System.out.println(regEx.getRegEx()+" "+regEx.getSpecifity()+"\n");
-		}
-		
-		if (orgPos != initialPositiveRegExs.size()) {
-			System.out.println("pos difference made " +(orgPos - initialPositiveRegExs.size()));
-		}
-		
-		if (orgNeg != initialNegativeRegExs.size()) {
-			System.out.println("neg difference made " +(orgNeg - initialNegativeRegExs.size()));
-		}
-		
-		cvScore = testClassifier(snippetsAll, initialPositiveRegExs, initialNegativeRegExs, null, yesLabels);
-		try {
-			System.out.println(cvScore.getEvaluation());
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		
-		//initialPositiveRegExs = initialize();
-		
-		//createFrequencyMap();
-		
-		/*removeMostFrequent();
-		
-		cvScore = testClassifier(snippetsAll, initialPositiveRegExs, null, yesLabels);
-		try {
-			System.out.println(cvScore.getEvaluation());
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		
-		initialPositiveRegExs = initialize();*/
-		
-		//createFrequencyMap();
-		
-		/*removeLeastFrequent();
-		
-		cvScore = testClassifier(snippetsAll, initialPositiveRegExs, null, yesLabels);
-		try {
-			System.out.println(cvScore.getEvaluation());
-		} catch (IOException e) {
-			e.printStackTrace();
-		}*/
-		
-		/*Map<String, Integer> snippetPosFreq = createFrequencyMapList(convertSnippetToRegEx(snippetsYes));
-		Map<String, Integer> snippetNegFreq = createFrequencyMapList(convertSnippetToRegEx(snippetsNo));
-		storeSortedWordsTofiles(snippetPosFreq, snippetNegFreq);*/
-	}
-	
-	private void storeSortedWordsTofiles(Map<String, Integer> snippetPosFreq, Map<String, Integer> snippetNegFreq) throws IOException{
-		List<Entry<String, Integer>> sortedPosList = new ArrayList<Map.Entry<String,Integer>>();
-		sortedPosList.addAll(snippetPosFreq.entrySet());
-		List<Entry<String, Integer>> sortednegList = new ArrayList<Map.Entry<String,Integer>>();
-		sortednegList.addAll(snippetNegFreq.entrySet());
-		List<Entry<String, Integer>> sortedLabeledSegment = new ArrayList<Map.Entry<String,Integer>>();
-		sortedLabeledSegment.addAll(wordFreqMap.entrySet());
-		Comparator<Entry<String, Integer>> comp = new Comparator<Map.Entry<String,Integer>>() {
-
-			@Override
-			public int compare(Entry<String, Integer> o1,
-					Entry<String, Integer> o2) {
-				if (o1.getValue() < o2.getValue()) {
-					return 1;
-				} else if (o1.getValue() > o2.getValue()) {
-					return -1;
-				}
-				return 0;
-			}
-		};
-		Collections.sort(sortedPosList, comp);
-		Collections.sort(sortednegList, comp);
-		Collections.sort(sortedLabeledSegment, comp);
-		
-		File file = new File("frequency-caseinsensitive-word-snippets-positive.txt");
-		file.createNewFile();
-		BufferedWriter writer = new BufferedWriter(new FileWriter(file));
-		writer.newLine();
-		for (Entry<String, Integer> entry : sortedPosList) {
-			writer.newLine();
-			writer.write(entry.getKey());
-			writer.newLine();
-		}
-		writer.close();
-		
-		file = new File("frequency-caseinsensitive-word-snippets-negative.txt");
-		file.createNewFile();
-		writer = new BufferedWriter(new FileWriter(file));
-		writer.newLine();
-		for (Entry<String, Integer> entry : sortednegList) {
-			writer.newLine();
-			writer.write(entry.getKey());
-			writer.newLine();
-		}
-		writer.close();
-		
-		file = new File("frequency-caseinsensitive-word-labeledsegment-positive.txt");
-		file.createNewFile();
-		writer = new BufferedWriter(new FileWriter(file));
-		writer.newLine();
-		for (Entry<String, Integer> entry : sortedLabeledSegment) {
-			writer.newLine();
-			writer.write(entry.getKey());
-			writer.newLine();
-		}
-		writer.close();
+		System.out.println(cvScore.getEvaluation());
 	}
 	
 	private List<RegEx> initialize(boolean positive) {
@@ -308,8 +131,8 @@ public class RegExCategorizer {
 		return initialRegExs;
 	}
 		
-	/*private void removeMostFrequent(){
-		Set<Entry<String, Integer>> entries = wordFreqMap.entrySet();
+	private void removeLeastFrequentPos(){
+		Set<Entry<String, Integer>> entries = wordFreqMapPos.entrySet();
 		List<Entry<String, Integer>> sortedEntryList = new ArrayList<Map.Entry<String,Integer>>(entries);
 		Collections.sort(sortedEntryList, new Comparator<Entry<String, Integer>>() {
 
@@ -325,74 +148,93 @@ public class RegExCategorizer {
 			}
 		});
 		int size = sortedEntryList.size();
-		if (mostfreqWordRemovalLevel > (size)) {
-			mostfreqWordRemovalLevel = size;
-		}
-		for (int i=1;i<=mostfreqWordRemovalLevel;i++) {
-			Entry<String, Integer> mostFreqEntry = sortedEntryList.get(size-i);
-			for (RegEx regEx : initialPositiveRegExs) {
-				int posScore = calculatePositiveScore(regEx);
-				int negScore = calculateNegativeScore(regEx);
-				String regExStr = regEx.getRegEx();
-				String replacedString = regExStr.replaceAll("(?i)"+mostFreqEntry.getKey(), "\\\\S+");
-				RegEx temp = new RegEx(replacedString);
-				int tempPosScore = calculatePositiveScore(temp);
-				int tempNegScore = calculateNegativeScore(temp);
-				//if (tempPosScore >= posScore && tempNegScore <= negScore) {
-					regEx.setRegEx(replacedString);
-				//}
-			}
-		}
-	}*/
-	
-	/*private void removeLeastFrequent(){
-		Set<Entry<String, Integer>> entries = wordFreqMap.entrySet();
-		List<Entry<String, Integer>> sortedEntryList = new ArrayList<Map.Entry<String,Integer>>(entries);
-		Collections.sort(sortedEntryList, new Comparator<Entry<String, Integer>>() {
-
-			@Override
-			public int compare(Entry<String, Integer> o1,
-					Entry<String, Integer> o2) {
-				if (o1.getValue() > o2.getValue()) {
-					return 1;
-				} else if (o1.getValue() < o2.getValue()) {
-					return -1;
-				}
-				return 0;
-			}
-		});
-		int size = sortedEntryList.size();
-		if (leastfreqWordRemovalLevel > (size)) {
+		//if (leastfreqWordRemovalLevel > (size)) {
 			leastfreqWordRemovalLevel = size;
-		}
+		//}
 		for (int i=0;i< leastfreqWordRemovalLevel;i++) {
 			Entry<String, Integer> leastFreqEntry = sortedEntryList.get(i);
 			for (RegEx regEx : initialPositiveRegExs) {
-				int posScore = calculatePositiveScore(regEx);
-				int negScore = calculateNegativeScore(regEx);
+				int posScore = calculatePositiveScore(regEx, true, false);
+				int negScore = calculateNegativeScore(regEx, true, false);
 				String regExStr = regEx.getRegEx();
-				String replacedString = regExStr.replaceAll("(?i)"+leastFreqEntry.getKey(), "\\\\S+");
+				String replacedString = regExStr.replaceAll("(?i)"+"\\\\}"+leastFreqEntry.getKey()+"\\\\", "}\\\\S+\\\\");
+				replacedString = regExStr.replaceAll("(?i)"+"\\\\+"+leastFreqEntry.getKey()+"\\\\", "+\\\\S+\\\\");
 				RegEx temp = new RegEx(replacedString);
-				int tempPosScore = calculatePositiveScore(temp);
-				int tempNegScore = calculateNegativeScore(temp);
-				//if (tempPosScore >= posScore && tempNegScore <= negScore) {
+				int tempPosScore = calculatePositiveScore(temp, true, false);
+				int tempNegScore = calculateNegativeScore(temp, true, false);
+				if (tempPosScore >= posScore && tempNegScore <= negScore) {
 					regEx.setRegEx(replacedString);
-				//}
+				}
 			}
 		}
-	}*/
+	}
 	
-	private void createFrequencyMap(){
+	private void removeLeastFrequentNeg(){
+		Set<Entry<String, Integer>> entries = wordFreqMapNeg.entrySet();
+		List<Entry<String, Integer>> sortedEntryList = new ArrayList<Map.Entry<String,Integer>>(entries);
+		Collections.sort(sortedEntryList, new Comparator<Entry<String, Integer>>() {
+
+			@Override
+			public int compare(Entry<String, Integer> o1,
+					Entry<String, Integer> o2) {
+				if (o1.getValue() > o2.getValue()) {
+					return 1;
+				} else if (o1.getValue() < o2.getValue()) {
+					return -1;
+				}
+				return 0;
+			}
+		});
+		int size = sortedEntryList.size();
+		//if (leastfreqWordRemovalLevel > (size)) {
+			leastfreqWordRemovalLevel = size;
+		//}
+		for (int i=0;i< leastfreqWordRemovalLevel;i++) {
+			Entry<String, Integer> leastFreqEntry = sortedEntryList.get(i);
+			for (RegEx regEx : initialNegativeRegExs) {
+				int posScore = calculatePositiveScore(regEx, false, false);
+				int negScore = calculateNegativeScore(regEx, false, false);
+				String regExStr = regEx.getRegEx();
+				String replacedString = regExStr.replaceAll("(?i)"+"\\\\}"+leastFreqEntry.getKey()+"\\\\", "}\\\\S+\\\\");
+				replacedString = regExStr.replaceAll("(?i)"+"\\\\+"+leastFreqEntry.getKey()+"\\\\", "+\\\\S+\\\\");
+				RegEx temp = new RegEx(replacedString);
+				int tempPosScore = calculatePositiveScore(temp, false, false);
+				int tempNegScore = calculateNegativeScore(temp, false, false);
+				if (tempPosScore <= posScore && tempNegScore >= negScore) {
+					regEx.setRegEx(replacedString);
+				}
+			}
+		}
+	}
+	
+	private void createFrequencyMapPos(){
 		for (RegEx regEx : initialPositiveRegExs) {
 			String[] regExStrArray = regEx.getRegEx().split("\\\\s\\{1,50\\}|\\\\p\\{Punct\\}|\\\\d\\+");
 			for (String word : regExStrArray) {
 				String lowerCase = word.toLowerCase();
-				if (!lowerCase.equals("")) {
-					if (wordFreqMap.containsKey(lowerCase)) {
-						int count = wordFreqMap.get(lowerCase);
-						wordFreqMap.put(lowerCase, ++count);
+				if (!lowerCase.equals("") && lowerCase.length() > 1) {
+					if (wordFreqMapPos.containsKey(lowerCase)) {
+						int count = wordFreqMapPos.get(lowerCase);
+						wordFreqMapPos.put(lowerCase, ++count);
 					} else {
-						wordFreqMap.put(lowerCase, 1);
+						wordFreqMapPos.put(lowerCase, 1);
+					}
+				}
+			}
+		}
+	}
+	
+	private void createFrequencyMapNeg(){
+		for (RegEx regEx : initialNegativeRegExs) {
+			String[] regExStrArray = regEx.getRegEx().split("\\\\s\\{1,50\\}|\\\\p\\{Punct\\}|\\\\d\\+");
+			for (String word : regExStrArray) {
+				String lowerCase = word.toLowerCase();
+				if (!lowerCase.equals("")  && lowerCase.length() > 1) {
+					if (wordFreqMapNeg.containsKey(lowerCase)) {
+						int count = wordFreqMapNeg.get(lowerCase);
+						wordFreqMapNeg.put(lowerCase, ++count);
+					} else {
+						wordFreqMapNeg.put(lowerCase, 1);
 					}
 				}
 			}

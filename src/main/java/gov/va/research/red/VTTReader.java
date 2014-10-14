@@ -106,7 +106,6 @@ public class VTTReader {
 				}
 			}
 		}
-
 		List<Snippet> snippets = new ArrayList<>();
 
 		for (Markup markup : vttDoc.GetMarkups().GetMarkups()) {
@@ -182,10 +181,11 @@ public class VTTReader {
 			}
 		}
 		
+		List<Snippet> snippets = new ArrayList<>();
 		Tags tags = vttDoc.GetTags();
 		for (Markup markup : vttDoc.GetMarkups().GetMarkups()) {
 			// Check if the markup is not a SnippetColumn
-			if (!"SnippetColumn".equalsIgnoreCase(markup.GetTagName()) && !tags.GetTagNames().contains(markup.GetTagName())) {
+			if (!"SnippetColumn".equalsIgnoreCase(markup.GetTagName()) && tags.GetTagNames().contains(markup.GetTagName())) {
 
 				// Get the labeled text boundaries
 				int labeledOffset = markup.GetOffset();
@@ -200,7 +200,7 @@ public class VTTReader {
 				} else if (!(p2s.getKey().start <= labeledOffset && p2s.getKey().end >= labeledEnd)) {
 					LOG.error("Label is not within snippet. Label position:" + labelPos + ", snippet position:" + p2s.getKey());
 				} else {
-					String labStr = docText.substring(labeledOffset, labeledEnd);
+					/*String labStr = docText.substring(labeledOffset, labeledEnd);
 					// Adjust the labeled string boundaries so that it does not have any whitespace prefix or suffix
 					while (Character.isWhitespace(labStr.charAt(0))) {
 						labeledOffset++;
@@ -220,6 +220,10 @@ public class VTTReader {
 						snippet.setLabeledSegments(labeledSegments);
 					}
 					labeledSegments.add(ls);
+					if (!snippets.contains(snippet)) {
+						snippets.add(snippet);
+					}*/
+					pos2snips.remove(p2s.getKey());
 				}
 			}
 		}

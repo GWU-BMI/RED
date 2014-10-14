@@ -46,6 +46,9 @@ public class CategorizerTester {
 		if (posScore > negScore) {
 			return true;
 		}
+		/*if (posScore == negScore && posScore > 0) {
+			return true;
+		}*/
 		return false;
 	}
 }

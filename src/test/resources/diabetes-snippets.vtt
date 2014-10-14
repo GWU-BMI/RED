@@ -14,6 +14,7 @@ FILE_SAVE|VTT.2010.0|VTT|10/14/14 12:48:20 PM
 FILE_SAVE|VTT.2010.0|VTT|10/14/14 1:27:34 PM
 FILE_SAVE|VTT.2010.0|VTT|10/14/14 1:30:42 PM
 FILE_SAVE|VTT.2010.0|VTT|10/14/14 1:32:17 PM
+FILE_SAVE|VTT.2010.0|VTT|10/14/14 4:02:07 PM
 #<---------------------------------------------------------------------->
 #<Text Content>
 #<---------------------------------------------------------------------->
@@ -7073,7 +7074,7 @@ SnippetColumn||false|false|false|false|0|0|0|255|255|255|Monospaced|+0
   86196|14|SnippetColumn  |               |snippetNumber="107"<::>columnNumber="2"<::>columnName="Document"|freport250.txt
   86224| 3|SnippetColumn  |               |snippetNumber="107"<::>columnNumber="3"<::>columnName="Snippet Num"|107
   86244|616|SnippetColumn  |               |snippetNumber="107"<::>columnNumber="4"<::>columnName="Snippet Text"|post replacement. 2. Right upper lobe lobectomy for lung cancer 19991.  She received Adriamycin  that is thought to be the cause of the heart failure. 3. Breast cancer with radiation mastectomy of the right breast. 4. TH/BSO. 5. Coronary artery disease 40% RCA, 67% distal RCA, and 50% LAD. 6. Diabetes. 7. Chronic renal diseases.  Baseline she has creatinine of 1.2.  She had  required intermittent hemodialysis with severe illness in the past. CURRENT MEDICATIONS: 1. Inamrinone 200. 2. Aspirin. 3. Bumex. 4. Calcium. 5. Coreg. 6. Celexa 10 q. day (started 3 days ago). 7. Colace 100. 8. Dopamine. 9. Milrinone. 10
-  86538| 8|Yes            |               ||Diabetes
+  86538| 8|Uncertain      |               ||Diabetes
   86957| 3|SnippetColumn  |               |snippetNumber="108"<::>columnNumber="1"<::>columnName="PatientICN"|108
   86971|14|SnippetColumn  |               |snippetNumber="108"<::>columnNumber="2"<::>columnName="Document"|freport251.txt
   86999| 3|SnippetColumn  |               |snippetNumber="108"<::>columnNumber="3"<::>columnName="Snippet Num"|108
@@ -7128,7 +7129,7 @@ SnippetColumn||false|false|false|false|0|0|0|255|255|255|Monospaced|+0
   95120|14|SnippetColumn  |               |snippetNumber="118"<::>columnNumber="2"<::>columnName="Document"|freport281.txt
   95148| 3|SnippetColumn  |               |snippetNumber="118"<::>columnNumber="3"<::>columnName="Snippet Num"|118
   95168|663|SnippetColumn  |               |snippetNumber="118"<::>columnNumber="4"<::>columnName="Snippet Text"|1. Coronary artery bypass graft, times five, in 1990 and times three in 1999. 2. HeartMate II LVAD placed in **DATE[Oct] of 2006.   3. He had a stroke with residual word-finding and memory difficulties in 1999.    4. Chronic renal insufficiency. 5. Gout. 6. Atrial fibrillation. 7. Hypothyroidism. 8. Type 2 diabetes. 9. Hyperlipidemia. FAMILY HISTORY: Mother died of rheumatic heart disease. ALLERGIES: NO DRUG ALLERGIES. SOCIAL HISTORY: Retired insurance salesman.  He is married and lives with his wife. REVIEW OF SYSTEMS: Negative, except for those already mentioned in the "HPI." MEDICATIONS: Medications on the chart have been reviewed.   He is currently on
-  95469|15|Yes            |               ||Type 2 diabetes
+  95469|15|Uncertain      |               ||Type 2 diabetes
   95928| 3|SnippetColumn  |               |snippetNumber="119"<::>columnNumber="1"<::>columnName="PatientICN"|119
   95942|14|SnippetColumn  |               |snippetNumber="119"<::>columnNumber="2"<::>columnName="Document"|freport288.txt
   95970| 3|SnippetColumn  |               |snippetNumber="119"<::>columnNumber="3"<::>columnName="Snippet Num"|119
