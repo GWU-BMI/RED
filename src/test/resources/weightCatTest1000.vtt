@@ -14,6 +14,9 @@ FILE_SAVE|VTT.2010.0|VTT|4/8/14 3:38:09 PM
 FILE_SAVE|VTT.2010.0|VTT|4/10/14 12:18:47 AM
 FILE_SAVE|VTT.2010.0|VTT|4/11/14 5:56:03 PM
 FILE_SAVE|VTT.2010.0|VTT|10/17/14 1:52:57 PM
+FILE_SAVE|VTT.2010.0|VTT|10/17/14 2:20:59 PM
+FILE_SAVE|VTT.2010.0|VTT|10/17/14 2:28:40 PM
+FILE_SAVE|VTT.2010.0|VTT|10/17/14 3:06:36 PM
 #<---------------------------------------------------------------------->
 #<Text Content>
 #<---------------------------------------------------------------------->
@@ -11307,6 +11310,7 @@ uncertain||false|false|false|true|0|0|0|255|204|102|Monospaced|+0
    2058| 1|SnippetColumn  |               |snippetNumber="7"<::>columnNumber="2"<::>columnName="empty1"|1
    2068| 1|SnippetColumn  |               |snippetNumber="7"<::>columnNumber="3"<::>columnName="empty2"|1
    2085|263|SnippetColumn  |               |snippetNumber="7"<::>columnNumber="4"<::>columnName="SnippetText"|any new or increased  shortness of breath, new onset of chest pain, lightheadedness, dizziness,  paining ankles, swelling abdominal bloating, or weight gain.  MEDICATIONS AT TIME OF DISCHARGE: 1. Lidex topically twice a day. 2. Lasix 40 mg daily. 3. Loratadine 10
+   2085|156|yes            |               ||any new or increased  shortness of breath, new onset of chest pain, lightheadedness, dizziness,  paining ankles, swelling abdominal bloating, or weight gain
    2443|17|SnippetColumn  |               |snippetNumber="8"<::>columnNumber="1"<::>columnName="filename"|freport101431.txt
    2469| 1|SnippetColumn  |               |snippetNumber="8"<::>columnNumber="2"<::>columnName="empty1"|1
    2479| 1|SnippetColumn  |               |snippetNumber="8"<::>columnNumber="3"<::>columnName="empty2"|1
@@ -11327,6 +11331,7 @@ uncertain||false|false|false|true|0|0|0|255|204|102|Monospaced|+0
    3824| 1|SnippetColumn  |               |snippetNumber="12"<::>columnNumber="2"<::>columnName="empty1"|1
    3834| 1|SnippetColumn  |               |snippetNumber="12"<::>columnNumber="3"<::>columnName="empty2"|1
    3851|268|SnippetColumn  |               |snippetNumber="12"<::>columnNumber="4"<::>columnName="SnippetText"|appointment   Instructions Please refrain from smoking Continue incentive spirometry treatments 4 times a day for 10 repetitions Weigh daily; record weight Use Aspirin ONLY AS DIRECTED by Doctor Wash incisions with a mild soap and water. Do not use lotions, creams, or
+   3878|128|yes            |               ||Please refrain from smoking Continue incentive spirometry treatments 4 times a day for 10 repetitions Weigh daily; record weight
    4214|16|SnippetColumn  |               |snippetNumber="13"<::>columnNumber="1"<::>columnName="filename"|freport99864.txt
    4239| 1|SnippetColumn  |               |snippetNumber="13"<::>columnNumber="2"<::>columnName="empty1"|1
    4249| 1|SnippetColumn  |               |snippetNumber="13"<::>columnNumber="3"<::>columnName="empty2"|1
@@ -11335,6 +11340,7 @@ uncertain||false|false|false|true|0|0|0|255|204|102|Monospaced|+0
    4602| 1|SnippetColumn  |               |snippetNumber="14"<::>columnNumber="2"<::>columnName="empty1"|1
    4612| 1|SnippetColumn  |               |snippetNumber="14"<::>columnNumber="3"<::>columnName="empty2"|1
    4629|285|SnippetColumn  |               |snippetNumber="14"<::>columnNumber="4"<::>columnName="SnippetText"|or diarrhea.  GU:  No  dysuria, frequency, or hematuria.  He did have hematospermia one week ago,  however.  General/Constitutional:  No change in weight.  He is sleeping well  with his CPAP mask.  Cardiovascular:  He denies any exertional chest pain.   He denies any recent neurologic
+   4738|44|yes            |               ||General/Constitutional:  No change in weight
    5009|17|SnippetColumn  |               |snippetNumber="15"<::>columnNumber="1"<::>columnName="filename"|freport100545.txt
    5035| 1|SnippetColumn  |               |snippetNumber="15"<::>columnNumber="2"<::>columnName="empty1"|1
    5045| 1|SnippetColumn  |               |snippetNumber="15"<::>columnNumber="3"<::>columnName="empty2"|1
@@ -11355,6 +11361,7 @@ uncertain||false|false|false|true|0|0|0|255|204|102|Monospaced|+0
    6302| 1|SnippetColumn  |               |snippetNumber="19"<::>columnNumber="2"<::>columnName="empty1"|1
    6312| 1|SnippetColumn  |               |snippetNumber="19"<::>columnNumber="3"<::>columnName="empty2"|1
    6329|243|SnippetColumn  |               |snippetNumber="19"<::>columnNumber="4"<::>columnName="SnippetText"|for two to three years with his primary  care physician.  Over the last few months, he experienced a 13 pound weight  loss.  This was accompanied by anorexia and fever.  Subsequently, he was  diagnosed to have a urinary tract infection.  He is
+   6387|64|yes            |               ||Over the last few months, he experienced a 13 pound weight  loss
    6667|16|SnippetColumn  |               |snippetNumber="20"<::>columnNumber="1"<::>columnName="filename"|freport99601.txt
    6692| 1|SnippetColumn  |               |snippetNumber="20"<::>columnNumber="2"<::>columnName="empty1"|1
    6702| 1|SnippetColumn  |               |snippetNumber="20"<::>columnNumber="3"<::>columnName="empty2"|1
@@ -11363,6 +11370,7 @@ uncertain||false|false|false|true|0|0|0|255|204|102|Monospaced|+0
    6958| 1|SnippetColumn  |               |snippetNumber="21"<::>columnNumber="2"<::>columnName="empty1"|1
    6968| 1|SnippetColumn  |               |snippetNumber="21"<::>columnNumber="3"<::>columnName="empty2"|1
    6985|267|SnippetColumn  |               |snippetNumber="21"<::>columnNumber="4"<::>columnName="SnippetText"|with analgesia.  Request Gastroenterology consult for further  evaluation. 2.  Fecal impaction.  We will continue with tap water enemas. 3.  Recent weight gain.  The patient is not any florid heart failure.  We  will continue with the p.o. diuretics and also rule out
+   7126|18|uncertain      |               ||Recent weight gain
    7347|17|SnippetColumn  |               |snippetNumber="22"<::>columnNumber="1"<::>columnName="filename"|freport100629.txt
    7373| 1|SnippetColumn  |               |snippetNumber="22"<::>columnNumber="2"<::>columnName="empty1"|1
    7383| 1|SnippetColumn  |               |snippetNumber="22"<::>columnNumber="3"<::>columnName="empty2"|1
@@ -11375,6 +11383,7 @@ uncertain||false|false|false|true|0|0|0|255|204|102|Monospaced|+0
    7991| 1|SnippetColumn  |               |snippetNumber="24"<::>columnNumber="2"<::>columnName="empty1"|1
    8001| 1|SnippetColumn  |               |snippetNumber="24"<::>columnNumber="3"<::>columnName="empty2"|1
    8018|252|SnippetColumn  |               |snippetNumber="24"<::>columnNumber="4"<::>columnName="SnippetText"|He denies doing any heavy lifting, pulling, or pushing.  No GI and no GU  complaints.  No diaphoresis.  No change in weight or fever.  No change in  appetite.  Review of systems is unremarkable.  PAST MEDICAL HISTORY:  Not significant for any asthma or
+   8122|28|yes            |               ||No change in weight or fever
    8365|16|SnippetColumn  |               |snippetNumber="25"<::>columnNumber="1"<::>columnName="filename"|freport99610.txt
    8390| 1|SnippetColumn  |               |snippetNumber="25"<::>columnNumber="2"<::>columnName="empty1"|1
    8400| 1|SnippetColumn  |               |snippetNumber="25"<::>columnNumber="3"<::>columnName="empty2"|1
@@ -11388,6 +11397,7 @@ uncertain||false|false|false|true|0|0|0|255|204|102|Monospaced|+0
    9056| 1|SnippetColumn  |               |snippetNumber="27"<::>columnNumber="2"<::>columnName="empty1"|1
    9066| 1|SnippetColumn  |               |snippetNumber="27"<::>columnNumber="3"<::>columnName="empty2"|1
    9083|276|SnippetColumn  |               |snippetNumber="27"<::>columnNumber="4"<::>columnName="SnippetText"|known.  SOCIAL HISTORY:  Denies smoking, alcohol, or any drug use.  REVIEW OF SYSTEMS:  CONSTITUTIONAL:  Positive for fever and chills.  No  weight change. ENT:  Mild nasal congestion and a mild sore throat. CHEST/RESPIRATORY:  No shortness of breath, no chest pain.  Mild dry
+   9151|86|yes            |               ||REVIEW OF SYSTEMS:  CONSTITUTIONAL:  Positive for fever and chills.  No  weight change
    9454|17|SnippetColumn  |               |snippetNumber="28"<::>columnNumber="1"<::>columnName="filename"|freport100189.txt
    9480| 1|SnippetColumn  |               |snippetNumber="28"<::>columnNumber="2"<::>columnName="empty1"|1
    9490| 1|SnippetColumn  |               |snippetNumber="28"<::>columnNumber="3"<::>columnName="empty2"|1
@@ -11420,6 +11430,7 @@ uncertain||false|false|false|true|0|0|0|255|204|102|Monospaced|+0
   12036| 1|SnippetColumn  |               |snippetNumber="35"<::>columnNumber="2"<::>columnName="empty1"|1
   12046| 1|SnippetColumn  |               |snippetNumber="35"<::>columnNumber="3"<::>columnName="empty2"|1
   12063|294|SnippetColumn  |               |snippetNumber="35"<::>columnNumber="4"<::>columnName="SnippetText"|DATE[Sep 21]th.  He has worsening  right upper quadrant pain radiating to his back.  He is progressively  jaundiced and has lost weight.  During this hospitalization it was determined  he had recurrent pancreatic carcinoma with efferent limb syndrome causing  obstructive jaundice and recurrent
+  12148|50|yes            |               ||He is progressively  jaundiced and has lost weight
   12452|17|SnippetColumn  |               |snippetNumber="36"<::>columnNumber="1"<::>columnName="filename"|freport100913.txt
   12478| 1|SnippetColumn  |               |snippetNumber="36"<::>columnNumber="2"<::>columnName="empty1"|1
   12488| 1|SnippetColumn  |               |snippetNumber="36"<::>columnNumber="3"<::>columnName="empty2"|1
@@ -11441,6 +11452,7 @@ uncertain||false|false|false|true|0|0|0|255|204|102|Monospaced|+0
   14023| 1|SnippetColumn  |               |snippetNumber="40"<::>columnNumber="2"<::>columnName="empty1"|1
   14033| 1|SnippetColumn  |               |snippetNumber="40"<::>columnNumber="3"<::>columnName="empty2"|1
   14050|279|SnippetColumn  |               |snippetNumber="40"<::>columnNumber="4"<::>columnName="SnippetText"|incision site If any signs or symptoms of infection are noted regarding the surgical incisions please call your Cardiothoracic Surgeon Weight gain 3lbs/day or 5lbs/wk Unusual rashes Nausea or vomiting Fever associated with chills Temperature elevation greater than 101 F. degrees
+  14162|55|no             |               ||Cardiothoracic Surgeon Weight gain 3lbs/day or 5lbs/wk 
   14424|16|SnippetColumn  |               |snippetNumber="41"<::>columnNumber="1"<::>columnName="filename"|freport99408.txt
   14449| 1|SnippetColumn  |               |snippetNumber="41"<::>columnNumber="2"<::>columnName="empty1"|1
   14459| 1|SnippetColumn  |               |snippetNumber="41"<::>columnNumber="3"<::>columnName="empty2"|1
@@ -11473,6 +11485,7 @@ uncertain||false|false|false|true|0|0|0|255|204|102|Monospaced|+0
   16706| 1|SnippetColumn  |               |snippetNumber="48"<::>columnNumber="2"<::>columnName="empty1"|1
   16716| 1|SnippetColumn  |               |snippetNumber="48"<::>columnNumber="3"<::>columnName="empty2"|1
   16733|342|SnippetColumn  |               |snippetNumber="48"<::>columnNumber="4"<::>columnName="SnippetText"|risk for  elective surgery.  Proceed with surgery to treat tibia fracture.  Use  hydrochlorothiazide postoperatively for hypertension control.  Use low  molecular weight heparin postoperatively for DVT prevention.    Thank you for the consultation.  We will follow along with you as requested.   ___________________________________ **NAME[WWW
+  16762|183|no             |               ||Proceed with surgery to treat tibia fracture.  Use  hydrochlorothiazide postoperatively for hypertension control.  Use low  molecular weight heparin postoperatively for DVT prevention
   17170|17|SnippetColumn  |               |snippetNumber="49"<::>columnNumber="1"<::>columnName="filename"|freport100587.txt
   17196| 1|SnippetColumn  |               |snippetNumber="49"<::>columnNumber="2"<::>columnName="empty1"|1
   17206| 1|SnippetColumn  |               |snippetNumber="49"<::>columnNumber="3"<::>columnName="empty2"|1
@@ -11485,6 +11498,7 @@ uncertain||false|false|false|true|0|0|0|255|204|102|Monospaced|+0
   17859| 1|SnippetColumn  |               |snippetNumber="51"<::>columnNumber="2"<::>columnName="empty1"|1
   17869| 1|SnippetColumn  |               |snippetNumber="51"<::>columnNumber="3"<::>columnName="empty2"|1
   17886|262|SnippetColumn  |               |snippetNumber="51"<::>columnNumber="4"<::>columnName="SnippetText"|history  of gastric bypass and possible MRSA exposure.  She has been doing well and  appears to be at a static weight.  Onset of symptoms of 5 days.  Intermittent  chills, uncertain fever.  Urinating frequency, urgency, stinging, and  burning, but no blood.  She
+  17943|60|yes            |               ||he has been doing well and  appears to be at a static weight
   18243|16|SnippetColumn  |               |snippetNumber="52"<::>columnNumber="1"<::>columnName="filename"|freport99179.txt
   18268| 1|SnippetColumn  |               |snippetNumber="52"<::>columnNumber="2"<::>columnName="empty1"|1
   18278| 1|SnippetColumn  |               |snippetNumber="52"<::>columnNumber="3"<::>columnName="empty2"|1
@@ -11622,6 +11636,7 @@ uncertain||false|false|false|true|0|0|0|255|204|102|Monospaced|+0
   29349| 1|SnippetColumn  |               |snippetNumber="84"<::>columnNumber="2"<::>columnName="empty1"|1
   29359| 1|SnippetColumn  |               |snippetNumber="84"<::>columnNumber="3"<::>columnName="empty2"|1
   29376|323|SnippetColumn  |               |snippetNumber="84"<::>columnNumber="4"<::>columnName="SnippetText"|forgetfulness, dysarthria, neuropathy, weakness, or head injuries. PSYCHIATRIC: Patient denies insomnia, memory loss, loss of appetite, thoughts of suicide, anxiety, weight gain, frequent crying, or hallucinations. ENDOCRINE: Patient denies night sweats, fever, chills, increased thirst or thyroid nodule. MEN ONLY: Patient
+  29443|147|yes            |               ||PSYCHIATRIC: Patient denies insomnia, memory loss, loss of appetite, thoughts of suicide, anxiety, weight gain, frequent crying, or hallucinations.
   29794|17|SnippetColumn  |               |snippetNumber="85"<::>columnNumber="1"<::>columnName="filename"|freport101058.txt
   29820| 1|SnippetColumn  |               |snippetNumber="85"<::>columnNumber="2"<::>columnName="empty1"|1
   29830| 1|SnippetColumn  |               |snippetNumber="85"<::>columnNumber="3"<::>columnName="empty2"|1
@@ -11638,14 +11653,17 @@ uncertain||false|false|false|true|0|0|0|255|204|102|Monospaced|+0
   30863| 1|SnippetColumn  |               |snippetNumber="88"<::>columnNumber="2"<::>columnName="empty1"|1
   30873| 1|SnippetColumn  |               |snippetNumber="88"<::>columnNumber="3"<::>columnName="empty2"|1
   30890|219|SnippetColumn  |               |snippetNumber="88"<::>columnNumber="4"<::>columnName="SnippetText"|home, she was running  and suddenly twisted her right ankle and started having pain.  She is not  able to bear weight, and she is using crutches.  REVIEW OF SYSTEMS:  She fell, but she did not get hurt in any other part
+  30896|138|yes            |               ||she was running  and suddenly twisted her right ankle and started having pain.  She is not  able to bear weight, and she is using crutches
   31204|16|SnippetColumn  |               |snippetNumber="89"<::>columnNumber="1"<::>columnName="filename"|freport37919.txt
   31229| 1|SnippetColumn  |               |snippetNumber="89"<::>columnNumber="2"<::>columnName="empty1"|1
   31239| 1|SnippetColumn  |               |snippetNumber="89"<::>columnNumber="3"<::>columnName="empty2"|1
   31256|275|SnippetColumn  |               |snippetNumber="89"<::>columnNumber="4"<::>columnName="SnippetText"|dizziness.  Denies any nausea  or vomiting, diarrhea or constipation.  Denies any fever or chills.  Denies  any new rashes.  Denies any weight loss, eye problems, lung problems, or any  joint pain.  Patient denies any anemia.  Otherwise the review of systems is  unremarkable
+  31381|22|yes            |               ||Denies any weight loss
   31626|16|SnippetColumn  |               |snippetNumber="90"<::>columnNumber="1"<::>columnName="filename"|freport75601.txt
   31651| 1|SnippetColumn  |               |snippetNumber="90"<::>columnNumber="2"<::>columnName="empty1"|1
   31661| 1|SnippetColumn  |               |snippetNumber="90"<::>columnNumber="3"<::>columnName="empty2"|1
   31678|223|SnippetColumn  |               |snippetNumber="90"<::>columnNumber="4"<::>columnName="SnippetText"|HCG level, and it has been negative, so the patient is not pregnant, and I  will continue her on the weight-based heparin until her INR is therapeutic  between 2.0 and 3.0 and may be overlapped with a therapeutic INR for 12
+  31678|171|no             |               ||HCG level, and it has been negative, so the patient is not pregnant, and I  will continue her on the weight-based heparin until her INR is therapeutic  between 2.0 and 3.0
   31996|17|SnippetColumn  |               |snippetNumber="91"<::>columnNumber="1"<::>columnName="filename"|freport101406.txt
   32022| 1|SnippetColumn  |               |snippetNumber="91"<::>columnNumber="2"<::>columnName="empty1"|1
   32032| 1|SnippetColumn  |               |snippetNumber="91"<::>columnNumber="3"<::>columnName="empty2"|1
@@ -11654,6 +11672,7 @@ uncertain||false|false|false|true|0|0|0|255|204|102|Monospaced|+0
   32331| 1|SnippetColumn  |               |snippetNumber="92"<::>columnNumber="2"<::>columnName="empty1"|1
   32341| 1|SnippetColumn  |               |snippetNumber="92"<::>columnNumber="3"<::>columnName="empty2"|1
   32358|246|SnippetColumn  |               |snippetNumber="92"<::>columnNumber="4"<::>columnName="SnippetText"|has not vomitted much. The compazine was given on an as needed basis but was helping. Her daughter reports 10-12lb weight loss over the last yr. She denies any dyspnea. She denies any bony pain. - - - - - Past Medical History: Condition 1: Recent
+  32444|57|yes            |               ||Her daughter reports 10-12lb weight loss over the last yr
   32699|16|SnippetColumn  |               |snippetNumber="93"<::>columnNumber="1"<::>columnName="filename"|freport99201.txt
   32724| 1|SnippetColumn  |               |snippetNumber="93"<::>columnNumber="2"<::>columnName="empty1"|1
   32734| 1|SnippetColumn  |               |snippetNumber="93"<::>columnNumber="3"<::>columnName="empty2"|1
@@ -11678,6 +11697,7 @@ uncertain||false|false|false|true|0|0|0|255|204|102|Monospaced|+0
   34466| 1|SnippetColumn  |               |snippetNumber="98"<::>columnNumber="2"<::>columnName="empty1"|1
   34476| 1|SnippetColumn  |               |snippetNumber="98"<::>columnNumber="3"<::>columnName="empty2"|1
   34493|306|SnippetColumn  |               |snippetNumber="98"<::>columnNumber="4"<::>columnName="SnippetText"|HISTORY:  Denied.  SOCIAL HISTORY:  No smoking or drinking.  REVIEW OF SYSTEMS:  No headache, dizziness, nausea, vomiting, diarrhea, or  constipation.  No weight loss.  Otherwise review of systems is unremarkable.  PHYSICAL EXAM:  GENERAL:  The patient is awake, alert.  No visible distress.    VITAL SIGNS
+  34554|105|yes            |               ||REVIEW OF SYSTEMS:  No headache, dizziness, nausea, vomiting, diarrhea, or  constipation.  No weight loss
   34894|17|SnippetColumn  |               |snippetNumber="99"<::>columnNumber="1"<::>columnName="filename"|freport100884.txt
   34920| 1|SnippetColumn  |               |snippetNumber="99"<::>columnNumber="2"<::>columnName="empty1"|1
   34930| 1|SnippetColumn  |               |snippetNumber="99"<::>columnNumber="3"<::>columnName="empty2"|1
@@ -11784,6 +11804,7 @@ uncertain||false|false|false|true|0|0|0|255|204|102|Monospaced|+0
   43841| 1|SnippetColumn  |               |snippetNumber="124"<::>columnNumber="2"<::>columnName="empty1"|1
   43851| 1|SnippetColumn  |               |snippetNumber="124"<::>columnNumber="3"<::>columnName="empty2"|1
   43868|291|SnippetColumn  |               |snippetNumber="124"<::>columnNumber="4"<::>columnName="SnippetText"|dysphagia, choking, heart burn,  chest pain, abdominal pain, diarrhea or constipation, dysuria, hesitancy, or  urgency.  Denies any fall, skin rash.  Weight stable.  Sometimes she feels  her right leg is swollen since her surgery.  All other systems review is  negative. PHYSICAL EXAMINATION
+  44018|13|yes            |               ||Weight stable
   44254|15|SnippetColumn  |               |snippetNumber="125"<::>columnNumber="1"<::>columnName="filename"|freport7667.txt
   44278| 1|SnippetColumn  |               |snippetNumber="125"<::>columnNumber="2"<::>columnName="empty1"|1
   44288| 1|SnippetColumn  |               |snippetNumber="125"<::>columnNumber="3"<::>columnName="empty2"|1
@@ -11805,6 +11826,7 @@ uncertain||false|false|false|true|0|0|0|255|204|102|Monospaced|+0
   45726| 1|SnippetColumn  |               |snippetNumber="129"<::>columnNumber="2"<::>columnName="empty1"|1
   45736| 1|SnippetColumn  |               |snippetNumber="129"<::>columnNumber="3"<::>columnName="empty2"|1
   45753|136|SnippetColumn  |               |snippetNumber="129"<::>columnNumber="4"<::>columnName="SnippetText"|loss or weight gain.  She  does get occasional headaches.  She denies any dyspnea on exertion or chest  pain with exertion.  She is able
+  45753|19|uncertain      |               ||loss or weight gain
   45984|17|SnippetColumn  |               |snippetNumber="130"<::>columnNumber="1"<::>columnName="filename"|freport100040.txt
   46010| 1|SnippetColumn  |               |snippetNumber="130"<::>columnNumber="2"<::>columnName="empty1"|1
   46020| 1|SnippetColumn  |               |snippetNumber="130"<::>columnNumber="3"<::>columnName="empty2"|1
@@ -11866,6 +11888,7 @@ uncertain||false|false|false|true|0|0|0|255|204|102|Monospaced|+0
   50774| 1|SnippetColumn  |               |snippetNumber="144"<::>columnNumber="2"<::>columnName="empty1"|1
   50784| 1|SnippetColumn  |               |snippetNumber="144"<::>columnNumber="3"<::>columnName="empty2"|1
   50801|268|SnippetColumn  |               |snippetNumber="144"<::>columnNumber="4"<::>columnName="SnippetText"|80s.  History of thyroid cancer and stroke.  REVIEW OF SYSTEMS:  General:  The patient denies any recent illness, fever,  fatigue, or weight loss.  Skin:  Denies any rashes or lesions.  HEENT:  The  patient wears reading glasses.  He denies any other visual or hearing
+  50846|100|yes            |               ||REVIEW OF SYSTEMS:  General:  The patient denies any recent illness, fever,  fatigue, or weight loss
   51164|16|SnippetColumn  |               |snippetNumber="145"<::>columnNumber="1"<::>columnName="filename"|freport99923.txt
   51189| 1|SnippetColumn  |               |snippetNumber="145"<::>columnNumber="2"<::>columnName="empty1"|1
   51199| 1|SnippetColumn  |               |snippetNumber="145"<::>columnNumber="3"<::>columnName="empty2"|1
@@ -11899,6 +11922,7 @@ uncertain||false|false|false|true|0|0|0|255|204|102|Monospaced|+0
   53672| 1|SnippetColumn  |               |snippetNumber="152"<::>columnNumber="2"<::>columnName="empty1"|1
   53682| 1|SnippetColumn  |               |snippetNumber="152"<::>columnNumber="3"<::>columnName="empty2"|1
   53699|253|SnippetColumn  |               |snippetNumber="152"<::>columnNumber="4"<::>columnName="SnippetText"|10. Actos. 11. Glipizide. 12. Folic acid. 13. Topamax. 14. CPAP at night.   REVIEW OF SYSTEMS:  Negative for anorexia or weight loss.  She is denying  history specific for chest pain or palpitations.  She is denying night  sweats, fevers, or chills.  No
+  53775|56|yes            |               ||REVIEW OF SYSTEMS:  Negative for anorexia or weight loss
   54047|17|SnippetColumn  |               |snippetNumber="153"<::>columnNumber="1"<::>columnName="filename"|freport100860.txt
   54073| 1|SnippetColumn  |               |snippetNumber="153"<::>columnNumber="2"<::>columnName="empty1"|1
   54083| 1|SnippetColumn  |               |snippetNumber="153"<::>columnNumber="3"<::>columnName="empty2"|1
@@ -11907,6 +11931,7 @@ uncertain||false|false|false|true|0|0|0|255|204|102|Monospaced|+0
   54466| 1|SnippetColumn  |               |snippetNumber="154"<::>columnNumber="2"<::>columnName="empty1"|1
   54476| 1|SnippetColumn  |               |snippetNumber="154"<::>columnNumber="3"<::>columnName="empty2"|1
   54493|276|SnippetColumn  |               |snippetNumber="154"<::>columnNumber="4"<::>columnName="SnippetText"|tetanus and all other immunizations are up to date.    REVIEW OF SYSTEMS:  As in HPI.  The patient denies fever or weight changes.   Denies double or blurred vision.  Denies ear pain, tinnitus, loss of balance,  epistaxis, rhinorrhea, throat pain, difficulty swallowing, chest
+  54580|42|yes            |               ||The patient denies fever or weight changes
   54864|16|SnippetColumn  |               |snippetNumber="155"<::>columnNumber="1"<::>columnName="filename"|freport99784.txt
   54889| 1|SnippetColumn  |               |snippetNumber="155"<::>columnNumber="2"<::>columnName="empty1"|1
   54899| 1|SnippetColumn  |               |snippetNumber="155"<::>columnNumber="3"<::>columnName="empty2"|1
@@ -11963,6 +11988,7 @@ uncertain||false|false|false|true|0|0|0|255|204|102|Monospaced|+0
   59040| 1|SnippetColumn  |               |snippetNumber="167"<::>columnNumber="2"<::>columnName="empty1"|1
   59050| 1|SnippetColumn  |               |snippetNumber="167"<::>columnNumber="3"<::>columnName="empty2"|1
   59067|226|SnippetColumn  |               |snippetNumber="167"<::>columnNumber="4"<::>columnName="SnippetText"|feeling well for several weeks with some  abdominal discomfort, back pain, nausea, some sweats and a 5 to 10 pound  weight loss as well as anorexia.  She was seen at an outside hospital and it  was noted that her liver enzymes
+  59166|48|yes            |               ||a 5 to 10 pound  weight loss as well as anorexia
   59388|16|SnippetColumn  |               |snippetNumber="168"<::>columnNumber="1"<::>columnName="filename"|freport30009.txt
   59413| 1|SnippetColumn  |               |snippetNumber="168"<::>columnNumber="2"<::>columnName="empty1"|1
   59423| 1|SnippetColumn  |               |snippetNumber="168"<::>columnNumber="3"<::>columnName="empty2"|1
@@ -11983,14 +12009,17 @@ uncertain||false|false|false|true|0|0|0|255|204|102|Monospaced|+0
   60776| 1|SnippetColumn  |               |snippetNumber="172"<::>columnNumber="2"<::>columnName="empty1"|1
   60786| 1|SnippetColumn  |               |snippetNumber="172"<::>columnNumber="3"<::>columnName="empty2"|1
   60803|235|SnippetColumn  |               |snippetNumber="172"<::>columnNumber="4"<::>columnName="SnippetText"|to her niece, about four months ago,  things started to change with regard to her health.  She began losing some  weight.  She would sit and look at food, vomiting solids but not liquids.   She could continue to drink liquids.  She was
+  60894|29|yes            |               ||She began losing some  weight
   61133|16|SnippetColumn  |               |snippetNumber="173"<::>columnNumber="1"<::>columnName="filename"|freport40568.txt
   61158| 1|SnippetColumn  |               |snippetNumber="173"<::>columnNumber="2"<::>columnName="empty1"|1
   61168| 1|SnippetColumn  |               |snippetNumber="173"<::>columnNumber="3"<::>columnName="empty2"|1
   61185|245|SnippetColumn  |               |snippetNumber="173"<::>columnNumber="4"<::>columnName="SnippetText"|FAMILY HISTORY:  She does not have any family history of sudden cardiac  death.      REVIEW OF SYSTEMS:  She denies fevers, chills, weight loss, and pain.  She  actually said her device site has healed very well.  She was expecting to see  me in
+  61270|58|yes            |               ||REVIEW OF SYSTEMS:  She denies fevers, chills, weight loss
   61525|16|SnippetColumn  |               |snippetNumber="174"<::>columnNumber="1"<::>columnName="filename"|freport63890.txt
   61550| 1|SnippetColumn  |               |snippetNumber="174"<::>columnNumber="2"<::>columnName="empty1"|1
   61560| 1|SnippetColumn  |               |snippetNumber="174"<::>columnNumber="3"<::>columnName="empty2"|1
   61577|276|SnippetColumn  |               |snippetNumber="174"<::>columnNumber="4"<::>columnName="SnippetText"|tablets by mouth t.i.d. with meals. 5. Multivitamin. 6. Zinc.   REVIEW OF SYSTEMS: General - the patient complains of weakness.  No weight loss.  Cardiac - no  chest pain, palpitations, orthopnea or PND.  Pulmonary - the patient has some  shortness of breath and some wheezing
+  61660|60|yes            |               ||General - the patient complains of weakness.  No weight loss
   61948|16|SnippetColumn  |               |snippetNumber="175"<::>columnNumber="1"<::>columnName="filename"|freport98949.txt
   61973| 1|SnippetColumn  |               |snippetNumber="175"<::>columnNumber="2"<::>columnName="empty1"|1
   61983| 1|SnippetColumn  |               |snippetNumber="175"<::>columnNumber="3"<::>columnName="empty2"|1
@@ -12024,6 +12053,7 @@ uncertain||false|false|false|true|0|0|0|255|204|102|Monospaced|+0
   64299| 1|SnippetColumn  |               |snippetNumber="182"<::>columnNumber="2"<::>columnName="empty1"|1
   64309| 1|SnippetColumn  |               |snippetNumber="182"<::>columnNumber="3"<::>columnName="empty2"|1
   64326|253|SnippetColumn  |               |snippetNumber="182"<::>columnNumber="4"<::>columnName="SnippetText"|for  multiple air fluid level on the right side, and also possible bronchopleural  fistula.   REVIEW OF SYSTEMS:  The patient denies weight loss or anorexia.  She denies  fever or chills.  She has right-sided back pain and also pain under the right  arm
+  64420|62|yes            |               ||REVIEW OF SYSTEMS:  The patient denies weight loss or anorexia
   64674|17|SnippetColumn  |               |snippetNumber="183"<::>columnNumber="1"<::>columnName="filename"|freport101659.txt
   64700| 1|SnippetColumn  |               |snippetNumber="183"<::>columnNumber="2"<::>columnName="empty1"|1
   64710| 1|SnippetColumn  |               |snippetNumber="183"<::>columnNumber="3"<::>columnName="empty2"|1
@@ -12036,6 +12066,7 @@ uncertain||false|false|false|true|0|0|0|255|204|102|Monospaced|+0
   65433| 1|SnippetColumn  |               |snippetNumber="185"<::>columnNumber="2"<::>columnName="empty1"|1
   65443| 1|SnippetColumn  |               |snippetNumber="185"<::>columnNumber="3"<::>columnName="empty2"|1
   65460|313|SnippetColumn  |               |snippetNumber="185"<::>columnNumber="4"<::>columnName="SnippetText"|NEOSPORIN, AND LATEX.   MEDICATIONS:  Currently include metformin, Actos, omeprazole, lisinopril,  glyburide, and ibuprofen.    REVIEW OF SYSTEMS:  Negative for anorexia or weight loss.  She is denying  history specific for exercise dyspnea, orthopnea, or PND.  She denies history  specific for prior histories of
+  65588|56|yes            |               ||REVIEW OF SYSTEMS:  Negative for anorexia or weight loss
   65868|16|SnippetColumn  |               |snippetNumber="186"<::>columnNumber="1"<::>columnName="filename"|freport99151.txt
   65893| 1|SnippetColumn  |               |snippetNumber="186"<::>columnNumber="2"<::>columnName="empty1"|1
   65903| 1|SnippetColumn  |               |snippetNumber="186"<::>columnNumber="3"<::>columnName="empty2"|1
@@ -12048,10 +12079,12 @@ uncertain||false|false|false|true|0|0|0|255|204|102|Monospaced|+0
   66467| 1|SnippetColumn  |               |snippetNumber="188"<::>columnNumber="2"<::>columnName="empty1"|1
   66477| 1|SnippetColumn  |               |snippetNumber="188"<::>columnNumber="3"<::>columnName="empty2"|1
   66494|251|SnippetColumn  |               |snippetNumber="188"<::>columnNumber="4"<::>columnName="SnippetText"|heart rate in the ED was 56.  No associated nausea or vomiting.    REVIEW OF SYSTEMS:  Unremarkable.  No change in her weight, appetite,  sleeping pattern.  Her legs have bene progressively getting more weak to get  up stairs and down stairs, but this
+  66561|58|yes            |               ||REVIEW OF SYSTEMS:  Unremarkable.  No change in her weight
   66840|16|SnippetColumn  |               |snippetNumber="189"<::>columnNumber="1"<::>columnName="filename"|freport83248.txt
   66865| 1|SnippetColumn  |               |snippetNumber="189"<::>columnNumber="2"<::>columnName="empty1"|1
   66875| 1|SnippetColumn  |               |snippetNumber="189"<::>columnNumber="3"<::>columnName="empty2"|1
   66892|203|SnippetColumn  |               |snippetNumber="189"<::>columnNumber="4"<::>columnName="SnippetText"|in at this time with  worsening back and leg pain, stating that she was unable to walk, and put any  weight at all on her right leg.  She reports that the pain is sharp, it is  starting on the right side
+  66892|131|no             |               ||in at this time with  worsening back and leg pain, stating that she was unable to walk, and put any  weight at all on her right leg
   67190|15|SnippetColumn  |               |snippetNumber="190"<::>columnNumber="1"<::>columnName="filename"|freport8292.txt
   67214| 1|SnippetColumn  |               |snippetNumber="190"<::>columnNumber="2"<::>columnName="empty1"|1
   67224| 1|SnippetColumn  |               |snippetNumber="190"<::>columnNumber="3"<::>columnName="empty2"|1
@@ -12077,6 +12110,7 @@ uncertain||false|false|false|true|0|0|0|255|204|102|Monospaced|+0
   69186| 1|SnippetColumn  |               |snippetNumber="195"<::>columnNumber="2"<::>columnName="empty1"|1
   69196| 1|SnippetColumn  |               |snippetNumber="195"<::>columnNumber="3"<::>columnName="empty2"|1
   69213|300|SnippetColumn  |               |snippetNumber="195"<::>columnNumber="4"<::>columnName="SnippetText"|patient denies smoking, alcohol, or any drug use.  FAMILY HISTORY:  Noncontributory.   REVIEW OF SYSTEMS:  CONSTITUTIONAL:  No fever or chills.  No weight change. ENT:  No nasal congestion.  No sore throat. CHEST/RESPIRATORY:  No chest pain.  No shortness of breath.   GENITOURINARY:  No frequency or
+  69300|74|yes            |               ||REVIEW OF SYSTEMS:  CONSTITUTIONAL:  No fever or chills.  No weight change
   69608|16|SnippetColumn  |               |snippetNumber="196"<::>columnNumber="1"<::>columnName="filename"|freport98867.txt
   69633| 1|SnippetColumn  |               |snippetNumber="196"<::>columnNumber="2"<::>columnName="empty1"|1
   69643| 1|SnippetColumn  |               |snippetNumber="196"<::>columnNumber="3"<::>columnName="empty2"|1
@@ -12089,6 +12123,7 @@ uncertain||false|false|false|true|0|0|0|255|204|102|Monospaced|+0
   70247| 1|SnippetColumn  |               |snippetNumber="198"<::>columnNumber="2"<::>columnName="empty1"|1
   70257| 1|SnippetColumn  |               |snippetNumber="198"<::>columnNumber="3"<::>columnName="empty2"|1
   70274|160|SnippetColumn  |               |snippetNumber="198"<::>columnNumber="4"<::>columnName="SnippetText"|has been at his dry weight.  His renal function would suggest   that at this point he is relatively volume depleted with increased, prerenal  azotemia.  In view
+  70274|26|uncertain      |               ||has been at his dry weight
   70529|17|SnippetColumn  |               |snippetNumber="199"<::>columnNumber="1"<::>columnName="filename"|freport100576.txt
   70555| 1|SnippetColumn  |               |snippetNumber="199"<::>columnNumber="2"<::>columnName="empty1"|1
   70565| 1|SnippetColumn  |               |snippetNumber="199"<::>columnNumber="3"<::>columnName="empty2"|1
@@ -12097,6 +12132,7 @@ uncertain||false|false|false|true|0|0|0|255|204|102|Monospaced|+0
   70909| 1|SnippetColumn  |               |snippetNumber="200"<::>columnNumber="2"<::>columnName="empty1"|1
   70919| 1|SnippetColumn  |               |snippetNumber="200"<::>columnNumber="3"<::>columnName="empty2"|1
   70936|247|SnippetColumn  |               |snippetNumber="200"<::>columnNumber="4"<::>columnName="SnippetText"|passes urine frequently as he is on  diuretics, but no change in color or dysuria.  No increase in appetite.  No  weight loss.  Has never had his eyes checked by an ophthalmologist.    PAST MEDICAL HISTORY:  Significant for diabetes for the past 5
+  71020|41|yes            |               ||No increase in appetite.  No  weight loss
   71278|17|SnippetColumn  |               |snippetNumber="201"<::>columnNumber="1"<::>columnName="filename"|freport101688.txt
   71304| 1|SnippetColumn  |               |snippetNumber="201"<::>columnNumber="2"<::>columnName="empty1"|1
   71314| 1|SnippetColumn  |               |snippetNumber="201"<::>columnNumber="3"<::>columnName="empty2"|1
@@ -12105,6 +12141,7 @@ uncertain||false|false|false|true|0|0|0|255|204|102|Monospaced|+0
   71725| 1|SnippetColumn  |               |snippetNumber="202"<::>columnNumber="2"<::>columnName="empty1"|1
   71735| 1|SnippetColumn  |               |snippetNumber="202"<::>columnNumber="3"<::>columnName="empty2"|1
   71752|244|SnippetColumn  |               |snippetNumber="202"<::>columnNumber="4"<::>columnName="SnippetText"|me  personally.  The patient's history is that of previous left-sided hemiparesis  forcing him to walk with a cane primarily bearing weight with his right hand  on the cane.  He has had 2 weeks of increasing right shoulder pain that  included a
+  71769|155|no             |               ||The patient's history is that of previous left-sided hemiparesis  forcing him to walk with a cane primarily bearing weight with his right hand  on the cane
   72091|16|SnippetColumn  |               |snippetNumber="203"<::>columnNumber="1"<::>columnName="filename"|freport99735.txt
   72116| 1|SnippetColumn  |               |snippetNumber="203"<::>columnNumber="2"<::>columnName="empty1"|1
   72126| 1|SnippetColumn  |               |snippetNumber="203"<::>columnNumber="3"<::>columnName="empty2"|1
@@ -12143,10 +12180,12 @@ uncertain||false|false|false|true|0|0|0|255|204|102|Monospaced|+0
   75073| 1|SnippetColumn  |               |snippetNumber="211"<::>columnNumber="2"<::>columnName="empty1"|1
   75083| 1|SnippetColumn  |               |snippetNumber="211"<::>columnNumber="3"<::>columnName="empty2"|1
   75100|263|SnippetColumn  |               |snippetNumber="211"<::>columnNumber="4"<::>columnName="SnippetText"|following were  noted:  New increased shortness of breath, new onset of chest pain,  lightheadedness, dizziness, fainting, ankle swelling, abdominal bloating,  weight gain of 2 pounds in 24 hours or 4 pounds in a week or less.  Pneumonia  vaccine dated 1999.  Flu
+  75260|65|yes            |               ||weight gain of 2 pounds in 24 hours or 4 pounds in a week or less
   75458|16|SnippetColumn  |               |snippetNumber="212"<::>columnNumber="1"<::>columnName="filename"|freport55437.txt
   75483| 1|SnippetColumn  |               |snippetNumber="212"<::>columnNumber="2"<::>columnName="empty1"|1
   75493| 1|SnippetColumn  |               |snippetNumber="212"<::>columnNumber="3"<::>columnName="empty2"|1
   75510|260|SnippetColumn  |               |snippetNumber="212"<::>columnNumber="4"<::>columnName="SnippetText"|is a nonsmoker for the last 10 years.  Denies alcohol use.   REVIEW OF SYSTEMS:  Negative for mood changes, anorexia, or weight loss.  She  is denying history specific for exercise dyspnea, orthopnea, or PND.  Denies  history of chest pain or palpitations.  No
+  75571|71|yes            |               ||REVIEW OF SYSTEMS:  Negative for mood changes, anorexia, or weight loss
   75865|16|SnippetColumn  |               |snippetNumber="213"<::>columnNumber="1"<::>columnName="filename"|freport98861.txt
   75890| 1|SnippetColumn  |               |snippetNumber="213"<::>columnNumber="2"<::>columnName="empty1"|1
   75900| 1|SnippetColumn  |               |snippetNumber="213"<::>columnNumber="3"<::>columnName="empty2"|1
@@ -12167,6 +12206,7 @@ uncertain||false|false|false|true|0|0|0|255|204|102|Monospaced|+0
   77164| 1|SnippetColumn  |               |snippetNumber="217"<::>columnNumber="2"<::>columnName="empty1"|1
   77174| 1|SnippetColumn  |               |snippetNumber="217"<::>columnNumber="3"<::>columnName="empty2"|1
   77191|247|SnippetColumn  |               |snippetNumber="217"<::>columnNumber="4"<::>columnName="SnippetText"|day and 2 stool softeners, Colace q. a.m.  She is on pain  medication chronically.  Her appetite is down and her weight has decreased 18  pounds since **DATE[Jan] of 2006.  Her last bladder surgery was in **DATE[Jan]. REVIEW OF SYSTEMS:  Review of
+  77274|87|yes            |               || Her appetite is down and her weight has decreased 18  pounds since **DATE[Jan] of 2006
   77533|17|SnippetColumn  |               |snippetNumber="218"<::>columnNumber="1"<::>columnName="filename"|freport101285.txt
   77559| 1|SnippetColumn  |               |snippetNumber="218"<::>columnNumber="2"<::>columnName="empty1"|1
   77569| 1|SnippetColumn  |               |snippetNumber="218"<::>columnNumber="3"<::>columnName="empty2"|1
@@ -12223,6 +12263,7 @@ uncertain||false|false|false|true|0|0|0|255|204|102|Monospaced|+0
   82041| 1|SnippetColumn  |               |snippetNumber="231"<::>columnNumber="2"<::>columnName="empty1"|1
   82051| 1|SnippetColumn  |               |snippetNumber="231"<::>columnNumber="3"<::>columnName="empty2"|1
   82068|238|SnippetColumn  |               |snippetNumber="231"<::>columnNumber="4"<::>columnName="SnippetText"|He has had no cough,  fevers, or chills, and has not been producing sputum.  REVIEW OF SYSTEMS:  The patient lost weight last year when he had a  suprapubic catheter changed, which was discontinued thereafter.  He has not  lost any recent
+  82145|131|yes            |               ||REVIEW OF SYSTEMS:  The patient lost weight last year when he had a  suprapubic catheter changed, which was discontinued thereafter
   82401|17|SnippetColumn  |               |snippetNumber="232"<::>columnNumber="1"<::>columnName="filename"|freport100356.txt
   82427| 1|SnippetColumn  |               |snippetNumber="232"<::>columnNumber="2"<::>columnName="empty1"|1
   82437| 1|SnippetColumn  |               |snippetNumber="232"<::>columnNumber="3"<::>columnName="empty2"|1
@@ -12256,6 +12297,7 @@ uncertain||false|false|false|true|0|0|0|255|204|102|Monospaced|+0
   84865| 1|SnippetColumn  |               |snippetNumber="239"<::>columnNumber="2"<::>columnName="empty1"|1
   84875| 1|SnippetColumn  |               |snippetNumber="239"<::>columnNumber="3"<::>columnName="empty2"|1
   84892|296|SnippetColumn  |               |snippetNumber="239"<::>columnNumber="4"<::>columnName="SnippetText"|or hemoptysis, hematemesis, or  bloody stool, dysuria, or frequency.  She denies chest pain or shortness of  breath, lateralized weakness, or weight gain or loss.  Other systems are  negative.    PHYSICAL EXAMINATION: VITAL SIGNS:  Normal.  The patient is afebrile. GENERAL:  She appears somewhat
+  84962|91|yes            |               ||She denies chest pain or shortness of  breath, lateralized weakness, or weight gain or loss
   85283|16|SnippetColumn  |               |snippetNumber="240"<::>columnNumber="1"<::>columnName="filename"|freport99892.txt
   85308| 1|SnippetColumn  |               |snippetNumber="240"<::>columnNumber="2"<::>columnName="empty1"|1
   85318| 1|SnippetColumn  |               |snippetNumber="240"<::>columnNumber="3"<::>columnName="empty2"|1
@@ -12276,6 +12318,7 @@ uncertain||false|false|false|true|0|0|0|255|204|102|Monospaced|+0
   86568| 1|SnippetColumn  |               |snippetNumber="244"<::>columnNumber="2"<::>columnName="empty1"|1
   86578| 1|SnippetColumn  |               |snippetNumber="244"<::>columnNumber="3"<::>columnName="empty2"|1
   86595|303|SnippetColumn  |               |snippetNumber="244"<::>columnNumber="4"<::>columnName="SnippetText"|alcohol, or any drug use.    FAMILY HISTORY:  Noncontributory.   REVIEW OF SYSTEMS:  CONSTITUTIONAL:  Unsure of any fever.  Some positive  chills.  No weight change. ENT:  No nasal congestion.  No sore throat.  CHEST/RESPIRATORY:  No chest pain.  No shortness of breath.  No cough. GASTROINTESTINAL:  No
+  86660|99|yes            |               ||REVIEW OF SYSTEMS:  CONSTITUTIONAL:  Unsure of any fever.  Some positive  chills.  No weight change
   86993|17|SnippetColumn  |               |snippetNumber="245"<::>columnNumber="1"<::>columnName="filename"|freport100250.txt
   87019| 1|SnippetColumn  |               |snippetNumber="245"<::>columnNumber="2"<::>columnName="empty1"|1
   87029| 1|SnippetColumn  |               |snippetNumber="245"<::>columnNumber="3"<::>columnName="empty2"|1
@@ -12296,10 +12339,12 @@ uncertain||false|false|false|true|0|0|0|255|204|102|Monospaced|+0
   88346| 1|SnippetColumn  |               |snippetNumber="249"<::>columnNumber="2"<::>columnName="empty1"|1
   88356| 1|SnippetColumn  |               |snippetNumber="249"<::>columnNumber="3"<::>columnName="empty2"|1
   88373|243|SnippetColumn  |               |snippetNumber="249"<::>columnNumber="4"<::>columnName="SnippetText"|not many medical problems at all in her family.   REVIEW OF SYSTEMS:  At this point again she has no recent weight loss  reported by her.  No complaints of any headaches.  HEENT:  Otherwise no  complaints.  Heart:  She has no complaints of any
+  88423|86|yes            |               ||REVIEW OF SYSTEMS:  At this point again she has no recent weight loss  reported by her
   88711|16|SnippetColumn  |               |snippetNumber="250"<::>columnNumber="1"<::>columnName="filename"|freport95224.txt
   88736| 1|SnippetColumn  |               |snippetNumber="250"<::>columnNumber="2"<::>columnName="empty1"|1
   88746| 1|SnippetColumn  |               |snippetNumber="250"<::>columnNumber="3"<::>columnName="empty2"|1
   88763|242|SnippetColumn  |               |snippetNumber="250"<::>columnNumber="4"<::>columnName="SnippetText"|the patient nor her daughter report a history of recent fevers,  chills, or night sweats.  There has been a severe weight loss.  There is no  history of chest pain, shortness of breath, cough, or hemoptysis.  There is  no history of abdominal
+  88854|35|yes            |               ||There has been a severe weight loss
   89100|16|SnippetColumn  |               |snippetNumber="251"<::>columnNumber="1"<::>columnName="filename"|freport99277.txt
   89125| 1|SnippetColumn  |               |snippetNumber="251"<::>columnNumber="2"<::>columnName="empty1"|1
   89135| 1|SnippetColumn  |               |snippetNumber="251"<::>columnNumber="3"<::>columnName="empty2"|1
@@ -12308,6 +12353,7 @@ uncertain||false|false|false|true|0|0|0|255|204|102|Monospaced|+0
   89433| 1|SnippetColumn  |               |snippetNumber="252"<::>columnNumber="2"<::>columnName="empty1"|1
   89443| 1|SnippetColumn  |               |snippetNumber="252"<::>columnNumber="3"<::>columnName="empty2"|1
   89460|281|SnippetColumn  |               |snippetNumber="252"<::>columnNumber="4"<::>columnName="SnippetText"|the patient to follow up with PCP.  She can take  Benadryl over the counter as directed for her age and weight.    CLINICAL IMPRESSION:  Viral exanthem.   ______________________________ **NAME[WWW VVV XXX], CRNP  HS Job # 578334 / 35282 /  # **ID-NUM D: **DATE[Jan 08 2008] 16:35 T
+  89496|74|no             |               ||She can take  Benadryl over the counter as directed for her age and weight
   89836|17|SnippetColumn  |               |snippetNumber="253"<::>columnNumber="1"<::>columnName="filename"|freport100100.txt
   89862| 1|SnippetColumn  |               |snippetNumber="253"<::>columnNumber="2"<::>columnName="empty1"|1
   89872| 1|SnippetColumn  |               |snippetNumber="253"<::>columnNumber="3"<::>columnName="empty2"|1
@@ -12333,10 +12379,12 @@ uncertain||false|false|false|true|0|0|0|255|204|102|Monospaced|+0
   91545| 1|SnippetColumn  |               |snippetNumber="258"<::>columnNumber="2"<::>columnName="empty1"|1
   91555| 1|SnippetColumn  |               |snippetNumber="258"<::>columnNumber="3"<::>columnName="empty2"|1
   91572|237|SnippetColumn  |               |snippetNumber="258"<::>columnNumber="4"<::>columnName="SnippetText"|75 mg twice a day if SBP>130. 3.  No warfarin. 4.  Continued fluid removal with HD.  Would lower her dry weight target to remove extra fluid given her history of elevated wedge pressure.  Will continue to follow with you.  **NAME[WWW XXX
+  91657|100|uncertain      |               ||Would lower her dry weight target to remove extra fluid given her history of elevated wedge pressure
   91904|15|SnippetColumn  |               |snippetNumber="259"<::>columnNumber="1"<::>columnName="filename"|freport1106.txt
   91928| 1|SnippetColumn  |               |snippetNumber="259"<::>columnNumber="2"<::>columnName="empty1"|1
   91938| 1|SnippetColumn  |               |snippetNumber="259"<::>columnNumber="3"<::>columnName="empty2"|1
   91955|251|SnippetColumn  |               |snippetNumber="259"<::>columnNumber="4"<::>columnName="SnippetText"|gotten worse because the patient is  overweight.  The patient is being discharged from the ED with crutches to take the weight  off knee along with recommendations to take ibuprofen as needed.  The patient  was also given a prescription of Percocet to
+  91955|47|yes            |               ||gotten worse because the patient is  overweight
   92301|16|SnippetColumn  |               |snippetNumber="260"<::>columnNumber="1"<::>columnName="filename"|freport99241.txt
   92326| 1|SnippetColumn  |               |snippetNumber="260"<::>columnNumber="2"<::>columnName="empty1"|1
   92336| 1|SnippetColumn  |               |snippetNumber="260"<::>columnNumber="3"<::>columnName="empty2"|1
@@ -12361,6 +12409,7 @@ uncertain||false|false|false|true|0|0|0|255|204|102|Monospaced|+0
   94086| 1|SnippetColumn  |               |snippetNumber="265"<::>columnNumber="2"<::>columnName="empty1"|1
   94096| 1|SnippetColumn  |               |snippetNumber="265"<::>columnNumber="3"<::>columnName="empty2"|1
   94113|234|SnippetColumn  |               |snippetNumber="265"<::>columnNumber="4"<::>columnName="SnippetText"|is an **AGE[in 80s]-year-old man who has had two months of periumbilical  abdominal pain with radiation to the back and weight loss.  Over the last two  weeks he has developed icterus.  His PCP did a CT which showed a pancreatic  mass
+  94113|131|yes            |               ||is an **AGE[in 80s]-year-old man who has had two months of periumbilical  abdominal pain with radiation to the back and weight loss
   94442|16|SnippetColumn  |               |snippetNumber="266"<::>columnNumber="1"<::>columnName="filename"|freport58655.txt
   94467| 1|SnippetColumn  |               |snippetNumber="266"<::>columnNumber="2"<::>columnName="empty1"|1
   94477| 1|SnippetColumn  |               |snippetNumber="266"<::>columnNumber="3"<::>columnName="empty2"|1
@@ -12382,6 +12431,7 @@ uncertain||false|false|false|true|0|0|0|255|204|102|Monospaced|+0
   95812| 1|SnippetColumn  |               |snippetNumber="270"<::>columnNumber="2"<::>columnName="empty1"|1
   95822| 1|SnippetColumn  |               |snippetNumber="270"<::>columnNumber="3"<::>columnName="empty2"|1
   95839|282|SnippetColumn  |               |snippetNumber="270"<::>columnNumber="4"<::>columnName="SnippetText"|Family history is noncontributory. ALLERGIES: THE IS ALLERGIC TO IV DYE AND IODINE.  REVIEW OF SYSTEMS:   CONSTITUTIONAL:  No fevers, chills, weight loss, or fatigue. HEENT:  No recent falls or head trauma.  No headache.  No visual changes. CARDIOVASCULAR:  No chest pain, shortness
+  95945|47|yes            |               ||CONSTITUTIONAL:  No fevers, chills, weight loss
   96216|16|SnippetColumn  |               |snippetNumber="271"<::>columnNumber="1"<::>columnName="filename"|freport99721.txt
   96241| 1|SnippetColumn  |               |snippetNumber="271"<::>columnNumber="2"<::>columnName="empty1"|1
   96251| 1|SnippetColumn  |               |snippetNumber="271"<::>columnNumber="3"<::>columnName="empty2"|1
@@ -12402,10 +12452,12 @@ uncertain||false|false|false|true|0|0|0|255|204|102|Monospaced|+0
   97562| 1|SnippetColumn  |               |snippetNumber="275"<::>columnNumber="2"<::>columnName="empty1"|1
   97572| 1|SnippetColumn  |               |snippetNumber="275"<::>columnNumber="3"<::>columnName="empty2"|1
   97589|183|SnippetColumn  |               |snippetNumber="275"<::>columnNumber="4"<::>columnName="SnippetText"|which is significantly  underweight for  height.  She and her husband report a recent 10-pound weight  gain, although our records do not concur.  Our records report a significant  20%
+  97639|57|yes            |               ||She and her husband report a recent 10-pound weight  gain
   97867|16|SnippetColumn  |               |snippetNumber="276"<::>columnNumber="1"<::>columnName="filename"|freport37389.txt
   97892| 1|SnippetColumn  |               |snippetNumber="276"<::>columnNumber="2"<::>columnName="empty1"|1
   97902| 1|SnippetColumn  |               |snippetNumber="276"<::>columnNumber="3"<::>columnName="empty2"|1
   97919|228|SnippetColumn  |               |snippetNumber="276"<::>columnNumber="4"<::>columnName="SnippetText"|was normal.  She  has had nausea and vomiting for the last 20 days without letup, but she has  lost no weight.  Her bowel movements have been less frequent, maybe every  third day instead of every day, and this has changed since
+  97930|98|yes            |               ||  She  has had nausea and vomiting for the last 20 days without letup, but she has  lost no weight
   98242|16|SnippetColumn  |               |snippetNumber="277"<::>columnNumber="1"<::>columnName="filename"|freport24213.txt
   98267| 1|SnippetColumn  |               |snippetNumber="277"<::>columnNumber="2"<::>columnName="empty1"|1
   98277| 1|SnippetColumn  |               |snippetNumber="277"<::>columnNumber="3"<::>columnName="empty2"|1
@@ -12423,6 +12475,7 @@ uncertain||false|false|false|true|0|0|0|255|204|102|Monospaced|+0
   99354| 1|SnippetColumn  |               |snippetNumber="280"<::>columnNumber="2"<::>columnName="empty1"|1
   99364| 1|SnippetColumn  |               |snippetNumber="280"<::>columnNumber="3"<::>columnName="empty2"|1
   99381|262|SnippetColumn  |               |snippetNumber="280"<::>columnNumber="4"<::>columnName="SnippetText"|or chills.  No chest pain, no shortness of breath.  Really no  abdominal pain.  Nausea as described above as well as weight loss described  above. PHYSICAL EXAMINATION:  Temperature is 39.1.  Respirations are 95.  Her pulse  is 100.  Her blood pressure is 132/78
+  99498|28|uncertain      |               ||weight loss described  above
   99738|17|SnippetColumn  |               |snippetNumber="281"<::>columnNumber="1"<::>columnName="filename"|freport101505.txt
   99764| 1|SnippetColumn  |               |snippetNumber="281"<::>columnNumber="2"<::>columnName="empty1"|1
   99774| 1|SnippetColumn  |               |snippetNumber="281"<::>columnNumber="3"<::>columnName="empty2"|1
@@ -12435,6 +12488,7 @@ uncertain||false|false|false|true|0|0|0|255|204|102|Monospaced|+0
  100528| 1|SnippetColumn  |               |snippetNumber="283"<::>columnNumber="2"<::>columnName="empty1"|1
  100538| 1|SnippetColumn  |               |snippetNumber="283"<::>columnNumber="3"<::>columnName="empty2"|1
  100555|284|SnippetColumn  |               |snippetNumber="283"<::>columnNumber="4"<::>columnName="SnippetText"|vomiting and he is tolerating  clears. No chest pain or shortness of breath.    REVIEW OF SYSTEMS: No recent fevers, chills, weight changes, or night sweats. Cardiovascular -  no chest pain, shortness of breath, orthopnea, PND, or lower extremity  swelling. Respiratory - no shortness
+ 100635|59|yes            |               ||REVIEW OF SYSTEMS: No recent fevers, chills, weight changes
  100934|16|SnippetColumn  |               |snippetNumber="284"<::>columnNumber="1"<::>columnName="filename"|freport99583.txt
  100959| 1|SnippetColumn  |               |snippetNumber="284"<::>columnNumber="2"<::>columnName="empty1"|1
  100969| 1|SnippetColumn  |               |snippetNumber="284"<::>columnNumber="3"<::>columnName="empty2"|1
@@ -12480,6 +12534,7 @@ uncertain||false|false|false|true|0|0|0|255|204|102|Monospaced|+0
  104485| 1|SnippetColumn  |               |snippetNumber="294"<::>columnNumber="2"<::>columnName="empty1"|1
  104495| 1|SnippetColumn  |               |snippetNumber="294"<::>columnNumber="3"<::>columnName="empty2"|1
  104512|254|SnippetColumn  |               |snippetNumber="294"<::>columnNumber="4"<::>columnName="SnippetText"|paroxysmal nocturnal dyspnea.  She does have a history of  congestive heart failure and she had noticed a decrease in her weight since  her Lasix was increased to b.i.d.  No chest pain or palpitations.  REVIEW OF SYSTEMS:  The patient denied any headache
+ 104543|103|yes            |               ||She does have a history of  congestive heart failure and she had noticed a decrease in her weight since
  104861|17|SnippetColumn  |               |snippetNumber="295"<::>columnNumber="1"<::>columnName="filename"|freport100089.txt
  104887| 1|SnippetColumn  |               |snippetNumber="295"<::>columnNumber="2"<::>columnName="empty1"|1
  104897| 1|SnippetColumn  |               |snippetNumber="295"<::>columnNumber="3"<::>columnName="empty2"|1
@@ -12488,10 +12543,12 @@ uncertain||false|false|false|true|0|0|0|255|204|102|Monospaced|+0
  105195| 1|SnippetColumn  |               |snippetNumber="296"<::>columnNumber="2"<::>columnName="empty1"|1
  105205| 1|SnippetColumn  |               |snippetNumber="296"<::>columnNumber="3"<::>columnName="empty2"|1
  105222|265|SnippetColumn  |               |snippetNumber="296"<::>columnNumber="4"<::>columnName="SnippetText"|AGE[in 60s]-year-old female, who presented to her local emergency department  on **DATE[Mar 31] with abdominal pain, nausea, vomiting, anorexia, and weight loss.   She had also noticed darkening of her urine and jaundiced sclerae, and she  was at time found to have
+ 105222|160|yes            |               ||AGE[in 60s]-year-old female, who presented to her local emergency department  on **DATE[Mar 31] with abdominal pain, nausea, vomiting, anorexia, and weight loss
  105582|16|SnippetColumn  |               |snippetNumber="297"<::>columnNumber="1"<::>columnName="filename"|freport72010.txt
  105607| 1|SnippetColumn  |               |snippetNumber="297"<::>columnNumber="2"<::>columnName="empty1"|1
  105617| 1|SnippetColumn  |               |snippetNumber="297"<::>columnNumber="3"<::>columnName="empty2"|1
  105634|139|SnippetColumn  |               |snippetNumber="297"<::>columnNumber="4"<::>columnName="SnippetText"|to walk.   He was at dialysis yesterday.  He had four and a half liters taken off.  He  decreased his dry weight one kilogram below his dry
+ 105718|55|uncertain      |               ||He  decreased his dry weight one kilogram below his dry
  105868|17|SnippetColumn  |               |snippetNumber="298"<::>columnNumber="1"<::>columnName="filename"|freport100596.txt
  105894| 1|SnippetColumn  |               |snippetNumber="298"<::>columnNumber="2"<::>columnName="empty1"|1
  105904| 1|SnippetColumn  |               |snippetNumber="298"<::>columnNumber="3"<::>columnName="empty2"|1
@@ -12525,16 +12582,17 @@ uncertain||false|false|false|true|0|0|0|255|204|102|Monospaced|+0
  108264| 1|SnippetColumn  |               |snippetNumber="305"<::>columnNumber="2"<::>columnName="empty1"|1
  108274| 1|SnippetColumn  |               |snippetNumber="305"<::>columnNumber="3"<::>columnName="empty2"|1
  108291|313|SnippetColumn  |               |snippetNumber="305"<::>columnNumber="4"<::>columnName="SnippetText"|has mild headache that has started  with these symptoms.  She denies any dizziness. CONSTITUTIONAL:  The patient is unsure about her weight. RESPIRATORY:  No shortness of breath.  Please see HPI. CARDIOVASCULAR:  No palpitation.  See HPI. GASTROINTESTINAL/GENITOURINARY:  She has epigastric abdominal pain that is
+ 108375|55|yes            |               ||CONSTITUTIONAL:  The patient is unsure about her weight
  108699|16|SnippetColumn  |               |snippetNumber="306"<::>columnNumber="1"<::>columnName="filename"|freport14754.txt
  108724| 1|SnippetColumn  |               |snippetNumber="306"<::>columnNumber="2"<::>columnName="empty1"|1
  108734| 1|SnippetColumn  |               |snippetNumber="306"<::>columnNumber="3"<::>columnName="empty2"|1
  108751|309|SnippetColumn  |               |snippetNumber="306"<::>columnNumber="4"<::>columnName="SnippetText"|and bladder negative. NEUROLOGIC:  Nonfocal. MUSCULOSKELETAL:  Moves arms and legs well.  Grip strength is equal and she  is able to weight bear and ambulate suggesting against long bone or  weightbearing fracture.  PSYCHIATRIC:  Alert and oriented, rather anxious. HEMATOLOGIC/LYMPHATIC:  No adenopathy. SKIN
+ 108796|168|no             |               ||MUSCULOSKELETAL:  Moves arms and legs well.  Grip strength is equal and she  is able to weight bear and ambulate suggesting against long bone or  weightbearing fracture
  109155|16|SnippetColumn  |               |snippetNumber="307"<::>columnNumber="1"<::>columnName="filename"|freport31445.txt
  109180| 1|SnippetColumn  |               |snippetNumber="307"<::>columnNumber="2"<::>columnName="empty1"|1
  109190| 1|SnippetColumn  |               |snippetNumber="307"<::>columnNumber="3"<::>columnName="empty2"|1
  109207|261|SnippetColumn  |               |snippetNumber="307"<::>columnNumber="4"<::>columnName="SnippetText"|Blood pressure 147/49, pulse 90,  respirations 18, temperature 95.8 degrees Fahrenheit, SAO2 of 98% on 2 L O2  nasal cannula, weight 75.9 kg, height 157.5 cm, and BMI of 30.6.  General  Appearance:  This is a comfortable-appearing African American female who is
  109333|14|yes            |               ||weight 75.9 kg
- 109563|17|yes            |               |snippetNumber="308"<::>columnNumber="1"<::>columnName="filename"|freport100205.txt
  109589| 1|SnippetColumn  |               |snippetNumber="308"<::>columnNumber="2"<::>columnName="empty1"|1
  109599| 1|SnippetColumn  |               |snippetNumber="308"<::>columnNumber="3"<::>columnName="empty2"|1
  109616|119|SnippetColumn  |               |snippetNumber="308"<::>columnNumber="4"<::>columnName="SnippetText"|T: 37.1 BP:122/56 P: 88 RR: 18 SaO2: 99 FiO2:  5 Ht:      Wt:      T:      BP:       P:    RR:    SaO2: 98 FiO2:  5 Ht:
@@ -12566,6 +12624,7 @@ uncertain||false|false|false|true|0|0|0|255|204|102|Monospaced|+0
  111746| 1|SnippetColumn  |               |snippetNumber="315"<::>columnNumber="2"<::>columnName="empty1"|1
  111756| 1|SnippetColumn  |               |snippetNumber="315"<::>columnNumber="3"<::>columnName="empty2"|1
  111773|273|SnippetColumn  |               |snippetNumber="315"<::>columnNumber="4"<::>columnName="SnippetText"|treated with IM  Toradol and then they go away.    REVIEW OF SYSTEMS:     CONSTITUTIONAL:  No recent fevers, chills or change in weight. SKIN:  No rashes or lesions. HEENT:  No sore throat or runny nose. PULMONARY:  No shortness of breath, cough or wheezing. CARDIOVASCULAR
+ 111847|61|yes            |               ||CONSTITUTIONAL:  No recent fevers, chills or change in weight
  112141|17|SnippetColumn  |               |snippetNumber="316"<::>columnNumber="1"<::>columnName="filename"|freport100439.txt
  112167| 1|SnippetColumn  |               |snippetNumber="316"<::>columnNumber="2"<::>columnName="empty1"|1
  112177| 1|SnippetColumn  |               |snippetNumber="316"<::>columnNumber="3"<::>columnName="empty2"|1
@@ -12586,10 +12645,12 @@ uncertain||false|false|false|true|0|0|0|255|204|102|Monospaced|+0
  113439| 1|SnippetColumn  |               |snippetNumber="320"<::>columnNumber="2"<::>columnName="empty1"|1
  113449| 1|SnippetColumn  |               |snippetNumber="320"<::>columnNumber="3"<::>columnName="empty2"|1
  113466|308|SnippetColumn  |               |snippetNumber="320"<::>columnNumber="4"<::>columnName="SnippetText"|a 20-month-old daughter  and she works as a dental assistant.  REVIEW OF SYSTEMS:  HEENT:  No headache. CONSTITUTIONAL:  No fever.  No weight loss. RESPIRATORY:  No cough.  No shortness of breath. CARDIOVASCULAR:  No chest pain. GASTROINTESTINAL/GENITOURINARY:  No abdominal pain.  No vaginal discharge.   No
+ 113570|42|yes            |               ||CONSTITUTIONAL:  No fever.  No weight loss
  113869|16|SnippetColumn  |               |snippetNumber="321"<::>columnNumber="1"<::>columnName="filename"|freport64674.txt
  113894| 1|SnippetColumn  |               |snippetNumber="321"<::>columnNumber="2"<::>columnName="empty1"|1
  113904| 1|SnippetColumn  |               |snippetNumber="321"<::>columnNumber="3"<::>columnName="empty2"|1
  113921|269|SnippetColumn  |               |snippetNumber="321"<::>columnNumber="4"<::>columnName="SnippetText"|medical management. Social Service and Case Management for discharge planning and placement.  DISCHARGE INSTRUCTIONS:  The patient is to remain full weight bearing on his right lower extremity.  He is to use a walker or crutches as needed for ambulatory assistance.  He
+ 114015|98|no             |               ||DISCHARGE INSTRUCTIONS:  The patient is to remain full weight bearing on his right lower extremity
  114285|16|SnippetColumn  |               |snippetNumber="322"<::>columnNumber="1"<::>columnName="filename"|freport99078.txt
  114310| 1|SnippetColumn  |               |snippetNumber="322"<::>columnNumber="2"<::>columnName="empty1"|1
  114320| 1|SnippetColumn  |               |snippetNumber="322"<::>columnNumber="3"<::>columnName="empty2"|1
@@ -12619,6 +12680,7 @@ uncertain||false|false|false|true|0|0|0|255|204|102|Monospaced|+0
  116366| 1|SnippetColumn  |               |snippetNumber="328"<::>columnNumber="2"<::>columnName="empty1"|1
  116376| 1|SnippetColumn  |               |snippetNumber="328"<::>columnNumber="3"<::>columnName="empty2"|1
  116393|250|SnippetColumn  |               |snippetNumber="328"<::>columnNumber="4"<::>columnName="SnippetText"|also trauma to left hand with laceration,  with fingertip avulsion.  The patient was then placed in the CAM walker to  weight-bear as tolerated and was discharged on **DATE[Aug 7 2007].  The patient  was then to followup with Dr. **NAME[QQQ PPP]; and
+ 116462|115|no             |               ||The patient was then placed in the CAM walker to  weight-bear as tolerated and was discharged on **DATE[Aug 7 2007]
  116738|17|SnippetColumn  |               |snippetNumber="329"<::>columnNumber="1"<::>columnName="filename"|freport101157.txt
  116764| 1|SnippetColumn  |               |snippetNumber="329"<::>columnNumber="2"<::>columnName="empty1"|1
  116774| 1|SnippetColumn  |               |snippetNumber="329"<::>columnNumber="3"<::>columnName="empty2"|1
@@ -12631,6 +12693,7 @@ uncertain||false|false|false|true|0|0|0|255|204|102|Monospaced|+0
  117426| 1|SnippetColumn  |               |snippetNumber="331"<::>columnNumber="2"<::>columnName="empty1"|1
  117436| 1|SnippetColumn  |               |snippetNumber="331"<::>columnNumber="3"<::>columnName="empty2"|1
  117453|181|SnippetColumn  |               |snippetNumber="331"<::>columnNumber="4"<::>columnName="SnippetText"|loss about 6 pounds during unknown duration  of time.  She attributes that weight loss to her quitting of Pepsi which she  used to drink about 5 glasses per day during the work, but
+ 117453|176|yes            |               ||loss about 6 pounds during unknown duration  of time.  She attributes that weight loss to her quitting of Pepsi which she  used to drink about 5 glasses per day during the work
  117729|17|SnippetColumn  |               |snippetNumber="332"<::>columnNumber="1"<::>columnName="filename"|freport100803.txt
  117755| 1|SnippetColumn  |               |snippetNumber="332"<::>columnNumber="2"<::>columnName="empty1"|1
  117765| 1|SnippetColumn  |               |snippetNumber="332"<::>columnNumber="3"<::>columnName="empty2"|1
@@ -12639,6 +12702,7 @@ uncertain||false|false|false|true|0|0|0|255|204|102|Monospaced|+0
  118172| 1|SnippetColumn  |               |snippetNumber="333"<::>columnNumber="2"<::>columnName="empty1"|1
  118182| 1|SnippetColumn  |               |snippetNumber="333"<::>columnNumber="3"<::>columnName="empty2"|1
  118199|231|SnippetColumn  |               |snippetNumber="333"<::>columnNumber="4"<::>columnName="SnippetText"|way to buddy tape these  toes.  He was offered crutches, but he states he was able to ambulate and  bear weight, and he declined them.  He received a prescription for ibuprofen,  as well as a narcotic for breakthrough pain.  He was
+ 118231|101|no             |               ||He was offered crutches, but he states he was able to ambulate and  bear weight, and he declined them
  118525|16|SnippetColumn  |               |snippetNumber="334"<::>columnNumber="1"<::>columnName="filename"|freport98953.txt
  118550| 1|SnippetColumn  |               |snippetNumber="334"<::>columnNumber="2"<::>columnName="empty1"|1
  118560| 1|SnippetColumn  |               |snippetNumber="334"<::>columnNumber="3"<::>columnName="empty2"|1
@@ -12684,6 +12748,7 @@ uncertain||false|false|false|true|0|0|0|255|204|102|Monospaced|+0
  121936| 1|SnippetColumn  |               |snippetNumber="344"<::>columnNumber="2"<::>columnName="empty1"|1
  121946| 1|SnippetColumn  |               |snippetNumber="344"<::>columnNumber="3"<::>columnName="empty2"|1
  121963|294|SnippetColumn  |               |snippetNumber="344"<::>columnNumber="4"<::>columnName="SnippetText"|stricture.  He was admitted with chest pain.  The patient denies  any hematemesis.  No rectal bleeding.  The patient is gradually losing  weight.  The patient has multiple problems. PAST MEDICAL HISTORY:   1.  COPD. 2.  Anxiety disorder. 3.  Alcoholism. 4.  Acute pancreatitis. 5.  Hypertension
+ 122068|39|yes            |               ||The patient is gradually losing  weight
  122352|17|SnippetColumn  |               |snippetNumber="345"<::>columnNumber="1"<::>columnName="filename"|freport100389.txt
  122378| 1|SnippetColumn  |               |snippetNumber="345"<::>columnNumber="2"<::>columnName="empty1"|1
  122388| 1|SnippetColumn  |               |snippetNumber="345"<::>columnNumber="3"<::>columnName="empty2"|1
@@ -12696,6 +12761,7 @@ uncertain||false|false|false|true|0|0|0|255|204|102|Monospaced|+0
  123089| 1|SnippetColumn  |               |snippetNumber="347"<::>columnNumber="2"<::>columnName="empty1"|1
  123099| 1|SnippetColumn  |               |snippetNumber="347"<::>columnNumber="3"<::>columnName="empty2"|1
  123116|237|SnippetColumn  |               |snippetNumber="347"<::>columnNumber="4"<::>columnName="SnippetText"|was told to have acid reflux but never had a work-up done.  She denies  any dysphagia or odynophagia.  Denies any weight loss.  Her bowels are  regular with the senna.  No rectal bleeding.    CT scan of her abdomen was done **DATE[Aug 04
+ 123219|22|yes            |               ||Denies any weight loss
  123448|17|SnippetColumn  |               |snippetNumber="348"<::>columnNumber="1"<::>columnName="filename"|freport100748.txt
  123474| 1|SnippetColumn  |               |snippetNumber="348"<::>columnNumber="2"<::>columnName="empty1"|1
  123484| 1|SnippetColumn  |               |snippetNumber="348"<::>columnNumber="3"<::>columnName="empty2"|1
@@ -12704,6 +12770,7 @@ uncertain||false|false|false|true|0|0|0|255|204|102|Monospaced|+0
  123826| 1|SnippetColumn  |               |snippetNumber="349"<::>columnNumber="2"<::>columnName="empty1"|1
  123836| 1|SnippetColumn  |               |snippetNumber="349"<::>columnNumber="3"<::>columnName="empty2"|1
  123853|268|SnippetColumn  |               |snippetNumber="349"<::>columnNumber="4"<::>columnName="SnippetText"|appointment   Instructions Continue incentive spirometry treatments 4 times a day for 10 repetitions Please refrain from smoking Weigh daily; record weight Use Aspirin ONLY AS DIRECTED by Doctor Wash incisions with a mild soap and water. Do not use lotions, creams, or
+ 123982|26|uncertain      |               ||Weigh daily; record weight
  124216|16|SnippetColumn  |               |snippetNumber="350"<::>columnNumber="1"<::>columnName="filename"|freport92838.txt
  124241| 1|SnippetColumn  |               |snippetNumber="350"<::>columnNumber="2"<::>columnName="empty1"|1
  124251| 1|SnippetColumn  |               |snippetNumber="350"<::>columnNumber="3"<::>columnName="empty2"|1
@@ -12738,6 +12805,7 @@ uncertain||false|false|false|true|0|0|0|255|204|102|Monospaced|+0
  126677| 1|SnippetColumn  |               |snippetNumber="357"<::>columnNumber="2"<::>columnName="empty1"|1
  126687| 1|SnippetColumn  |               |snippetNumber="357"<::>columnNumber="3"<::>columnName="empty2"|1
  126704|277|SnippetColumn  |               |snippetNumber="357"<::>columnNumber="4"<::>columnName="SnippetText"|upper limb  lymphedema.  The patient denied any shortness of breath, chest pain,  difficulty of swallowing, or nausea.  He denied even weight loss.  He is a  little bit confused.  MEDICATIONS:  His medications consist of:  1.  Roxicet. 2.  Bactrim. 3.  Lisinopril. 4.  Oxazepam
+ 126824|26|yes            |               ||He denied even weight loss
  127076|16|SnippetColumn  |               |snippetNumber="358"<::>columnNumber="1"<::>columnName="filename"|freport99274.txt
  127101| 1|SnippetColumn  |               |snippetNumber="358"<::>columnNumber="2"<::>columnName="empty1"|1
  127111| 1|SnippetColumn  |               |snippetNumber="358"<::>columnNumber="3"<::>columnName="empty2"|1
@@ -12746,10 +12814,12 @@ uncertain||false|false|false|true|0|0|0|255|204|102|Monospaced|+0
  127409| 1|SnippetColumn  |               |snippetNumber="359"<::>columnNumber="2"<::>columnName="empty1"|1
  127419| 1|SnippetColumn  |               |snippetNumber="359"<::>columnNumber="3"<::>columnName="empty2"|1
  127436|251|SnippetColumn  |               |snippetNumber="359"<::>columnNumber="4"<::>columnName="SnippetText"|that lower extremity out of the tub.  He  should keep his **NAME[VVV] boot on at all times.  He is non-weight bearing on  the right lower extremity.    HOSPITAL COURSE:   Mr. **NAME[AAA] is a **AGE[in 30s]-year-old gentleman who had just been recently
+ 127529|54|no             |               ||He is non-weight bearing on  the right lower extremity
  127782|16|SnippetColumn  |               |snippetNumber="360"<::>columnNumber="1"<::>columnName="filename"|freport54938.txt
  127807| 1|SnippetColumn  |               |snippetNumber="360"<::>columnNumber="2"<::>columnName="empty1"|1
  127817| 1|SnippetColumn  |               |snippetNumber="360"<::>columnNumber="3"<::>columnName="empty2"|1
  127834|288|SnippetColumn  |               |snippetNumber="360"<::>columnNumber="4"<::>columnName="SnippetText"|Stage IV lung cancer. 2.  Pericardial effusion. 3.  Bilateral pleural effusions. 4.  Respiratory insufficiency. CLINICAL NOTE:  This patient had fatigue, weight loss, and dyspnea.  He was  found to have bilateral pleural effusions, a left hilar mass, and large  pericardial effusion which
+ 127946|53|yes            |               ||CLINICAL NOTE:  This patient had fatigue, weight loss
  128217|17|SnippetColumn  |               |snippetNumber="361"<::>columnNumber="1"<::>columnName="filename"|freport100969.txt
  128243| 1|SnippetColumn  |               |snippetNumber="361"<::>columnNumber="2"<::>columnName="empty1"|1
  128253| 1|SnippetColumn  |               |snippetNumber="361"<::>columnNumber="3"<::>columnName="empty2"|1
@@ -12775,6 +12845,7 @@ uncertain||false|false|false|true|0|0|0|255|204|102|Monospaced|+0
  130185| 1|SnippetColumn  |               |snippetNumber="366"<::>columnNumber="2"<::>columnName="empty1"|1
  130195| 1|SnippetColumn  |               |snippetNumber="366"<::>columnNumber="3"<::>columnName="empty2"|1
  130212|165|SnippetColumn  |               |snippetNumber="366"<::>columnNumber="4"<::>columnName="SnippetText"|weeks  and Dr. **NAME[UUU] in 4 weeks.  Education instruction was given to include  smoking cessation counseling, no alcohol consumption, daily weight and record  of
+ 130252|110|yes            |               ||Education instruction was given to include  smoking cessation counseling, no alcohol consumption, daily weight
  130472|17|SnippetColumn  |               |snippetNumber="367"<::>columnNumber="1"<::>columnName="filename"|freport101051.txt
  130498| 1|SnippetColumn  |               |snippetNumber="367"<::>columnNumber="2"<::>columnName="empty1"|1
  130508| 1|SnippetColumn  |               |snippetNumber="367"<::>columnNumber="3"<::>columnName="empty2"|1
@@ -12829,6 +12900,7 @@ uncertain||false|false|false|true|0|0|0|255|204|102|Monospaced|+0
  135024| 1|SnippetColumn  |               |snippetNumber="379"<::>columnNumber="2"<::>columnName="empty1"|1
  135034| 1|SnippetColumn  |               |snippetNumber="379"<::>columnNumber="3"<::>columnName="empty2"|1
  135051|240|SnippetColumn  |               |snippetNumber="379"<::>columnNumber="4"<::>columnName="SnippetText"|becoming incontinent with bowel and  bladder during the day and, in addition, she indicates he has had about a  40-pounds weight loss in the last 5 months.  The patient recently spiked a  fever approximately 4 days ago at which time patient
+ 135129|76|yes            |               ||she indicates he has had about a  40-pounds weight loss in the last 5 months
  135386|17|SnippetColumn  |               |snippetNumber="380"<::>columnNumber="1"<::>columnName="filename"|freport101331.txt
  135412| 1|SnippetColumn  |               |snippetNumber="380"<::>columnNumber="2"<::>columnName="empty1"|1
  135422| 1|SnippetColumn  |               |snippetNumber="380"<::>columnNumber="3"<::>columnName="empty2"|1
@@ -12837,10 +12909,12 @@ uncertain||false|false|false|true|0|0|0|255|204|102|Monospaced|+0
  135720| 1|SnippetColumn  |               |snippetNumber="381"<::>columnNumber="2"<::>columnName="empty1"|1
  135730| 1|SnippetColumn  |               |snippetNumber="381"<::>columnNumber="3"<::>columnName="empty2"|1
  135747|264|SnippetColumn  |               |snippetNumber="381"<::>columnNumber="4"<::>columnName="SnippetText"|lateral hip is slightly tender.  No sign of trauma.  Right lateral  knee is also tender.  The patient is unable to weight bear because of hip and  knee pain.  PSYCHOLOGICAL PROFILE:  Normal.  SKIN:  Negative.   PATIENT INTERVENTION:  The patient was examined by Dr
+ 135837|66|no             |               ||The patient is unable to weight bear because of hip and  knee pain
  136106|16|SnippetColumn  |               |snippetNumber="382"<::>columnNumber="1"<::>columnName="filename"|freport55232.txt
  136131| 1|SnippetColumn  |               |snippetNumber="382"<::>columnNumber="2"<::>columnName="empty1"|1
  136141| 1|SnippetColumn  |               |snippetNumber="382"<::>columnNumber="3"<::>columnName="empty2"|1
  136158|237|SnippetColumn  |               |snippetNumber="382"<::>columnNumber="4"<::>columnName="SnippetText"|bowel movement daily.  There has been no blood in her  stools.  She has had no chronic diarrhea.  She denies any weight loss.  Her  appetite had been normal up until her acute presentation.  She has been seen  by the surgical service and
+ 136256|26|yes            |               ||She denies any weight loss
  136490|17|SnippetColumn  |               |snippetNumber="383"<::>columnNumber="1"<::>columnName="filename"|freport101440.txt
  136516| 1|SnippetColumn  |               |snippetNumber="383"<::>columnNumber="2"<::>columnName="empty1"|1
  136526| 1|SnippetColumn  |               |snippetNumber="383"<::>columnNumber="3"<::>columnName="empty2"|1
@@ -12854,6 +12928,7 @@ uncertain||false|false|false|true|0|0|0|255|204|102|Monospaced|+0
  137245| 1|SnippetColumn  |               |snippetNumber="385"<::>columnNumber="2"<::>columnName="empty1"|1
  137255| 1|SnippetColumn  |               |snippetNumber="385"<::>columnNumber="3"<::>columnName="empty2"|1
  137272|237|SnippetColumn  |               |snippetNumber="385"<::>columnNumber="4"<::>columnName="SnippetText"|systems is pertinent for nausea and vomiting prior to admission to  **INSTITUTION on **DATE[Jan 12 2007].  He also had a weight loss of 40 pounds  over he past year.  He is now complaining of left upper quadrant abdominal  pain.  He does
+ 137379|57|yes            |               ||He also had a weight loss of 40 pounds  over he past year
  137604|17|SnippetColumn  |               |snippetNumber="386"<::>columnNumber="1"<::>columnName="filename"|freport100419.txt
  137630| 1|SnippetColumn  |               |snippetNumber="386"<::>columnNumber="2"<::>columnName="empty1"|1
  137640| 1|SnippetColumn  |               |snippetNumber="386"<::>columnNumber="3"<::>columnName="empty2"|1
@@ -12874,6 +12949,7 @@ uncertain||false|false|false|true|0|0|0|255|204|102|Monospaced|+0
  138981| 1|SnippetColumn  |               |snippetNumber="390"<::>columnNumber="2"<::>columnName="empty1"|1
  138991| 1|SnippetColumn  |               |snippetNumber="390"<::>columnNumber="3"<::>columnName="empty2"|1
  139008|220|SnippetColumn  |               |snippetNumber="390"<::>columnNumber="4"<::>columnName="SnippetText"|as her son. Now, she is back to living on her own. The patient admits to an over 20 pound weight loss. However, the accuracy of this is somewhat unclear.  MEDICATIONS: At the present time, she is on methadone, Lovenox 40
+ 139059|50|yes            |               ||The patient admits to an over 20 pound weight loss
  139323|16|SnippetColumn  |               |snippetNumber="391"<::>columnNumber="1"<::>columnName="filename"|freport23925.txt
  139348| 1|SnippetColumn  |               |snippetNumber="391"<::>columnNumber="2"<::>columnName="empty1"|1
  139358| 1|SnippetColumn  |               |snippetNumber="391"<::>columnNumber="3"<::>columnName="empty2"|1
@@ -12900,6 +12976,7 @@ uncertain||false|false|false|true|0|0|0|255|204|102|Monospaced|+0
  141242| 1|SnippetColumn  |               |snippetNumber="396"<::>columnNumber="2"<::>columnName="empty1"|1
  141252| 1|SnippetColumn  |               |snippetNumber="396"<::>columnNumber="3"<::>columnName="empty2"|1
  141269|243|SnippetColumn  |               |snippetNumber="396"<::>columnNumber="4"<::>columnName="SnippetText"|Resort.  He had not been doing well and despite continuing to eat and be active, the patient was having significant weight loss.  Because of this, they had already begun discussing hospice care with the patient's POA.  At the end of **DATE[Mar
+ 141350|46|yes            |               ||the patient was having significant weight loss
  141607|17|SnippetColumn  |               |snippetNumber="397"<::>columnNumber="1"<::>columnName="filename"|freport100241.txt
  141633| 1|SnippetColumn  |               |snippetNumber="397"<::>columnNumber="2"<::>columnName="empty1"|1
  141643| 1|SnippetColumn  |               |snippetNumber="397"<::>columnNumber="3"<::>columnName="empty2"|1
@@ -12928,6 +13005,7 @@ uncertain||false|false|false|true|0|0|0|255|204|102|Monospaced|+0
  143804| 1|SnippetColumn  |               |snippetNumber="403"<::>columnNumber="2"<::>columnName="empty1"|1
  143814| 1|SnippetColumn  |               |snippetNumber="403"<::>columnNumber="3"<::>columnName="empty2"|1
  143831|259|SnippetColumn  |               |snippetNumber="403"<::>columnNumber="4"<::>columnName="SnippetText"|on and off.  No joint pain.  No dizziness.  No runny nose.  No sore throat.   No change in appetite.  No recent weight loss. The patient was recently discharged from **INSTITUTION on **DATE[May 6  2007], to the **INSTITUTION Nursing and **INSTITUTION.  As per
+ 143933|21|yes            |               ||No recent weight loss
  144185|17|SnippetColumn  |               |snippetNumber="404"<::>columnNumber="1"<::>columnName="filename"|freport101080.txt
  144211| 1|SnippetColumn  |               |snippetNumber="404"<::>columnNumber="2"<::>columnName="empty1"|1
  144221| 1|SnippetColumn  |               |snippetNumber="404"<::>columnNumber="3"<::>columnName="empty2"|1
@@ -12940,6 +13018,7 @@ uncertain||false|false|false|true|0|0|0|255|204|102|Monospaced|+0
  144903| 1|SnippetColumn  |               |snippetNumber="406"<::>columnNumber="2"<::>columnName="empty1"|1
  144913| 1|SnippetColumn  |               |snippetNumber="406"<::>columnNumber="3"<::>columnName="empty2"|1
  144930|336|SnippetColumn  |               |snippetNumber="406"<::>columnNumber="4"<::>columnName="SnippetText"|chills,  nausea, vomiting, abdominal pain, constipation, diarrhea, melena,  hematochezia, dysuria, hematuria, back pain, weakness, numbness, tingling,  sensation loss, rash or weight loss.  PAST MEDICAL HISTORY:    1. Congestive heart failure. 2. Hypertension. 3. Insulin-dependent diabetes. 4. End-stage renal disease and renal failure
+ 145106|11|yes            |               ||weight loss
  145361|16|SnippetColumn  |               |snippetNumber="407"<::>columnNumber="1"<::>columnName="filename"|freport28940.txt
  145386| 1|SnippetColumn  |               |snippetNumber="407"<::>columnNumber="2"<::>columnName="empty1"|1
  145396| 1|SnippetColumn  |               |snippetNumber="407"<::>columnNumber="3"<::>columnName="empty2"|1
@@ -12957,6 +13036,7 @@ uncertain||false|false|false|true|0|0|0|255|204|102|Monospaced|+0
  146431| 1|SnippetColumn  |               |snippetNumber="410"<::>columnNumber="2"<::>columnName="empty1"|1
  146441| 1|SnippetColumn  |               |snippetNumber="410"<::>columnNumber="3"<::>columnName="empty2"|1
  146458|183|SnippetColumn  |               |snippetNumber="410"<::>columnNumber="4"<::>columnName="SnippetText"|much better and feels  comfortable on the lower FIO2.  His saturations have been in the 91% to 93%  range.  His weight is checked and he has had a 27-pound increase from his  baseline
+ 146566|75|yes            |               ||His weight is checked and he has had a 27-pound increase from his  baseline
  146736|17|SnippetColumn  |               |snippetNumber="411"<::>columnNumber="1"<::>columnName="filename"|freport100081.txt
  146762| 1|SnippetColumn  |               |snippetNumber="411"<::>columnNumber="2"<::>columnName="empty1"|1
  146772| 1|SnippetColumn  |               |snippetNumber="411"<::>columnNumber="3"<::>columnName="empty2"|1
@@ -12965,6 +13045,7 @@ uncertain||false|false|false|true|0|0|0|255|204|102|Monospaced|+0
  147070| 1|SnippetColumn  |               |snippetNumber="412"<::>columnNumber="2"<::>columnName="empty1"|1
  147080| 1|SnippetColumn  |               |snippetNumber="412"<::>columnNumber="3"<::>columnName="empty2"|1
  147097|275|SnippetColumn  |               |snippetNumber="412"<::>columnNumber="4"<::>columnName="SnippetText"|moved to  **PLACE yesterday.  She denies alcohol.  She does smoke.  REVIEW OF SYSTEMS:  GENERAL:  No fever, no chills, and no weight loss. CARDIAC:  No chest pain. PULMONARY:  No shortness of breath. NEUROLOGIC:  No numbness.  Otherwise, systems are negative and are reviewed
+ 147165|69|yes            |               ||REVIEW OF SYSTEMS:  GENERAL:  No fever, no chills, and no weight loss
  147467|17|SnippetColumn  |               |snippetNumber="413"<::>columnNumber="1"<::>columnName="filename"|freport101304.txt
  147493| 1|SnippetColumn  |               |snippetNumber="413"<::>columnNumber="2"<::>columnName="empty1"|1
  147503| 1|SnippetColumn  |               |snippetNumber="413"<::>columnNumber="3"<::>columnName="empty2"|1
@@ -12981,6 +13062,7 @@ uncertain||false|false|false|true|0|0|0|255|204|102|Monospaced|+0
  148410| 1|SnippetColumn  |               |snippetNumber="416"<::>columnNumber="2"<::>columnName="empty1"|1
  148420| 1|SnippetColumn  |               |snippetNumber="416"<::>columnNumber="3"<::>columnName="empty2"|1
  148437|266|SnippetColumn  |               |snippetNumber="416"<::>columnNumber="4"<::>columnName="SnippetText"|Children also have a history of hypertension. REVIEW OF SYSTEMS:   GENERAL:  The patient denies any recent illness, fever, fatigue, or weight  loss. SKIN:  Denies any rashes or lesions. HEENT:  The patient wears glasses.  She also was concerned of some mild  hearing
+ 148504|80|yes            |               ||GENERAL:  The patient denies any recent illness, fever, fatigue, or weight  loss
  148798|16|SnippetColumn  |               |snippetNumber="417"<::>columnNumber="1"<::>columnName="filename"|freport99866.txt
  148823| 1|SnippetColumn  |               |snippetNumber="417"<::>columnNumber="2"<::>columnName="empty1"|1
  148833| 1|SnippetColumn  |               |snippetNumber="417"<::>columnNumber="3"<::>columnName="empty2"|1
@@ -13005,14 +13087,17 @@ uncertain||false|false|false|true|0|0|0|255|204|102|Monospaced|+0
  150649| 1|SnippetColumn  |               |snippetNumber="422"<::>columnNumber="2"<::>columnName="empty1"|1
  150659| 1|SnippetColumn  |               |snippetNumber="422"<::>columnNumber="3"<::>columnName="empty2"|1
  150676|268|SnippetColumn  |               |snippetNumber="422"<::>columnNumber="4"<::>columnName="SnippetText"|Does not use any  drugs.  REVIEW OF SYSTEMS:  She denies any headache, dizziness, cough, sore throat,  ear/nose/throat pain.  Denies any weight loss.  Denies any new rashes.   Denies any dysuria or frequency.  Denies any chest pain or any shortness of  breath.  Denies
+ 150702|122|yes            |               ||REVIEW OF SYSTEMS:  She denies any headache, dizziness, cough, sore throat,  ear/nose/throat pain.  Denies any weight loss
  151039|16|SnippetColumn  |               |snippetNumber="423"<::>columnNumber="1"<::>columnName="filename"|freport28882.txt
  151064| 1|SnippetColumn  |               |snippetNumber="423"<::>columnNumber="2"<::>columnName="empty1"|1
  151074| 1|SnippetColumn  |               |snippetNumber="423"<::>columnNumber="3"<::>columnName="empty2"|1
  151091|267|SnippetColumn  |               |snippetNumber="423"<::>columnNumber="4"<::>columnName="SnippetText"|of symptoms, follow his anemia and  thrombocytopenia, complete his antibiotic regimen for his UTI.  If the  patient has significant increased weight or fracture due to Lasix, increased  shortness of breath, chest pain, fevers, or chills, he is instructed to call  his
+ 151190|49|yes            |               || If the  patient has significant increased weight
  151453|16|SnippetColumn  |               |snippetNumber="424"<::>columnNumber="1"<::>columnName="filename"|freport21839.txt
  151478| 1|SnippetColumn  |               |snippetNumber="424"<::>columnNumber="2"<::>columnName="empty1"|1
  151488| 1|SnippetColumn  |               |snippetNumber="424"<::>columnNumber="3"<::>columnName="empty2"|1
  151505|252|SnippetColumn  |               |snippetNumber="424"<::>columnNumber="4"<::>columnName="SnippetText"|remained stable in the emergency  department.  I did give the patient one Vicodin tablet.  The patient's pain  started after heavy weight lifting.  It is not pleuritic in nature and he is  not tachypneic, and his oxygen saturations are normal.  At this
+ 151596|54|no             |               ||The patient's pain  started after heavy weight lifting
  151852|16|SnippetColumn  |               |snippetNumber="425"<::>columnNumber="1"<::>columnName="filename"|freport99828.txt
  151877| 1|SnippetColumn  |               |snippetNumber="425"<::>columnNumber="2"<::>columnName="empty1"|1
  151887| 1|SnippetColumn  |               |snippetNumber="425"<::>columnNumber="3"<::>columnName="empty2"|1
@@ -13025,6 +13110,7 @@ uncertain||false|false|false|true|0|0|0|255|204|102|Monospaced|+0
  152494| 1|SnippetColumn  |               |snippetNumber="427"<::>columnNumber="2"<::>columnName="empty1"|1
  152504| 1|SnippetColumn  |               |snippetNumber="427"<::>columnNumber="3"<::>columnName="empty2"|1
  152521|235|SnippetColumn  |               |snippetNumber="427"<::>columnNumber="4"<::>columnName="SnippetText"|nausea,  vomiting, diarrhea, abdominal pain, black tarry or bloody stools; blood  pressure consistently greater than 160/100 or less than 90/60; weight gain  greater than 3 to 5 pounds in less than 3 to 4 days; persistent unintentional
+ 152666|64|yes            |               ||weight gain  greater than 3 to 5 pounds in less than 3 to 4 days
  152851|17|SnippetColumn  |               |snippetNumber="428"<::>columnNumber="1"<::>columnName="filename"|freport101444.txt
  152877| 1|SnippetColumn  |               |snippetNumber="428"<::>columnNumber="2"<::>columnName="empty1"|1
  152887| 1|SnippetColumn  |               |snippetNumber="428"<::>columnNumber="3"<::>columnName="empty2"|1
@@ -13046,10 +13132,12 @@ uncertain||false|false|false|true|0|0|0|255|204|102|Monospaced|+0
  154290| 1|SnippetColumn  |               |snippetNumber="432"<::>columnNumber="2"<::>columnName="empty1"|1
  154300| 1|SnippetColumn  |               |snippetNumber="432"<::>columnNumber="3"<::>columnName="empty2"|1
  154317|250|SnippetColumn  |               |snippetNumber="432"<::>columnNumber="4"<::>columnName="SnippetText"|tingling  in his extremities.  No bowel or bladder problems.    REVIEW OF SYSTEMS:  No fever or chills.  No change in his weight, appetite.   This all came on acutely with increased pain all over his body.  He says he  knows what methadone withdrawal
+ 154381|64|yes            |               ||REVIEW OF SYSTEMS:  No fever or chills.  No change in his weight
  154662|16|SnippetColumn  |               |snippetNumber="433"<::>columnNumber="1"<::>columnName="filename"|freport13337.txt
  154687| 1|SnippetColumn  |               |snippetNumber="433"<::>columnNumber="2"<::>columnName="empty1"|1
  154697| 1|SnippetColumn  |               |snippetNumber="433"<::>columnNumber="3"<::>columnName="empty2"|1
  154714|291|SnippetColumn  |               |snippetNumber="433"<::>columnNumber="4"<::>columnName="SnippetText"|He drinks alcohol  occasionally.  He does not use illicit drugs.    REVIEW OF SYSTEMS He denies recent unexplained night sweating, fever, weight loss, back pain,  chest pain, shortness of breath, dysuria, diarrhea, or constipation.    PHYSICAL EXAMINATION   GENERAL: On physical exam, he was
+ 154782|81|yes            |               ||REVIEW OF SYSTEMS He denies recent unexplained night sweating, fever, weight loss
  155100|17|SnippetColumn  |               |snippetNumber="434"<::>columnNumber="1"<::>columnName="filename"|freport101708.txt
  155126| 1|SnippetColumn  |               |snippetNumber="434"<::>columnNumber="2"<::>columnName="empty1"|1
  155136| 1|SnippetColumn  |               |snippetNumber="434"<::>columnNumber="3"<::>columnName="empty2"|1
@@ -13058,6 +13146,7 @@ uncertain||false|false|false|true|0|0|0|255|204|102|Monospaced|+0
  155480| 1|SnippetColumn  |               |snippetNumber="435"<::>columnNumber="2"<::>columnName="empty1"|1
  155490| 1|SnippetColumn  |               |snippetNumber="435"<::>columnNumber="3"<::>columnName="empty2"|1
  155507|243|SnippetColumn  |               |snippetNumber="435"<::>columnNumber="4"<::>columnName="SnippetText"|of 70/30 and also  Actos in the morning.  REVIEW OF SYSTEMS:  No known fevers or chills.  No change in her weight or  appetite.  No shortness of breath, chest pain, nausea, vomiting, or diarrhea.  No skin rashes.  No joint swelling.  Review of
+ 155549|71|yes            |               ||REVIEW OF SYSTEMS:  No known fevers or chills.  No change in her weight
  155845|16|SnippetColumn  |               |snippetNumber="436"<::>columnNumber="1"<::>columnName="filename"|freport99282.txt
  155870| 1|SnippetColumn  |               |snippetNumber="436"<::>columnNumber="2"<::>columnName="empty1"|1
  155880| 1|SnippetColumn  |               |snippetNumber="436"<::>columnNumber="3"<::>columnName="empty2"|1
@@ -13071,6 +13160,7 @@ uncertain||false|false|false|true|0|0|0|255|204|102|Monospaced|+0
  156864| 1|SnippetColumn  |               |snippetNumber="438"<::>columnNumber="2"<::>columnName="empty1"|1
  156874| 1|SnippetColumn  |               |snippetNumber="438"<::>columnNumber="3"<::>columnName="empty2"|1
  156891|259|SnippetColumn  |               |snippetNumber="438"<::>columnNumber="4"<::>columnName="SnippetText"|OF SYSTEMS: Her review of systems is negative other than as per HPI.  Specifically no  fevers, chills, changes in her weight, no headache, changes in her vision,  changes in her hearing.  No chest pain, palpitations, shortness of breath,  coughing or wheezing
+ 156903|112|yes            |               ||Her review of systems is negative other than as per HPI.  Specifically no  fevers, chills, changes in her weight
  157245|16|SnippetColumn  |               |snippetNumber="439"<::>columnNumber="1"<::>columnName="filename"|freport84765.txt
  157270| 1|SnippetColumn  |               |snippetNumber="439"<::>columnNumber="2"<::>columnName="empty1"|1
  157280| 1|SnippetColumn  |               |snippetNumber="439"<::>columnNumber="3"<::>columnName="empty2"|1
@@ -13080,6 +13170,7 @@ uncertain||false|false|false|true|0|0|0|255|204|102|Monospaced|+0
  157705| 1|SnippetColumn  |               |snippetNumber="440"<::>columnNumber="2"<::>columnName="empty1"|1
  157715| 1|SnippetColumn  |               |snippetNumber="440"<::>columnNumber="3"<::>columnName="empty2"|1
  157732|270|SnippetColumn  |               |snippetNumber="440"<::>columnNumber="4"<::>columnName="SnippetText"|bowel obstruction many years ago  which resolved with conservative management.  He denies any sick contacts and  had no history of weight loss, no fever or chills, and no shortness of breath  or chest pain.          PAST MEDICAL HISTORY  1. Insulin-dependent diabetes. 2
+ 157812|62|yes            |               ||He denies any sick contacts and  had no history of weight loss
  158097|16|SnippetColumn  |               |snippetNumber="441"<::>columnNumber="1"<::>columnName="filename"|freport99564.txt
  158122| 1|SnippetColumn  |               |snippetNumber="441"<::>columnNumber="2"<::>columnName="empty1"|1
  158132| 1|SnippetColumn  |               |snippetNumber="441"<::>columnNumber="3"<::>columnName="empty2"|1
@@ -13105,6 +13196,7 @@ uncertain||false|false|false|true|0|0|0|255|204|102|Monospaced|+0
  159808| 1|SnippetColumn  |               |snippetNumber="446"<::>columnNumber="2"<::>columnName="empty1"|1
  159818| 1|SnippetColumn  |               |snippetNumber="446"<::>columnNumber="3"<::>columnName="empty2"|1
  159835|287|SnippetColumn  |               |snippetNumber="446"<::>columnNumber="4"<::>columnName="SnippetText"|chest pressure.  She denied loss of  consciousness.  She denied striking her head.    REVIEW OF SYSTEMS: General:  Negative for fevers, chills, weight loss. HEENT:  Negative for headache, visual changes. Respiratory:  Negative for shortness of breath.  She does have mild pain with  deep
+ 159940|50|yes            |               ||General:  Negative for fevers, chills, weight loss
  160217|17|SnippetColumn  |               |snippetNumber="447"<::>columnNumber="1"<::>columnName="filename"|freport100332.txt
  160243| 1|SnippetColumn  |               |snippetNumber="447"<::>columnNumber="2"<::>columnName="empty1"|1
  160253| 1|SnippetColumn  |               |snippetNumber="447"<::>columnNumber="3"<::>columnName="empty2"|1
@@ -13117,6 +13209,7 @@ uncertain||false|false|false|true|0|0|0|255|204|102|Monospaced|+0
  161053| 1|SnippetColumn  |               |snippetNumber="449"<::>columnNumber="2"<::>columnName="empty1"|1
  161063| 1|SnippetColumn  |               |snippetNumber="449"<::>columnNumber="3"<::>columnName="empty2"|1
  161080|291|SnippetColumn  |               |snippetNumber="449"<::>columnNumber="4"<::>columnName="SnippetText"|No chest pain.  No  fever or chills.  No cough, congestion.  No headache, dizziness.  No vision  problems.  No hearing deficit.  No weight changes.  No change in eating  habits.  Denies any musculoskeletal pain.  No skin irritation, any neurologic  deficits.  PAST MEDICAL HISTORY:  Negative
+ 161209|17|yes            |               ||No weight changes
  161466|17|SnippetColumn  |               |snippetNumber="450"<::>columnNumber="1"<::>columnName="filename"|freport101656.txt
  161492| 1|SnippetColumn  |               |snippetNumber="450"<::>columnNumber="2"<::>columnName="empty1"|1
  161502| 1|SnippetColumn  |               |snippetNumber="450"<::>columnNumber="3"<::>columnName="empty2"|1
@@ -13141,6 +13234,7 @@ uncertain||false|false|false|true|0|0|0|255|204|102|Monospaced|+0
  163159| 1|SnippetColumn  |               |snippetNumber="455"<::>columnNumber="2"<::>columnName="empty1"|1
  163169| 1|SnippetColumn  |               |snippetNumber="455"<::>columnNumber="3"<::>columnName="empty2"|1
  163186|258|SnippetColumn  |               |snippetNumber="455"<::>columnNumber="4"<::>columnName="SnippetText"|states slight pain shoots up the lateral aspect of  the ankle.  I asked if he wanted crutches to keep his weight off it, and he  had refused crutches and will follow up with the company doctor.          _____________________________ **NAME[WWW CCC XXX], CRNP
+ 163250|55|no             |               ||I asked if he wanted crutches to keep his weight off it
  163539|16|SnippetColumn  |               |snippetNumber="456"<::>columnNumber="1"<::>columnName="filename"|freport99698.txt
  163564| 1|SnippetColumn  |               |snippetNumber="456"<::>columnNumber="2"<::>columnName="empty1"|1
  163574| 1|SnippetColumn  |               |snippetNumber="456"<::>columnNumber="3"<::>columnName="empty2"|1
@@ -13149,6 +13243,7 @@ uncertain||false|false|false|true|0|0|0|255|204|102|Monospaced|+0
  163942| 1|SnippetColumn  |               |snippetNumber="457"<::>columnNumber="2"<::>columnName="empty1"|1
  163952| 1|SnippetColumn  |               |snippetNumber="457"<::>columnNumber="3"<::>columnName="empty2"|1
  163969|203|SnippetColumn  |               |snippetNumber="457"<::>columnNumber="4"<::>columnName="SnippetText"|provider in 2 weeks and also to check Digoxin level, chem7 in 2 weeks. Patient to F/U BP, HR and weight daily. Patient to f/u with Dr **NAME[UUU] in 4 weeks. Patient to f/u with EP in device clinic in 10
+ 164040|38|yes            |               ||Patient to F/U BP, HR and weight daily
  164267|16|SnippetColumn  |               |snippetNumber="458"<::>columnNumber="1"<::>columnName="filename"|freport98631.txt
  164292| 1|SnippetColumn  |               |snippetNumber="458"<::>columnNumber="2"<::>columnName="empty1"|1
  164302| 1|SnippetColumn  |               |snippetNumber="458"<::>columnNumber="3"<::>columnName="empty2"|1
@@ -13165,10 +13260,12 @@ uncertain||false|false|false|true|0|0|0|255|204|102|Monospaced|+0
  165309| 1|SnippetColumn  |               |snippetNumber="461"<::>columnNumber="2"<::>columnName="empty1"|1
  165319| 1|SnippetColumn  |               |snippetNumber="461"<::>columnNumber="3"<::>columnName="empty2"|1
  165336|243|SnippetColumn  |               |snippetNumber="461"<::>columnNumber="4"<::>columnName="SnippetText"|or vomiting.  No abdominal  pain.  No fevers or chills.  REVIEW OF SYSTEMS:  No fevers or chills.  No change in sleep, weight, or  eating.  The patient has no chest pain, no shortness of breath.  No vision  changes.  He has some dizziness.  No
+ 165434|39|yes            |               || No change in sleep, weight, or  eating
  165674|16|SnippetColumn  |               |snippetNumber="462"<::>columnNumber="1"<::>columnName="filename"|freport46888.txt
  165699| 1|SnippetColumn  |               |snippetNumber="462"<::>columnNumber="2"<::>columnName="empty1"|1
  165709| 1|SnippetColumn  |               |snippetNumber="462"<::>columnNumber="3"<::>columnName="empty2"|1
  165726|266|SnippetColumn  |               |snippetNumber="462"<::>columnNumber="4"<::>columnName="SnippetText"|or congestion.  No dizziness, no  weakness, and no palpitation.  REVIEW OF SYSTEMS:  Essentially unchanged.  She has no change in her weight,  appetite, sleeping pattern.  She has had no fevers or chills.  No cough.  No  GI complaints.  No GU complaint.  The patient
+ 165835|60|yes            |               ||She has no change in her weight,  appetite, sleeping pattern
  166087|17|SnippetColumn  |               |snippetNumber="463"<::>columnNumber="1"<::>columnName="filename"|freport100614.txt
  166113| 1|SnippetColumn  |               |snippetNumber="463"<::>columnNumber="2"<::>columnName="empty1"|1
  166123| 1|SnippetColumn  |               |snippetNumber="463"<::>columnNumber="3"<::>columnName="empty2"|1
@@ -13177,6 +13274,7 @@ uncertain||false|false|false|true|0|0|0|255|204|102|Monospaced|+0
  166433| 1|SnippetColumn  |               |snippetNumber="464"<::>columnNumber="2"<::>columnName="empty1"|1
  166443| 1|SnippetColumn  |               |snippetNumber="464"<::>columnNumber="3"<::>columnName="empty2"|1
  166460|243|SnippetColumn  |               |snippetNumber="464"<::>columnNumber="4"<::>columnName="SnippetText"|of vertigo.  She denied noticing any blood in the stools or vomiting.  Also, denies any  altered bowel movements, loss of weight, or loss of appetite.  She denied any  history of dysphagia.  She denied noticing any change in color of her bowel
+ 166531|57|yes            |               ||Also, denies any  altered bowel movements, loss of weight
  166798|17|SnippetColumn  |               |snippetNumber="465"<::>columnNumber="1"<::>columnName="filename"|freport100753.txt
  166824| 1|SnippetColumn  |               |snippetNumber="465"<::>columnNumber="2"<::>columnName="empty1"|1
  166834| 1|SnippetColumn  |               |snippetNumber="465"<::>columnNumber="3"<::>columnName="empty2"|1
@@ -13202,6 +13300,7 @@ uncertain||false|false|false|true|0|0|0|255|204|102|Monospaced|+0
  168602| 1|SnippetColumn  |               |snippetNumber="470"<::>columnNumber="2"<::>columnName="empty1"|1
  168612| 1|SnippetColumn  |               |snippetNumber="470"<::>columnNumber="3"<::>columnName="empty2"|1
  168629|292|SnippetColumn  |               |snippetNumber="470"<::>columnNumber="4"<::>columnName="SnippetText"|cough, pleuritic chest pain, or hemoptysis. CARDIOVASCULAR:  Denies any chest pain, tachycardia, palpitations, or  syncope. GASTROINTESTINAL:  Denies any loss of weight, loss of appetite, nausea,  vomiting, or belly pain.  The rest of the review of systems was negative.  SOCIAL HISTORY:  She
+ 168753|44|yes            |               ||GASTROINTESTINAL:  Denies any loss of weight
  169016|17|SnippetColumn  |               |snippetNumber="471"<::>columnNumber="1"<::>columnName="filename"|freport100103.txt
  169042| 1|SnippetColumn  |               |snippetNumber="471"<::>columnNumber="2"<::>columnName="empty1"|1
  169052| 1|SnippetColumn  |               |snippetNumber="471"<::>columnNumber="3"<::>columnName="empty2"|1
@@ -13218,6 +13317,7 @@ uncertain||false|false|false|true|0|0|0|255|204|102|Monospaced|+0
  170135| 1|SnippetColumn  |               |snippetNumber="474"<::>columnNumber="2"<::>columnName="empty1"|1
  170145| 1|SnippetColumn  |               |snippetNumber="474"<::>columnNumber="3"<::>columnName="empty2"|1
  170162|303|SnippetColumn  |               |snippetNumber="474"<::>columnNumber="4"<::>columnName="SnippetText"|1995. Tetanus diphtheria in 2002. Flu vaccine yearly.         REVIEW OF SYSTEMS  The patient denies any unusual change in her appetite, weight loss, nausea,  vomiting, change in bowel habits, no urinary symptomatology.  No  cardiovascular problems such as palpitations, chest pain, wheezing,  paroxysmal
+ 170224|85|yes            |               ||REVIEW OF SYSTEMS  The patient denies any unusual change in her appetite, weight loss
  170560|16|SnippetColumn  |               |snippetNumber="475"<::>columnNumber="1"<::>columnName="filename"|freport38915.txt
  170585| 1|SnippetColumn  |               |snippetNumber="475"<::>columnNumber="2"<::>columnName="empty1"|1
  170595| 1|SnippetColumn  |               |snippetNumber="475"<::>columnNumber="3"<::>columnName="empty2"|1

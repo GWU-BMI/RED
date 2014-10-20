@@ -75,10 +75,10 @@ public class RegExCategorizer {
 		CVScore cvScore = null;
 		
 		initialPositiveRegExs = initialize(true);
-		performTrimming(true);
+		//performTrimming(true);
 		
 		initialNegativeRegExs = initialize(false);
-		performTrimming(false);
+		//performTrimming(false);
 
 		Iterator<RegEx> it = initialPositiveRegExs.iterator();
 		while (it.hasNext()) {
