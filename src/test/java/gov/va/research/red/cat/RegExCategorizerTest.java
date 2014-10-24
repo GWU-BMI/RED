@@ -16,16 +16,19 @@
  */
 package gov.va.research.red.cat;
 
+import gov.va.research.red.CVScore;
 import gov.va.research.red.RegEx;
 import gov.va.research.red.Snippet;
 import gov.va.research.red.VTTReader;
 import gov.va.research.red.VTTReaderTest;
+import gov.va.research.red.ex.REDExCrossValidator;
 
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.junit.After;
@@ -92,6 +95,17 @@ public class RegExCategorizerTest {
 			List<String> noLabels = new ArrayList<>();
 			noLabels.add("no");
 			crex.findRegexesAndSaveInFile(new File(CLASSIFIER_TEST_URI), yesLabels, noLabels, "classifier2.txt", true);
+			
+			REDExCrossValidator rexcv = new REDExCrossValidator();
+			List<CVScore> results = rexcv.crossValidateClassifier(Arrays.asList(new File[] { new File(CLASSIFIER_TEST_URI) }), yesLabels, noLabels, 10);
+			int i = 0;
+			for (CVScore score : results) {
+				System.out.println("--- Run " + (i++) + " ---");
+				System.out.println(score.getEvaluation());
+			}
+			System.out.println("--- Aggregate ---");
+			CVScore aggregate = CVScore.aggregate(results);
+			System.out.println(aggregate.getEvaluation());
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

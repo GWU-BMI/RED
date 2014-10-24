@@ -231,6 +231,82 @@ public class VTTReader {
 	}
 	
 	
+	/**
+	 * Extracts snippets from a vtt file
+	 * @param vttFile The VTT file to extract triplets from.
+	 * @return All snippets in the vtt file.
+	 * @throws IOException
+	 */
+	public Collection<Snippet> extractSnippetsAll(final File vttFile)
+			throws IOException {
+		VttDocument vttDoc = read(vttFile);
+		String docText = vttDoc.GetText();
+		TreeMap<SnippetPosition, Snippet> pos2snips = new TreeMap<>();
+		// Get SnippetText markup
+		for (Markup markup : vttDoc.GetMarkups().GetMarkups()) {
+			if ("SnippetColumn".equals(markup.GetTagName())) {
+				String annotation = markup.GetAnnotation();
+				if (annotation != null && annotation.contains("<::>columnNumber=\"4\"<::>")) {
+					int snippetOffset = markup.GetOffset();
+					int snippetLength = markup.GetLength();
+					int snippetEnd = snippetOffset + snippetLength;
+					String snippetText = docText.substring(snippetOffset, snippetEnd);
+					SnippetPosition snipPos = new SnippetPosition(snippetOffset, snippetEnd);
+					Snippet snippet = new Snippet(snippetText, null);
+					pos2snips.put(snipPos, snippet);
+				}
+			}
+		}
+		
+		List<Snippet> snippets = new ArrayList<>();
+		Tags tags = vttDoc.GetTags();
+		for (Markup markup : vttDoc.GetMarkups().GetMarkups()) {
+			// Check if the markup is not a SnippetColumn
+			if (!"SnippetColumn".equalsIgnoreCase(markup.GetTagName()) && tags.GetTagNames().contains(markup.GetTagName())) {
+
+				// Get the labeled text boundaries
+				int labeledOffset = markup.GetOffset();
+				int labeledLength = markup.GetLength();
+				int labeledEnd = labeledOffset + labeledLength;
+
+				// Find the snippet in which the labeled segment occurs
+				SnippetPosition labelPos = new SnippetPosition(labeledOffset, labeledEnd);
+				Entry<SnippetPosition, Snippet> p2s = pos2snips.floorEntry(labelPos);
+				if (p2s == null) {
+					LOG.error("No enclosing snippet found for label position: " + labelPos);
+				} else if (!(p2s.getKey().start <= labeledOffset && p2s.getKey().end >= labeledEnd)) {
+					LOG.error("Label is not within snippet. Label position:" + labelPos + ", snippet position:" + p2s.getKey());
+				} else {
+					String labStr = docText.substring(labeledOffset, labeledEnd);
+					// Adjust the labeled string boundaries so that it does not have any whitespace prefix or suffix
+					while (Character.isWhitespace(labStr.charAt(0))) {
+						labeledOffset++;
+						labStr = labStr.substring(1);
+						labeledLength--;
+					}
+					while (Character.isWhitespace(labStr.charAt(labStr.length() - 1))) {
+						labeledEnd--;
+						labStr = labStr.substring(0, labStr.length() - 1);
+						labeledLength--;
+					}
+					LabeledSegment ls = new LabeledSegment(markup.GetTagName(), labStr, labeledOffset - p2s.getKey().start, labeledLength);
+					Snippet snippet = p2s.getValue();
+					Collection<LabeledSegment> labeledSegments = snippet.getLabeledSegments();
+					if (labeledSegments == null) {
+						labeledSegments = new ArrayList<LabeledSegment>();
+						snippet.setLabeledSegments(labeledSegments);
+					}
+					labeledSegments.add(ls);
+					if (!snippets.contains(snippet)) {
+						snippets.add(snippet);
+					}
+				}
+			}
+		}
+		return pos2snips.values();
+	}
+	
+	
 	public List<LSTriplet> removeDuplicates(List<LSTriplet> ls3list)
 	{
 				

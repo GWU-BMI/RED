@@ -44,8 +44,10 @@ public class RegExCategorizer {
 	private Map<LabeledSegment, List<RegEx>> lS2Reg = new HashMap<LabeledSegment, List<RegEx>>();
 	private Map<RegEx, List<LabeledSegment>> reg2LsNeg = new HashMap<RegEx, List<LabeledSegment>>();
 	private Map<LabeledSegment, List<RegEx>> lS2RegNeg = new HashMap<LabeledSegment, List<RegEx>>();
+	private String POSITIVE = "POSITIVE";
+	private String NEGATIVE = "NEGATIVE";
 	
-	public void findRegexesAndSaveInFile (
+	public Map<String, List<RegEx>> findRegexesAndSaveInFile (
 			final File vttFile, List<String> yesLabelsParam, List<String> noLabelsParam,
 			final String classifierOutputFileName, boolean printScore) throws IOException {
 		VTTReader vttr = new VTTReader();
@@ -61,24 +63,29 @@ public class RegExCategorizer {
 		}
 		snippetsNoLabel = new ArrayList<Snippet>();
 		snippetsNoLabel.addAll(vttr.extractSnippets(vttFile));
-		extractRegexClassifications();
+		return extractRegexClassifications(snippetsYes, snippetsNo, snippetsNoLabel, yesLabels, noLabels);
 	}
 	
-	public void extractRegexClassifications() throws IOException {
-		if(snippetsYes == null || snippetsYes.isEmpty() || snippetsNo == null || snippetsNo.isEmpty())
-			return;
+	public Map<String, List<RegEx>> extractRegexClassifications(List<Snippet> snippetsYesM, List<Snippet> snippetsNoM, List<Snippet> snippetsNoLabelM, List<String> yesLabelsM, List<String> noLabelsM) throws IOException {
+		snippetsYes = snippetsYesM;
+		snippetsNo = snippetsNoM;
+		snippetsNoLabel = snippetsNoLabelM;
+		yesLabels = yesLabelsM;
+		noLabels = noLabelsM;
+		if (snippetsYes == null || snippetsNo == null)
+			return null;
 		List<Snippet> snippetsAll = new ArrayList<Snippet>();
 		snippetsAll.addAll(snippetsYes);
 		snippetsAll.addAll(snippetsNo);
 		snippetsAll.addAll(snippetsNoLabel);
-		System.out.println(snippetsAll.size());
+		//System.out.println(snippetsAll.size());
 		CVScore cvScore = null;
 		
 		initialPositiveRegExs = initialize(true);
-		//performTrimming(true);
+		performTrimming(true);
 		
 		initialNegativeRegExs = initialize(false);
-		//performTrimming(false);
+		performTrimming(false);
 
 		Iterator<RegEx> it = initialPositiveRegExs.iterator();
 		while (it.hasNext()) {
@@ -101,7 +108,7 @@ public class RegExCategorizer {
 		removeLeastFrequentPos();
 		removeLeastFrequentNeg();
 		cvScore = testClassifier(snippetsAll, initialPositiveRegExs, initialNegativeRegExs, null, yesLabels);
-		System.out.println("Pos regex");
+		/*System.out.println("Pos regex");
 		for (RegEx regEx : initialPositiveRegExs) {
 			System.out.println(regEx.getRegEx()+"\n");
 		}
@@ -109,7 +116,11 @@ public class RegExCategorizer {
 		for (RegEx regEx : initialNegativeRegExs) {
 			System.out.println(regEx.getRegEx()+"\n");
 		}
-		System.out.println(cvScore.getEvaluation());
+		System.out.println(cvScore.getEvaluation());*/
+		Map<String, List<RegEx>> positiveAndNegativeRegEx = new HashMap<String, List<RegEx>>();
+		positiveAndNegativeRegEx.put(POSITIVE, initialPositiveRegExs);
+		positiveAndNegativeRegEx.put(NEGATIVE, initialNegativeRegExs);
+		return positiveAndNegativeRegEx;
 	}
 	
 	private List<RegEx> initialize(boolean positive) {
