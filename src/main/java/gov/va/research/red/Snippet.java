@@ -64,6 +64,5 @@ public class Snippet {
 	public String toString() {
 		return "" + text + " " + labeledSegments;
 	}
-	
-	
+
 }

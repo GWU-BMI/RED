@@ -2,7 +2,7 @@ package gov.va.research.red;
 
 public class RegEx {
 	private String regEx;
-	private int specifity = 1;
+	private int specifity = 0;
 	
 	public RegEx(String regEx) {
 		this.regEx = regEx;

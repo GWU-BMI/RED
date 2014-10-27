@@ -107,6 +107,39 @@ public class RegExCategorizer {
 		createFrequencyMapNeg();
 		removeLeastFrequentPos();
 		removeLeastFrequentNeg();
+		
+		for (RegEx regEx : initialPositiveRegExs) {
+			int specifity = 0;
+			for (Snippet snippet : snippetsYes) {
+				Pattern p = patternCache.get(regEx);
+				if (p == null) {
+					p = Pattern.compile(regEx.getRegEx());
+					patternCache.put(regEx, p);
+				}
+				Matcher matcher = p.matcher(snippet.getText());
+				if (matcher.find()) {
+					specifity++;
+				}
+			}
+			regEx.setSpecifity(specifity);
+		}
+		
+		for (RegEx regEx : initialNegativeRegExs) {
+			int specifity = 0;
+			for (Snippet snippet : snippetsNo) {
+				Pattern p = patternCache.get(regEx);
+				if (p == null) {
+					p = Pattern.compile(regEx.getRegEx());
+					patternCache.put(regEx, p);
+				}
+				Matcher matcher = p.matcher(snippet.getText());
+				if (matcher.find()) {
+					specifity++;
+				}
+			}
+			regEx.setSpecifity(specifity);
+		}
+		
 		cvScore = testClassifier(snippetsAll, initialPositiveRegExs, initialNegativeRegExs, null, yesLabels);
 		/*System.out.println("Pos regex");
 		for (RegEx regEx : initialPositiveRegExs) {
@@ -545,7 +578,7 @@ public class RegExCategorizer {
 		}
 	}
 	
-	public CVScore testClassifier(List<Snippet> testing, Collection<RegEx> regularExpressions, Collection<RegEx> negativeRegularExpressions, CategorizerTester tester, List<String> labels) {
+	public CVScore testClassifier(List<Snippet> testing, Collection<RegEx> regularExpressions, Collection<RegEx> negativeRegularExpressions, CategorizerTester tester, List<String> labels) throws IOException {
 		CVScore score = new CVScore();
 		if(tester == null)
 			tester = new CategorizerTester();
