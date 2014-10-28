@@ -30,6 +30,7 @@ import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 import org.junit.After;
 import org.junit.AfterClass;
@@ -94,8 +95,15 @@ public class RegExCategorizerTest {
 			yesLabels.add("yes");
 			List<String> noLabels = new ArrayList<>();
 			noLabels.add("no");
-			crex.findRegexesAndSaveInFile(new File(CLASSIFIER_TEST_URI), yesLabels, noLabels, "classifier2.txt", true);
-			
+			Map<String, List<RegEx>> retMap = crex.findRegexesAndSaveInFile(new File(CLASSIFIER_TEST_URI), yesLabels, noLabels, "classifier2.txt", true);
+			System.out.println("Pos regex");
+			for (RegEx regEx : retMap.get("POSITIVE")) {
+				System.out.println(regEx.getRegEx());
+			}
+			System.out.println("Neg regex");
+			for (RegEx regEx : retMap.get("NEGATIVE")) {
+				System.out.println(regEx.getRegEx());
+			}
 			REDExCrossValidator rexcv = new REDExCrossValidator();
 			List<CVScore> results = rexcv.crossValidateClassifier(Arrays.asList(new File[] { new File(CLASSIFIER_TEST_URI) }), yesLabels, noLabels, 10);
 			int i = 0;

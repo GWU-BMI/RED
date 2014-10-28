@@ -46,6 +46,7 @@ public class RegExCategorizer {
 	private Map<LabeledSegment, List<RegEx>> lS2RegNeg = new HashMap<LabeledSegment, List<RegEx>>();
 	private String POSITIVE = "POSITIVE";
 	private String NEGATIVE = "NEGATIVE";
+	private boolean PERFORM_TRIMMING = true;
 	
 	public Map<String, List<RegEx>> findRegexesAndSaveInFile (
 			final File vttFile, List<String> yesLabelsParam, List<String> noLabelsParam,
@@ -82,10 +83,7 @@ public class RegExCategorizer {
 		CVScore cvScore = null;
 		
 		initialPositiveRegExs = initialize(true);
-		//performTrimming(true);
-		
 		initialNegativeRegExs = initialize(false);
-		//performTrimming(false);
 
 		Iterator<RegEx> it = initialPositiveRegExs.iterator();
 		while (it.hasNext()) {
@@ -107,6 +105,11 @@ public class RegExCategorizer {
 		createFrequencyMapNeg();
 		removeLeastFrequentPos();
 		removeLeastFrequentNeg();
+		
+		if (PERFORM_TRIMMING) {
+			performTrimming(true);
+			performTrimming(false);
+		}
 		
 		for (RegEx regEx : initialPositiveRegExs) {
 			int specifity = 0;
@@ -140,7 +143,7 @@ public class RegExCategorizer {
 			regEx.setSpecifity(specifity);
 		}
 		
-		cvScore = testClassifier(snippetsAll, initialPositiveRegExs, initialNegativeRegExs, null, yesLabels);
+		//cvScore = testClassifier(snippetsAll, initialPositiveRegExs, initialNegativeRegExs, null, yesLabels);
 		/*System.out.println("Pos regex");
 		for (RegEx regEx : initialPositiveRegExs) {
 			System.out.println(regEx.getRegEx()+"\n");
@@ -148,8 +151,8 @@ public class RegExCategorizer {
 		System.out.println("\nNeg regex");
 		for (RegEx regEx : initialNegativeRegExs) {
 			System.out.println(regEx.getRegEx()+"\n");
-		}
-		System.out.println(cvScore.getEvaluation());*/
+		}*/
+		/*System.out.println(cvScore.getEvaluation());*/
 		Map<String, List<RegEx>> positiveAndNegativeRegEx = new HashMap<String, List<RegEx>>();
 		positiveAndNegativeRegEx.put(POSITIVE, initialPositiveRegExs);
 		positiveAndNegativeRegEx.put(NEGATIVE, initialNegativeRegExs);
@@ -201,8 +204,8 @@ public class RegExCategorizer {
 				int posScore = calculatePositiveScore(regEx, true, false);
 				int negScore = calculateNegativeScore(regEx, true, false);
 				String regExStr = regEx.getRegEx();
-				String replacedString = regExStr.replaceAll("(?i)"+"\\\\}"+leastFreqEntry.getKey()+"\\\\", "}\\\\S+\\\\");
-				replacedString = regExStr.replaceAll("(?i)"+"\\\\+"+leastFreqEntry.getKey()+"\\\\", "+\\\\S+\\\\");
+				String replacedString = regExStr.replaceAll("(?i)"+"}"+leastFreqEntry.getKey()+"\\\\", "}\\\\S{1,"+leastFreqEntry.getKey().length()+"}\\\\");
+				replacedString = replacedString.replaceAll("(?i)"+"\\\\+"+leastFreqEntry.getKey()+"\\\\", "+\\\\S{1,"+leastFreqEntry.getKey().length()+"}\\\\");
 				RegEx temp = new RegEx(replacedString);
 				int tempPosScore = calculatePositiveScore(temp, true, false);
 				int tempNegScore = calculateNegativeScore(temp, true, false);
@@ -239,8 +242,8 @@ public class RegExCategorizer {
 				int posScore = calculatePositiveScore(regEx, false, false);
 				int negScore = calculateNegativeScore(regEx, false, false);
 				String regExStr = regEx.getRegEx();
-				String replacedString = regExStr.replaceAll("(?i)"+"\\\\}"+leastFreqEntry.getKey()+"\\\\", "}\\\\S+\\\\");
-				replacedString = regExStr.replaceAll("(?i)"+"\\\\+"+leastFreqEntry.getKey()+"\\\\", "+\\\\S+\\\\");
+				String replacedString = regExStr.replaceAll("(?i)"+"}"+leastFreqEntry.getKey()+"\\\\", "}\\\\S{1,"+leastFreqEntry.getKey().length()+"}\\\\");
+				replacedString = replacedString.replaceAll("(?i)"+"\\\\+"+leastFreqEntry.getKey()+"\\\\", "+\\\\S{1,"+leastFreqEntry.getKey().length()+"}\\\\");
 				RegEx temp = new RegEx(replacedString);
 				int tempPosScore = calculatePositiveScore(temp, false, false);
 				int tempNegScore = calculateNegativeScore(temp, false, false);
@@ -256,7 +259,7 @@ public class RegExCategorizer {
 			String[] regExStrArray = regEx.getRegEx().split("\\\\s\\{1,50\\}|\\\\p\\{Punct\\}|\\\\d\\+");
 			for (String word : regExStrArray) {
 				String lowerCase = word.toLowerCase();
-				if (!lowerCase.equals("") && lowerCase.length() > 1) {
+				if (!lowerCase.equals("")) {
 					if (wordFreqMapPos.containsKey(lowerCase)) {
 						int count = wordFreqMapPos.get(lowerCase);
 						wordFreqMapPos.put(lowerCase, ++count);
@@ -273,7 +276,7 @@ public class RegExCategorizer {
 			String[] regExStrArray = regEx.getRegEx().split("\\\\s\\{1,50\\}|\\\\p\\{Punct\\}|\\\\d\\+");
 			for (String word : regExStrArray) {
 				String lowerCase = word.toLowerCase();
-				if (!lowerCase.equals("")  && lowerCase.length() > 1) {
+				if (!lowerCase.equals("")) {
 					if (wordFreqMapNeg.containsKey(lowerCase)) {
 						int count = wordFreqMapNeg.get(lowerCase);
 						wordFreqMapNeg.put(lowerCase, ++count);
