@@ -124,7 +124,7 @@ public class RegExCategorizer {
 					specifity++;
 				}
 			}
-			regEx.setSpecifity(specifity);
+			regEx.setSpecifity(specifity/initialPositiveRegExs.size());
 		}
 		
 		for (RegEx regEx : initialNegativeRegExs) {
@@ -140,8 +140,20 @@ public class RegExCategorizer {
 					specifity++;
 				}
 			}
-			regEx.setSpecifity(specifity);
+			regEx.setSpecifity(specifity/initialNegativeRegExs.size());
 		}
+		
+		// collapsing
+		
+		/*for (RegEx regEx : initialPositiveRegExs) {
+			collapse(regEx);
+		}
+		
+		for (RegEx regEx : initialNegativeRegExs) {
+			collapse(regEx);
+		}*/
+		
+		// end collapsing
 		
 		//cvScore = testClassifier(snippetsAll, initialPositiveRegExs, initialNegativeRegExs, null, yesLabels);
 		/*System.out.println("Pos regex");
@@ -157,6 +169,68 @@ public class RegExCategorizer {
 		positiveAndNegativeRegEx.put(POSITIVE, initialPositiveRegExs);
 		positiveAndNegativeRegEx.put(NEGATIVE, initialNegativeRegExs);
 		return positiveAndNegativeRegEx;
+	}
+	
+	private void collapse(RegEx regEx) {
+		String regStr = regEx.getRegEx();
+		while (regStr.contains("[a-zA-Z]+")) {
+			int startIndex = regStr.indexOf("[a-zA-Z]+");
+			int start = startIndex;
+			boolean found = false;
+			int n = 1;
+			while (start > 7) {
+				boolean breakCond = true;
+				if (regStr.subSequence(start-8, start).equals("\\s{1,50}")) {
+					start = start - 8;
+					breakCond = false;
+					found = true;
+					n++;
+				}
+				if (start > 8) {
+					if (regStr.subSequence(start-9, start).equals("[a-zA-Z]+")) {
+						start = start - 9;
+						breakCond = false;
+						found = true;
+						n++;
+					}
+				}
+				if (breakCond) {
+					break;
+				}
+			}
+			int end = startIndex+9;
+			while (end <= regEx.getRegEx().length()-8) {
+				boolean breakCond = true;
+				if (regStr.subSequence(end, end + 8).equals("\\s{1,50}")) {
+					end = end + 8;
+					breakCond = false;
+					found = true;
+					n++;
+				}
+				if (end <=  regEx.getRegEx().length()-9) {
+					if (regStr.subSequence(end, end+9).equals("[a-zA-Z]+")) {
+						end = end + 9;
+						breakCond = false;
+						found = true;
+						n++;
+					}
+				}
+				if (breakCond) {
+					break;
+				}
+			}
+			if (found) {
+				StringBuilder regStrBld = new StringBuilder(regStr);
+				regStrBld.replace(start, end, "[A-Za-z ]+");
+				regEx.setRegEx(regStrBld.toString());
+				regStr = regStrBld.toString();
+			} else {
+				StringBuilder regStrBld = new StringBuilder(regStr);
+				regStrBld.replace(start, end, "[A-Za-z]+");
+				regEx.setRegEx(regStrBld.toString());
+				regStr = regStrBld.toString();
+			}
+		}
 	}
 	
 	private List<RegEx> initialize(boolean positive) {
@@ -204,13 +278,17 @@ public class RegExCategorizer {
 				int posScore = calculatePositiveScore(regEx, true, false);
 				int negScore = calculateNegativeScore(regEx, true, false);
 				String regExStr = regEx.getRegEx();
-				String replacedString = regExStr.replaceAll("(?i)"+"}"+leastFreqEntry.getKey()+"\\\\", "}\\\\S{1,"+leastFreqEntry.getKey().length()+"}\\\\");
-				replacedString = replacedString.replaceAll("(?i)"+"\\\\+"+leastFreqEntry.getKey()+"\\\\", "+\\\\S{1,"+leastFreqEntry.getKey().length()+"}\\\\");
+				if (regExStr.contains(leastFreqEntry.getKey())) {
+					System.out.print("");
+				}
+				String replacedString = regExStr.replaceAll("(?i)"+"}"+leastFreqEntry.getKey()+"\\\\", "}[a-zA-Z]+\\\\");
+				replacedString = replacedString.replaceAll("(?i)"+"\\\\+"+leastFreqEntry.getKey()+"\\\\", "+[a-zA-Z]+\\\\");
 				RegEx temp = new RegEx(replacedString);
 				int tempPosScore = calculatePositiveScore(temp, true, false);
 				int tempNegScore = calculateNegativeScore(temp, true, false);
 				if (tempPosScore >= posScore && tempNegScore <= negScore) {
 					regEx.setRegEx(replacedString);
+					collapse(regEx);
 				}
 			}
 		}
@@ -242,13 +320,14 @@ public class RegExCategorizer {
 				int posScore = calculatePositiveScore(regEx, false, false);
 				int negScore = calculateNegativeScore(regEx, false, false);
 				String regExStr = regEx.getRegEx();
-				String replacedString = regExStr.replaceAll("(?i)"+"}"+leastFreqEntry.getKey()+"\\\\", "}\\\\S{1,"+leastFreqEntry.getKey().length()+"}\\\\");
-				replacedString = replacedString.replaceAll("(?i)"+"\\\\+"+leastFreqEntry.getKey()+"\\\\", "+\\\\S{1,"+leastFreqEntry.getKey().length()+"}\\\\");
+				String replacedString = regExStr.replaceAll("(?i)"+"}"+leastFreqEntry.getKey()+"\\\\", "}[a-zA-Z]+\\\\");
+				replacedString = replacedString.replaceAll("(?i)"+"\\\\+"+leastFreqEntry.getKey()+"\\\\", "+[a-zA-Z]+\\\\");
 				RegEx temp = new RegEx(replacedString);
 				int tempPosScore = calculatePositiveScore(temp, false, false);
 				int tempNegScore = calculateNegativeScore(temp, false, false);
 				if (tempPosScore <= posScore && tempNegScore >= negScore) {
 					regEx.setRegEx(replacedString);
+					collapse(regEx);
 				}
 			}
 		}

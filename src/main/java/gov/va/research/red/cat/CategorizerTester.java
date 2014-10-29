@@ -31,7 +31,8 @@ public class CategorizerTester {
 	}
 	
 	public boolean test(Collection<RegEx> regularExpressions, Collection<RegEx> negativeregularExpressions, Snippet snippet) throws IOException{
-		int posScore = 0,negScore = 0, maxPosSpecifity =0, maxNegSpecifity = 0;
+		int posScore = 0,negScore = 0;
+		double maxPosSpecifity =0.0, maxNegSpecifity = 0.0;
 		writer.newLine();
 		writer.newLine();
 		writer.newLine();
@@ -54,7 +55,7 @@ public class CategorizerTester {
 				writer.write(segment.getRegEx());
 				writer.newLine();
 				posScore++;
-				if (segment.getSpecifity() > maxPosSpecifity) {
+				if (Double.compare(segment.getSpecifity(), maxPosSpecifity) > 0) {
 					maxPosSpecifity = segment.getSpecifity();
 				}
 			}
@@ -76,18 +77,18 @@ public class CategorizerTester {
 				writer.write(segment.getRegEx());
 				writer.newLine();
 				negScore++;
-				if (segment.getSpecifity() > maxNegSpecifity) {
+				if (Double.compare(segment.getSpecifity(), maxNegSpecifity) > 0) {
 					maxNegSpecifity = segment.getSpecifity();
 				}
 			}
 		}
 		writer.flush();
-		if (maxPosSpecifity > maxNegSpecifity) {
-			return true;
-		}
-		/*if (posScore > negScore) {
+		/*if (Double.compare(maxPosSpecifity, maxNegSpecifity) > 0) {
 			return true;
 		}*/
+		if (posScore > negScore) {
+			return true;
+		}
 		/*if (posScore == negScore && posScore > 0) {
 			return true;
 		}*/
