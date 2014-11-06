@@ -6,3 +6,10 @@
 *.txt
 temp/
 categorizerErrorTesting
+*.swp
+Negative_Labeled_Segment_freq
+Negative_Labeled_Segments
+Negative_Snippets
+Positive_Labeled_Segment_freq
+Positive_Labeled_Segments
+Positive_Snippets

@@ -96,13 +96,13 @@ public class RegExCategorizerTest {
 			List<String> noLabels = new ArrayList<>();
 			noLabels.add("no");
 			Map<String, List<RegEx>> retMap = crex.findRegexesAndSaveInFile(new File(CLASSIFIER_TEST_URI), yesLabels, noLabels, "classifier2.txt", true);
-			System.out.println("Pos regex");
+			/*System.out.println("Pos regex");
 			for (RegEx regEx : retMap.get("POSITIVE")) {
-				System.out.println(regEx.getRegEx());
+				System.out.println(regEx.getRegEx()+"\t"+regEx.getSpecifity());
 			}
 			System.out.println("Neg regex");
 			for (RegEx regEx : retMap.get("NEGATIVE")) {
-				System.out.println(regEx.getRegEx());
+				System.out.println(regEx.getRegEx()+"\t"+regEx.getSpecifity());
 			}
 			REDExCrossValidator rexcv = new REDExCrossValidator();
 			List<CVScore> results = rexcv.crossValidateClassifier(Arrays.asList(new File[] { new File(CLASSIFIER_TEST_URI) }), yesLabels, noLabels, 10);
@@ -113,7 +113,7 @@ public class RegExCategorizerTest {
 			}
 			System.out.println("--- Aggregate ---");
 			CVScore aggregate = CVScore.aggregate(results);
-			System.out.println(aggregate.getEvaluation());
+			System.out.println(aggregate.getEvaluation());*/
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

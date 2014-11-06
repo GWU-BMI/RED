@@ -30,17 +30,18 @@ public class CategorizerTester {
 		writer.close();
 	}
 	
-	public boolean test(Collection<RegEx> regularExpressions, Collection<RegEx> negativeregularExpressions, Snippet snippet) throws IOException{
+	public boolean test(Collection<RegEx> regularExpressions, Collection<RegEx> negativeregularExpressions, Snippet snippet, boolean actual) throws IOException{
 		int posScore = 0,negScore = 0;
 		double maxPosSpecifity =0.0, maxNegSpecifity = 0.0;
-		writer.newLine();
-		writer.newLine();
-		writer.newLine();
-		writer.write("The snippet \n\n");
-		writer.write(snippet.getText());
-		writer.newLine();
-		writer.newLine();
-		writer.write("Positive regex that matched \n\n");
+		StringBuilder strToWrite = new StringBuilder();
+		strToWrite.append("\n");
+		strToWrite.append("\n");
+		strToWrite.append("\n");
+		strToWrite.append("The snippet \n\n");
+		strToWrite.append(snippet.getText());
+		strToWrite.append("\n");
+		strToWrite.append("\n");
+		strToWrite.append("Positive regex that matched \n\n");
 		for(RegEx segment : regularExpressions){
 			Pattern pattern = null;
 			if(patternCache.containsKey(segment.getRegEx())){
@@ -52,17 +53,17 @@ public class CategorizerTester {
 			Matcher matcher = pattern.matcher(snippet.getText());
 			boolean test = matcher.find();
 			if(test) {
-				writer.write(segment.getRegEx());
-				writer.newLine();
+				strToWrite.append(segment.getRegEx()+"\t"+segment.getSpecifity());
+				strToWrite.append("\n");
 				posScore++;
 				if (Double.compare(segment.getSpecifity(), maxPosSpecifity) > 0) {
 					maxPosSpecifity = segment.getSpecifity();
 				}
 			}
 		}
-		writer.newLine();
-		writer.newLine();
-		writer.write("Negative regex that matched \n\n");
+		strToWrite.append("\n");
+		strToWrite.append("\n");
+		strToWrite.append("Negative regex that matched \n\n");
 		for(RegEx segment : negativeregularExpressions){
 			Pattern pattern = null;
 			if(patternCache.containsKey(segment.getRegEx())){
@@ -74,24 +75,32 @@ public class CategorizerTester {
 			Matcher matcher = pattern.matcher(snippet.getText());
 			boolean test = matcher.find();
 			if(test) {
-				writer.write(segment.getRegEx());
-				writer.newLine();
+				strToWrite.append(segment.getRegEx()+"\t"+segment.getSpecifity());
+				strToWrite.append("\n");
 				negScore++;
 				if (Double.compare(segment.getSpecifity(), maxNegSpecifity) > 0) {
 					maxNegSpecifity = segment.getSpecifity();
 				}
 			}
 		}
-		writer.flush();
-		/*if (Double.compare(maxPosSpecifity, maxNegSpecifity) > 0) {
-			return true;
-		}*/
-		if (posScore > negScore) {
-			return true;
+		//writer.flush();
+		
+		boolean predicted = false;
+		if (Double.compare(maxPosSpecifity, maxNegSpecifity) > 0) {
+			predicted = true;
 		}
+		/*if (posScore > negScore) {
+			predicted = true;
+		} else {
+			predicted =  false;
+		}*/
 		/*if (posScore == negScore && posScore > 0) {
 			return true;
 		}*/
-		return false;
+		if ((!actual && predicted) || (actual && !predicted)) {
+			writer.write(strToWrite.toString());
+			writer.flush();
+		}
+		return predicted;
 	}
 }

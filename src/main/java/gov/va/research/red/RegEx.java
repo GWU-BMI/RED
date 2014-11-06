@@ -21,6 +21,14 @@ public class RegEx {
 		return regEx;
 	}
 
+	public double getSpecifity() {
+		return specifity;
+	}
+
+	public void setSpecifity(double specifity) {
+		this.specifity = specifity;
+	}
+
 	@Override
 	public int hashCode() {
 		final int prime = 31;
@@ -44,14 +52,6 @@ public class RegEx {
 		} else if (!regEx.equals(other.regEx))
 			return false;
 		return true;
-	}
-
-	public double getSpecifity() {
-		return specifity;
-	}
-
-	public void setSpecifity(double specifity) {
-		this.specifity = specifity;
 	}
 	
 }
