@@ -48,8 +48,10 @@ public class RegExCategorizer {
 	private Map<LabeledSegment, List<RegEx>> lS2RegNeg = new HashMap<LabeledSegment, List<RegEx>>();
 	private String POSITIVE = "POSITIVE";
 	private String NEGATIVE = "NEGATIVE";
-	private boolean PERFORM_TRIMMING = false;
+	private boolean PERFORM_TRIMMING = true;
 	private boolean PERFORM_TRIMMING_OVERALL = true;
+	private boolean PERFORM_USELESS_REMOVAL_OVERALL = true;
+	private boolean PERFORM_USELESS_REMOVAL = true;
 	private boolean FILE_TRANSFER = true;
 	private boolean NOT_KEYWORD_TRAINING = true;
 	
@@ -122,7 +124,7 @@ public class RegExCategorizer {
 		removeDuplicates(false);
 		
 		
-		System.out.println("\nREPLACEMENT and COLLAPSSING\n");
+		//System.out.println("\nREPLACEMENT and COLLAPSSING\n");
 		createFrequencyMapPos();
 		createFrequencyMapNeg();
 		removeLeastFrequentPos();
@@ -132,7 +134,7 @@ public class RegExCategorizer {
 		
 		
 		if (PERFORM_TRIMMING_OVERALL) {
-			System.out.println("\nTRIMMING\n");
+			//System.out.println("\nTRIMMING\n");
 			performTrimming(true);
 			performTrimming(false);
 			removeDuplicates(true);
@@ -154,9 +156,15 @@ public class RegExCategorizer {
 		
 		// end collapsing
 		
-		System.out.println("\nUSELESS REMOVER\n");
-		uselessRegRemover(true);
-		uselessRegRemover(false);
+		if (PERFORM_USELESS_REMOVAL_OVERALL) {
+			//System.out.println("\nUSELESS REMOVER\n");
+			for (RegEx regEx : initialPositiveRegExs) {
+				uselessRegRemover(regEx, true);
+			}
+			for (RegEx regEx : initialNegativeRegExs) {
+				uselessRegRemover(regEx, false);
+			}
+		}
 		
 		for (RegEx regEx : initialPositiveRegExs) {
 			overallCollapser(regEx, true);
@@ -201,14 +209,14 @@ public class RegExCategorizer {
 		}
 		
 		//cvScore = testClassifier(snippetsAll, initialPositiveRegExs, initialNegativeRegExs, null, yesLabels);
-		System.out.println("Pos regex");
+		/*System.out.println("Pos regex");
 		for (RegEx regEx : initialPositiveRegExs) {
 			System.out.println(regEx.getRegEx()+"\t"+regEx.getSpecifity()+"\n");
 		}
 		System.out.println("\nNeg regex");
 		for (RegEx regEx : initialNegativeRegExs) {
 			System.out.println(regEx.getRegEx()+"\t"+regEx.getSpecifity()+"\n");
-		}
+		}*/
 		/*System.out.println(cvScore.getEvaluation());*/
 		Map<String, List<RegEx>> positiveAndNegativeRegEx = new HashMap<String, List<RegEx>>();
 		positiveAndNegativeRegEx.put(POSITIVE, initialPositiveRegExs);
@@ -350,38 +358,39 @@ public class RegExCategorizer {
 		}
 	}
 	
-	private void uselessRegRemover(boolean positive){
-		List<RegEx> listToWorkWith = null;
-		if (positive) {
-			listToWorkWith = initialPositiveRegExs;
-		} else {
-			listToWorkWith = initialNegativeRegExs;
-		}
-		for (RegEx regEx : listToWorkWith) {
-			String old = regEx.getRegEx();
-			String regExStr = regEx.getRegEx();
-			StringBuilder regExStrBld = new StringBuilder(regExStr);
-			String backup = null;
-			int start = 0,end =0;
-			while (true) {
-				backup = regExStrBld.toString();
-				int posScore = calculatePositiveScore(regEx, positive, false);
-				int negScore = calculateNegativeScore(regEx, positive, false);
-				int noLabelScore = calculateNoLabelScore(regEx);
-				if (positive) {
-					negScore += noLabelScore;
-					//regEx.setSpecifity(posScore);
-				} else {
-					posScore += noLabelScore;
-					//regEx.setSpecifity(negScore);
-				}
+	private void uselessRegRemover(RegEx regEx, boolean positive){		
+		String old = regEx.getRegEx();
+		String regExStr = regEx.getRegEx();
+		StringBuilder regExStrBld = new StringBuilder(regExStr);
+		String backup = null;
+		int start = 0,end =0;
+		while (true) {
+			backup = regExStrBld.toString();
+			int posScore = calculatePositiveScore(regEx, positive, false);
+			int negScore = calculateNegativeScore(regEx, positive, false);
+			int noLabelScore = calculateNoLabelScore(regEx);
+			if (positive) {
+				negScore += noLabelScore;
+				//regEx.setSpecifity(posScore);
+			} else {
+				posScore += noLabelScore;
+				//regEx.setSpecifity(negScore);
+			}
+			while (start < backup.length() && backup.charAt(start) != '\\' && backup.charAt(start) != '[') {
+				start++;
 				end++;
-				while (end < backup.length() && backup.charAt(end) != '\\') {
-					end++;
-				}
-				if (end == backup.length()) {
-					break;
-				}
+			}
+			if (start == backup.length()) {
+				break;
+			}
+			while (end < backup.length() && backup.charAt(end) != '}' && backup.charAt(end) != '+') {
+				end++;
+			}
+			end++;
+			if (end == backup.length()) {
+				break;
+			}
+			//if (regExStrBld.charAt(start) == '\\' || regExStrBld.charAt(start) == '[') {
 				regExStrBld.replace(start, end, "");
 				regEx.setRegEx(regExStrBld.toString());
 				int tempPosScore = calculatePositiveScore(regEx, positive, false);
@@ -411,13 +420,14 @@ public class RegExCategorizer {
 						regExStrBld = new StringBuilder(backup);
 					}
 				}
-			}
-			String regStr = regEx.getRegEx(); 
-			if (!regStr.equals(old) && regStr.contains("trochanteric")) {
-				System.out.println(regStr);
-			}
+			/*} else {
+				start = end;
+			}*/
 		}
-		removeDuplicates(positive);
+		/*String regStr = regEx.getRegEx(); 
+		if (!regStr.equals(old) && regStr.contains("trochanteric")) {
+			System.out.println(regStr);
+		}*/
 	}
 	
 	private void overallCollapser(RegEx regEx, boolean positive) {
@@ -578,9 +588,9 @@ public class RegExCategorizer {
 				if (positive) {
 					if (tempPosScore >= posScore && tempNegScore <= negScore) {
 						regStr = regStrBld.toString();
-						if (regStr.contains("trochanteric")) {
+						/*if (regStr.contains("trochanteric")) {
 							System.out.println(regStr);
-						}
+						}*/
 					} else {
 						regStrBld = new StringBuilder(regStr);
 						regStrBld.replace(initialStart, initalEnd-6, "[A-Za-z]");
@@ -602,9 +612,9 @@ public class RegExCategorizer {
 				regStrBld.replace(start, end-6, "[A-Za-z]");
 				regEx.setRegEx(regStrBld.toString());
 				regStr = regStrBld.toString();
-				if (regStr.contains("trochanteric")) {
+				/*if (regStr.contains("trochanteric")) {
 					System.out.println(regStr);
-				}
+				}*/
 			}
 		}
 	}
@@ -651,6 +661,9 @@ public class RegExCategorizer {
 		for (int i=0;i< leastfreqWordRemovalLevel;i++) {
 			Entry<String, Integer> leastFreqEntry = sortedEntryList.get(i);
 			//if (NOT_KEYWORD_TRAINING || (!leastFreqEntry.getKey().equalsIgnoreCase("diabetes") && !leastFreqEntry.getKey().equalsIgnoreCase("history") && !leastFreqEntry.getKey().equalsIgnoreCase("mellitus") && !leastFreqEntry.getKey().equalsIgnoreCase("family") && !leastFreqEntry.getKey().equalsIgnoreCase("past"))) {
+			/*if (leastFreqEntry.getKey().length() == 1) {
+				continue;
+			}*/
 				for (RegEx regEx : initialPositiveRegExs) {
 					int posScore = calculatePositiveScore(regEx, true, false);
 					int negScore = calculateNegativeScore(regEx, true, false);
@@ -658,16 +671,49 @@ public class RegExCategorizer {
 					negScore += noLabelScore;
 					
 					String regExStr = regEx.getRegEx();
-					if (regExStr.contains(leastFreqEntry.getKey())) {
-						System.out.print("");
-					}
+					if (leastFreqEntry.getKey().equalsIgnoreCase("As") && regExStr.contains("her") && regExStr.contains("As")) {
+						int a = 1;
+						a++;
+					} /*else {
+						continue;
+					}*/
 					String replacedString = null;
 					if (leastFreqEntry.getKey().length() < 10) {
-						replacedString = regExStr.replaceAll("(?i)"+"}"+leastFreqEntry.getKey()+"\\\\", "}[a-zA-Z]{1,0"+leastFreqEntry.getKey().length()+"}\\\\");
-						replacedString = replacedString.replaceAll("(?i)"+"\\\\+"+leastFreqEntry.getKey()+"\\\\", "+[a-zA-Z]{1,0"+leastFreqEntry.getKey().length()+"}\\\\");
+						replacedString = regExStr.replaceAll("(?i)}"+leastFreqEntry.getKey()+"\\\\", "}[a-zA-Z]{1,0"+leastFreqEntry.getKey().length()+"}\\\\");
+						replacedString = replacedString.replaceAll("(?i)}"+leastFreqEntry.getKey()+"\\[", "}[a-zA-Z]{1,0"+leastFreqEntry.getKey().length()+"}[");
+						int start = 0;
+						while (start < replacedString.length() && replacedString.charAt(start) != '\\' && replacedString.charAt(start) != '[') {
+							start++;
+						}
+						if (leastFreqEntry.getKey().equalsIgnoreCase(replacedString.substring(0, start))) {
+							replacedString = "[a-zA-Z]{1,0"+leastFreqEntry.getKey().length()+"}"+replacedString.substring(start, replacedString.length());
+						}
+						int end = replacedString.length();
+						end--;
+						while ( end > 0 && replacedString.charAt(end) != '}' && replacedString.charAt(end) != '+') {
+							end--;
+						}
+						if (leastFreqEntry.getKey().equalsIgnoreCase(replacedString.substring(end+1, replacedString.length()))) {
+							replacedString = replacedString.substring(0, end+1)+"[a-zA-Z]{1,0"+leastFreqEntry.getKey().length()+"}";
+						}
 					} else {
-						replacedString = regExStr.replaceAll("(?i)"+"}"+leastFreqEntry.getKey()+"\\\\", "}[a-zA-Z]{1,"+leastFreqEntry.getKey().length()+"}\\\\");
-						replacedString = replacedString.replaceAll("(?i)"+"\\\\+"+leastFreqEntry.getKey()+"\\\\", "+[a-zA-Z]{1,"+leastFreqEntry.getKey().length()+"}\\\\");
+						replacedString = regExStr.replaceAll("(?i)}"+leastFreqEntry.getKey()+"\\\\", "}[a-zA-Z]{1,"+leastFreqEntry.getKey().length()+"}\\\\");
+						replacedString = replacedString.replaceAll("(?i)}"+leastFreqEntry.getKey()+"\\[", "}[a-zA-Z]{1,"+leastFreqEntry.getKey().length()+"}[");
+						int start = 0;
+						while (start < replacedString.length() && replacedString.charAt(start) != '\\' && replacedString.charAt(start) != '[') {
+							start++;
+						}
+						if (leastFreqEntry.getKey().equalsIgnoreCase(replacedString.substring(0, start))) {
+							replacedString = "[a-zA-Z]{1,"+leastFreqEntry.getKey().length()+"}"+replacedString.substring(start, replacedString.length());
+						}
+						int end = replacedString.length();
+						end--;
+						while ( end > 0 && replacedString.charAt(end) != '}' && replacedString.charAt(end) != '+') {
+							end--;
+						}
+						if (leastFreqEntry.getKey().equalsIgnoreCase(replacedString.substring(end+1, replacedString.length()))) {
+							replacedString = replacedString.substring(0, end+1)+"[a-zA-Z]{1,"+leastFreqEntry.getKey().length()+"}";
+						}
 					}
 					RegEx temp = new RegEx(replacedString);
 					int tempPosScore = calculatePositiveScore(temp, true, false);
@@ -676,13 +722,16 @@ public class RegExCategorizer {
 					tempNegScore += tempnoLabelScore;
 					if (tempPosScore >= posScore && tempNegScore <= negScore) {
 						regEx.setRegEx(replacedString);
-						if (replacedString.contains("trochanteric")) {
+						/*if (replacedString.contains("trochanteric")) {
 							System.out.println(replacedString);
-						}
+						}*/
 						collapse(regEx, true);
 						//overallCollapser(regEx, true);
 						if (PERFORM_TRIMMING) {
 							performTrimmingIndividual(regEx, true);
+						}
+						if (PERFORM_USELESS_REMOVAL) {
+							uselessRegRemover(regEx, true);
 						}
 					}
 				}
@@ -712,6 +761,9 @@ public class RegExCategorizer {
 		//}
 		for (int i=0;i< leastfreqWordRemovalLevel;i++) {
 			Entry<String, Integer> leastFreqEntry = sortedEntryList.get(i);
+			/*if (leastFreqEntry.getKey().length() == 1) {
+				continue;
+			}*/
 			//if (NOT_KEYWORD_TRAINING || (!leastFreqEntry.getKey().equalsIgnoreCase("diabetes") && !leastFreqEntry.getKey().equalsIgnoreCase("history") && !leastFreqEntry.getKey().equalsIgnoreCase("mellitus") && !leastFreqEntry.getKey().equalsIgnoreCase("family") && !leastFreqEntry.getKey().equalsIgnoreCase("past"))) {
 				for (RegEx regEx : initialNegativeRegExs) {
 					int posScore = calculatePositiveScore(regEx, false, false);
@@ -721,11 +773,41 @@ public class RegExCategorizer {
 					String regExStr = regEx.getRegEx();
 					String replacedString = null;
 					if (leastFreqEntry.getKey().length() < 10) {
-						replacedString = regExStr.replaceAll("(?i)"+"}"+leastFreqEntry.getKey()+"\\\\", "}[a-zA-Z]{1,0"+leastFreqEntry.getKey().length()+"}\\\\");
-						replacedString = replacedString.replaceAll("(?i)"+"\\\\+"+leastFreqEntry.getKey()+"\\\\", "+[a-zA-Z]{1,0"+leastFreqEntry.getKey().length()+"}\\\\");
+						replacedString = regExStr.replaceAll("(?i)}"+leastFreqEntry.getKey()+"\\\\", "}[a-zA-Z]{1,0"+leastFreqEntry.getKey().length()+"}\\\\");
+						replacedString = replacedString.replaceAll("(?i)}"+leastFreqEntry.getKey()+"\\[", "}[a-zA-Z]{1,0"+leastFreqEntry.getKey().length()+"}[");
+						int start = 0;
+						while (start < replacedString.length() && replacedString.charAt(start) != '\\' && replacedString.charAt(start) != '[') {
+							start++;
+						}
+						if (leastFreqEntry.getKey().equalsIgnoreCase(replacedString.substring(0, start))) {
+							replacedString = "[a-zA-Z]{1,0"+leastFreqEntry.getKey().length()+"}"+replacedString.substring(start, replacedString.length());
+						}
+						int end = replacedString.length();
+						end--;
+						while ( end > 0 && replacedString.charAt(end) != '}' && replacedString.charAt(end) != '+') {
+							end--;
+						}
+						if (leastFreqEntry.getKey().equalsIgnoreCase(replacedString.substring(end+1, replacedString.length()))) {
+							replacedString = replacedString.substring(0, end+1)+"[a-zA-Z]{1,0"+leastFreqEntry.getKey().length()+"}";
+						}
 					} else {
-						replacedString = regExStr.replaceAll("(?i)"+"}"+leastFreqEntry.getKey()+"\\\\", "}[a-zA-Z]{1,"+leastFreqEntry.getKey().length()+"}\\\\");
-						replacedString = replacedString.replaceAll("(?i)"+"\\\\+"+leastFreqEntry.getKey()+"\\\\", "+[a-zA-Z]{1,"+leastFreqEntry.getKey().length()+"}\\\\");
+						replacedString = regExStr.replaceAll("(?i)}"+leastFreqEntry.getKey()+"\\\\", "}[a-zA-Z]{1,"+leastFreqEntry.getKey().length()+"}\\\\");
+						replacedString = replacedString.replaceAll("(?i)}"+leastFreqEntry.getKey()+"\\[", "}[a-zA-Z]{1,"+leastFreqEntry.getKey().length()+"}[");
+						int start = 0;
+						while (start < replacedString.length() && replacedString.charAt(start) != '\\' && replacedString.charAt(start) != '[') {
+							start++;
+						}
+						if (leastFreqEntry.getKey().equalsIgnoreCase(replacedString.substring(0, start))) {
+							replacedString = "[a-zA-Z]{1,"+leastFreqEntry.getKey().length()+"}"+replacedString.substring(start, replacedString.length());
+						}
+						int end = replacedString.length();
+						end--;
+						while ( end > 0 && replacedString.charAt(end) != '}' && replacedString.charAt(end) != '+') {
+							end--;
+						}
+						if (leastFreqEntry.getKey().equalsIgnoreCase(replacedString.substring(end+1, replacedString.length()))) {
+							replacedString = replacedString.substring(0, end+1)+"[a-zA-Z]{1,"+leastFreqEntry.getKey().length()+"}";
+						}
 					}
 					RegEx temp = new RegEx(replacedString);
 					int tempPosScore = calculatePositiveScore(temp, false, false);
@@ -739,6 +821,9 @@ public class RegExCategorizer {
 						if (PERFORM_TRIMMING) {
 							performTrimmingIndividual(regEx, false);
 						}
+						if (PERFORM_USELESS_REMOVAL) {
+							uselessRegRemover(regEx, false);
+						}
 					}
 				}
 			//}
@@ -747,7 +832,7 @@ public class RegExCategorizer {
 	
 	private void createFrequencyMapPos(){
 		for (RegEx regEx : initialPositiveRegExs) {
-			String[] regExStrArray = regEx.getRegEx().split("\\\\s\\{1,10\\}|\\\\p\\{Punct\\}|\\\\d\\+");
+			String[] regExStrArray = regEx.getRegEx().split("\\\\s\\{1,10\\}|\\\\p\\{Punct\\}|\\\\d\\{1,50\\}");
 			for (String word : regExStrArray) {
 				String lowerCase = word.toLowerCase();
 				if (!lowerCase.equals("")) {
@@ -764,7 +849,7 @@ public class RegExCategorizer {
 	
 	private void createFrequencyMapNeg(){
 		for (RegEx regEx : initialNegativeRegExs) {
-			String[] regExStrArray = regEx.getRegEx().split("\\\\s\\{1,10\\}|\\\\p\\{Punct\\}|\\\\d\\+");
+			String[] regExStrArray = regEx.getRegEx().split("\\\\s\\{1,10\\}|\\\\p\\{Punct\\}|\\\\d\\{1,50\\}");
 			for (String word : regExStrArray) {
 				String lowerCase = word.toLowerCase();
 				if (!lowerCase.equals("")) {
@@ -853,10 +938,10 @@ public class RegExCategorizer {
 								frontTrim = false;
 							} else {
 								regEx.setRegEx(frontTrimRegEx.getRegEx());
-								String regStr = regEx.getRegEx(); 
+								/*String regStr = regEx.getRegEx(); 
 								if (regStr.contains("trochanteric")) {
 									System.out.println(regStr);
-								}
+								}*/
 								//regEx.setSpecifity(trimPosScore);
 							}
 						} else {
@@ -884,10 +969,10 @@ public class RegExCategorizer {
 								backTrim = false;
 							} else {
 								regEx.setRegEx(backTrimRegEx.getRegEx());
-								String regStr = regEx.getRegEx(); 
+								/*String regStr = regEx.getRegEx(); 
 								if (regStr.contains("trochanteric")) {
 									System.out.println(regStr);
-								}
+								}*/
 								//regEx.setSpecifity(trimPosScore);
 							}
 						} else {
@@ -997,7 +1082,7 @@ public class RegExCategorizer {
 				}
 			}
 		} else {
-			while(true){
+			/*while(true){
 				if (cutLocation == regExStr.length()) {
 					return null;
 				}
@@ -1006,7 +1091,8 @@ public class RegExCategorizer {
 					cutLocation = cutLocation - 1;
 					break;
 				}
-			}
+			}*/
+			return null;
 		}
 		return new RegEx(regExStr.substring(cutLocation));
 	}
@@ -1027,7 +1113,7 @@ public class RegExCategorizer {
 				}
 			}
 		} else {
-			while(true){
+			/*while(true){
 				if (cutLocation < 0) {
 					return null;
 				}
@@ -1036,7 +1122,8 @@ public class RegExCategorizer {
 					cutLocation = cutLocation+2;
 					break;
 				}
-			}
+			}*/
+			return null;
 		}
 		return new RegEx(regExStr.substring(0,cutLocation));
 	}
@@ -1192,7 +1279,7 @@ public class RegExCategorizer {
 	{
 		for(RegEx x : regexColl)
 		{
-			x.setRegEx(x.getRegEx().replaceAll("\\d+","\\\\d+"));
+			x.setRegEx(x.getRegEx().replaceAll("\\d+","\\\\d{1,50}"));
 		}
 		return regexColl;
 	}
