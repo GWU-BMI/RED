@@ -30,6 +30,7 @@ public class REDExtractor {
 	private static final Logger LOG = LoggerFactory
 			.getLogger(REDExtractor.class);
 	private LSExtractor leExt = new LSExtractor(null);
+	private Map<String, Pattern> patternCache = new HashMap<String, Pattern>();
 
 	public List<LSTriplet> discoverRegexes(List<File> vttFiles, String label,
 			String outputFileName) throws IOException {
@@ -131,18 +132,6 @@ public class REDExtractor {
 			Collections.sort(potentialListALS, comp);
 			replacePotentialMatches(potentialListBLS, ls3list, true, snippets);
 			replacePotentialMatches(potentialListALS, ls3list, false, snippets);
-			if (outputFileName != null && !outputFileName.equals("")) {
-				File file = new File(outputFileName);
-				if (!file.exists())
-					file.createNewFile();
-				FileWriter fWriter = new FileWriter(file, false);
-				PrintWriter pWriter = new PrintWriter(fWriter);
-				for (LSTriplet triplet : ls3list) {
-					pWriter.println(triplet.toString());
-				}
-				pWriter.close();
-				fWriter.close();
-			}
 			List<LSTriplet> returnList = new ArrayList<LSTriplet>(ls3list.size());
 			for (LSTriplet triplet : ls3list) {
 				boolean add = true;
@@ -156,12 +145,56 @@ public class REDExtractor {
 					returnList.add(triplet);
 				}
 			}
-			for (LSTriplet triplet : returnList) {
-				System.out.println(triplet.toStringRegEx());
+			measureSensitivity(snippets, returnList);
+			if (outputFileName != null && !outputFileName.equals("")) {
+				File file = new File(outputFileName);
+				File fileSensitvity = new File("sensitivity-"+outputFileName);
+				if (!file.exists()){
+					file.createNewFile();
+				}
+				if (!fileSensitvity.exists()) {
+					fileSensitvity.createNewFile();
+				}
+				FileWriter fWriter = new FileWriter(file, false);
+				PrintWriter pWriter = new PrintWriter(fWriter);
+				FileWriter fWriterSens = new FileWriter(fileSensitvity, false);
+				PrintWriter pWriterSens = new PrintWriter(fWriterSens);
+				for (LSTriplet triplet : returnList) {
+					pWriter.println(triplet.toString());
+					pWriterSens.println(triplet.toStringRegEx() + "\t"+triplet.getSensitivity());
+				}
+				pWriter.close();
+				fWriter.close();
+				pWriterSens.close();
+				fWriterSens.close();
 			}
 			return returnList;
 		}
 		return null;
+	}
+	
+	private void measureSensitivity(List<Snippet> snippets, List<LSTriplet> regExList) {
+		for (LSTriplet triplet : regExList) {
+			int count = sensitivityCount(triplet, snippets);
+			double sensitivity = ((double)count)/((double)snippets.size());
+			triplet.setSensitivity(sensitivity);
+		}
+	}
+	
+	private int sensitivityCount(LSTriplet regEx, List<Snippet> snippets) {
+		Pattern pattern = patternCache.get(regEx.toStringRegEx());
+		int count = 0;
+		if (pattern == null) {
+			pattern = Pattern.compile(regEx.toStringRegEx());
+			patternCache.put(regEx.toStringRegEx(), pattern);
+		}
+		for (Snippet snippt : snippets) {
+			Matcher matcher = pattern.matcher(snippt.getText());
+			if (matcher.find()) {
+				count++;
+			}
+		}
+		return count;
 	}
 
 	private void replacePotentialMatches(List<PotentialMatch> potentialMatches,

@@ -22,7 +22,7 @@ public class CategorizerTester {
 	public CategorizerTester() throws IOException {
 		resultsFile = new File("categorizerErrorTesting");
 		FileWriter fwriter = null;
-		fwriter = new FileWriter(resultsFile);
+		fwriter = new FileWriter(resultsFile,true);
 		writer = new BufferedWriter(fwriter);
 	}
 	

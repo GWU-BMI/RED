@@ -104,7 +104,7 @@ public class RegExCategorizerTest {
 			for (RegEx regEx : retMap.get("NEGATIVE")) {
 				System.out.println(regEx.getRegEx()+"\t"+regEx.getSpecifity());
 			}
-			/*REDExCrossValidator rexcv = new REDExCrossValidator();
+			REDExCrossValidator rexcv = new REDExCrossValidator();
 			List<CVScore> results = rexcv.crossValidateClassifier(Arrays.asList(new File[] { new File(CLASSIFIER_TEST_URI) }), yesLabels, noLabels, 10);
 			int i = 0;
 			for (CVScore score : results) {
@@ -113,7 +113,7 @@ public class RegExCategorizerTest {
 			}
 			System.out.println("--- Aggregate ---");
 			CVScore aggregate = CVScore.aggregate(results);
-			System.out.println(aggregate.getEvaluation());*/
+			System.out.println(aggregate.getEvaluation());
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

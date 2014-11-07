@@ -29,6 +29,8 @@ public class LSTriplet {
 	// after labeled segment
 	private String ALS;
 	
+	private double sensitivity = 0.0;
+	
 	public LSTriplet(String BLS, String LS, String ALS) {
 		this.BLS = BLS;
 		this.LS = LS;
@@ -101,6 +103,14 @@ public class LSTriplet {
 
 		LSTriplet ls3 = new LSTriplet((bls == null ? null : bls), ls, (als == null ? null : als));
 		return ls3;
+	}
+
+	public double getSensitivity() {
+		return sensitivity;
+	}
+
+	public void setSensitivity(double sensitivity) {
+		this.sensitivity = sensitivity;
 	}
 
 }
