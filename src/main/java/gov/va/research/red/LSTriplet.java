@@ -102,5 +102,5 @@ public class LSTriplet {
 		LSTriplet ls3 = new LSTriplet((bls == null ? null : bls), ls, (als == null ? null : als));
 		return ls3;
 	}
-	
+
 }

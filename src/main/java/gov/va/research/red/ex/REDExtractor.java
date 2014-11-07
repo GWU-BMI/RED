@@ -7,14 +7,9 @@ import gov.va.research.red.MatchedElement;
 import gov.va.research.red.Snippet;
 import gov.va.research.red.VTTReader;
 
-import java.io.BufferedReader;
-import java.io.DataInputStream;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -148,7 +143,23 @@ public class REDExtractor {
 				pWriter.close();
 				fWriter.close();
 			}
-			return ls3list;
+			List<LSTriplet> returnList = new ArrayList<LSTriplet>(ls3list.size());
+			for (LSTriplet triplet : ls3list) {
+				boolean add = true;
+				for (LSTriplet tripletAdded : returnList) {
+					if (tripletAdded.toStringRegEx().equals(triplet.toStringRegEx())) {
+						add = false;
+						break;
+					}
+				}
+				if (add) {
+					returnList.add(triplet);
+				}
+			}
+			for (LSTriplet triplet : returnList) {
+				System.out.println(triplet.toStringRegEx());
+			}
+			return returnList;
 		}
 		return null;
 	}
