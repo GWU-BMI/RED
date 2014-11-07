@@ -161,7 +161,7 @@ public class REDExtractor {
 				PrintWriter pWriterSens = new PrintWriter(fWriterSens);
 				for (LSTriplet triplet : returnList) {
 					pWriter.println(triplet.toString());
-					pWriterSens.println(triplet.toStringRegEx() + "\t"+triplet.getSensitivity());
+					pWriterSens.println(triplet.getSensitivity());
 				}
 				pWriter.close();
 				fWriter.close();
