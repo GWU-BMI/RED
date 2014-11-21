@@ -16,6 +16,9 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.ConfigurationException;
@@ -74,13 +77,12 @@ public class REDExCrossValidator implements CrossValidatable {
 		// partition snippets into one partition per fold
 		List<List<Snippet>> partitions = partitionSnippets(folds, snippets);
 
+		LOG.info("ForkJoinPool parallelism = " + ForkJoinPool.commonPool().getParallelism());
 		// Run evaluations, "folds" number of times, alternating which partition is being used for testing.
-		List<CVScore> results = new ArrayList<>(folds);
 		PrintWriter pw = new PrintWriter(new File("training and testing.txt"));
-		int fold = 0;
-		for (List<Snippet> partition : partitions) {
-			pw.println("##### FOLD " + (++fold) + " #####");
-			// set up training and testing sets for this fold
+		AtomicInteger fold = new AtomicInteger(0);
+		List<CVScore> results = partitions.parallelStream().map((partition) -> {
+			LOG.info("Mapping " + fold.addAndGet(1));
 			List<Snippet> testing = partition;
 			List<Snippet> training = new ArrayList<>();
 			for (List<Snippet> p : partitions) {
@@ -90,14 +92,39 @@ public class REDExCrossValidator implements CrossValidatable {
 			}
 
 			// Train
-			LSExtractor ex = trainExtractor(label, training, pw);
+			LSExtractor ex = null;
+			try {
+				ex = trainExtractor(label, training, pw);
+			} catch (Exception e) {
+				throw new RuntimeException(e);
+			}
 
 			// Test
 			REDExtractor rexe = new REDExtractor();
 			CVScore score = rexe.testExtractor(testing, ex, pw);
 
-			results.add(score);
-		}
+			return score;
+		}).collect(Collectors.toList());
+//		for (List<Snippet> partition : partitions) {
+//			pw.println("##### FOLD " + (++fold) + " #####");
+//			// set up training and testing sets for this fold
+//			List<Snippet> testing = partition;
+//			List<Snippet> training = new ArrayList<>();
+//			for (List<Snippet> p : partitions) {
+//				if (p != testing) {
+//					training.addAll(p);
+//				}
+//			}
+//
+//			// Train
+//			LSExtractor ex = trainExtractor(label, training, pw);
+//
+//			// Test
+//			REDExtractor rexe = new REDExtractor();
+//			CVScore score = rexe.testExtractor(testing, ex, pw);
+//
+//			results.add(score);
+//		}
 		pw.close();
 		return results;
 	}
