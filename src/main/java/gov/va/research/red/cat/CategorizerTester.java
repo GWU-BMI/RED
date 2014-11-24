@@ -47,7 +47,7 @@ public class CategorizerTester {
 			if(patternCache.containsKey(segment.getRegEx())){
 				pattern = patternCache.get(segment.getRegEx());
 			}else {
-				pattern = Pattern.compile(segment.getRegEx());
+				pattern = Pattern.compile("(?i)"+segment.getRegEx());
 				patternCache.put(segment.getRegEx(), pattern);
 			}
 			Matcher matcher = pattern.matcher(snippet.getText());
@@ -69,7 +69,7 @@ public class CategorizerTester {
 			if(patternCache.containsKey(segment.getRegEx())){
 				pattern = patternCache.get(segment.getRegEx());
 			}else {
-				pattern = Pattern.compile(segment.getRegEx());
+				pattern = Pattern.compile("(?i)"+segment.getRegEx());
 				patternCache.put(segment.getRegEx(), pattern);
 			}
 			Matcher matcher = pattern.matcher(snippet.getText());
