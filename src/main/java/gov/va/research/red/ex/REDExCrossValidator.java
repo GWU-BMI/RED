@@ -67,8 +67,10 @@ public class REDExCrossValidator implements CrossValidatable {
 		VTTReader vttr = new VTTReader();
 		// get snippets
 		List<Snippet> snippets = new ArrayList<>();
+		List<String> labels = new ArrayList<>(1);
+		labels.add(label);
 		for (File vttFile : vttFiles) {
-			snippets.addAll(vttr.extractSnippets(vttFile, label));
+			snippets.addAll(vttr.findSnippets(vttFile, labels));
 		}
 		
 		// randomize the order of the snippets
@@ -77,12 +79,13 @@ public class REDExCrossValidator implements CrossValidatable {
 		// partition snippets into one partition per fold
 		List<List<Snippet>> partitions = partitionSnippets(folds, snippets);
 
-		LOG.info("ForkJoinPool parallelism = " + ForkJoinPool.commonPool().getParallelism());
 		// Run evaluations, "folds" number of times, alternating which partition is being used for testing.
 		PrintWriter pw = new PrintWriter(new File("training and testing.txt"));
-		AtomicInteger fold = new AtomicInteger(0);
-		List<CVScore> results = partitions.parallelStream().map((partition) -> {
-			LOG.info("Mapping " + fold.addAndGet(1));
+		int fold = 0;
+		List<CVScore> results = new ArrayList<>();
+		for (List<Snippet> partition : partitions) {
+			pw.println("##### FOLD " + (++fold) + " #####");
+			// set up training and testing sets for this fold
 			List<Snippet> testing = partition;
 			List<Snippet> training = new ArrayList<>();
 			for (List<Snippet> p : partitions) {
@@ -92,39 +95,14 @@ public class REDExCrossValidator implements CrossValidatable {
 			}
 
 			// Train
-			LSExtractor ex = null;
-			try {
-				ex = trainExtractor(label, training, pw);
-			} catch (Exception e) {
-				throw new RuntimeException(e);
-			}
+			LSExtractor ex = trainExtractor(label, training, pw);
 
 			// Test
 			REDExtractor rexe = new REDExtractor();
 			CVScore score = rexe.testExtractor(testing, ex, pw);
 
-			return score;
-		}).collect(Collectors.toList());
-//		for (List<Snippet> partition : partitions) {
-//			pw.println("##### FOLD " + (++fold) + " #####");
-//			// set up training and testing sets for this fold
-//			List<Snippet> testing = partition;
-//			List<Snippet> training = new ArrayList<>();
-//			for (List<Snippet> p : partitions) {
-//				if (p != testing) {
-//					training.addAll(p);
-//				}
-//			}
-//
-//			// Train
-//			LSExtractor ex = trainExtractor(label, training, pw);
-//
-//			// Test
-//			REDExtractor rexe = new REDExtractor();
-//			CVScore score = rexe.testExtractor(testing, ex, pw);
-//
-//			results.add(score);
-//		}
+			results.add(score);
+		}
 		pw.close();
 		return results;
 	}

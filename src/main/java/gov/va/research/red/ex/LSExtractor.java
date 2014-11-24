@@ -9,13 +9,14 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class LSExtractor implements Extractor {
 	
 	private List<LSTriplet> regExpressions;
-	private Map<String, Pattern> patternCache = new HashMap<>();
+	private Map<String, Pattern> patternCache = new ConcurrentHashMap<>();
 	
 	public LSExtractor(List<LSTriplet> regExpressions){
 		this.setRegExpressions(regExpressions);
@@ -30,13 +31,15 @@ public class LSExtractor implements Extractor {
 		if(regExpressions != null && !regExpressions.isEmpty()){
 			returnSet = new HashSet<>();
 			for(LSTriplet triplet : regExpressions){
-				Pattern pattern = null;
-				if(patternCache.containsKey(triplet.toStringRegEx())){
-					pattern = patternCache.get(triplet.toStringRegEx()); 
-				}else{
-					pattern = Pattern.compile(triplet.toStringRegEx());
-					patternCache.put(triplet.toStringRegEx(), pattern);
-				}
+				Pattern pattern = Pattern.compile(triplet.toStringRegEx());
+//				synchronized(patternCache) {
+//					if(patternCache.containsKey(triplet.toStringRegEx())){
+//						pattern = patternCache.get(triplet.toStringRegEx()); 
+//					}else{
+//						pattern = Pattern.compile(triplet.toStringRegEx());
+//						patternCache.put(triplet.toStringRegEx(), pattern);
+//					}
+//				}
 				Matcher matcher = pattern.matcher(target);
 				boolean test = matcher.find();
 				if(test){

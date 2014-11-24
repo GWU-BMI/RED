@@ -16,11 +16,16 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.ForkJoinPool;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,9 +53,11 @@ public class REDExtractor {
 			final String outputFileName) throws IOException {
 		List<LSTriplet> ls3list = new ArrayList<>(snippets.size());
 		for (Snippet snippet : snippets) {
-			for (LabeledSegment ls : snippet.getLabeledSegments()) {
-				if (label.equals(ls.getLabel())) {
-					ls3list.add(LSTriplet.valueOf(snippet.getText(), ls));
+			if (snippet.getLabeledSegments() != null) {
+				for (LabeledSegment ls : snippet.getLabeledSegments()) {
+					if (label.equals(ls.getLabel())) {
+						ls3list.add(LSTriplet.valueOf(snippet.getText(), ls));
+					}
 				}
 			}
 		}
@@ -94,6 +101,8 @@ public class REDExtractor {
 			// repeating
 			// the process till we can't remove any regex's from the bls's.
 			trimRegEx(snippets, ls3list);
+			ls3list = removeDuplicates(ls3list);
+
 			leExt.setRegExpressions(ls3list);
 			CVScore scoreAfterTrimming = testExtractor(snippets, leExt);
 
@@ -173,6 +182,18 @@ public class REDExtractor {
 		return null;
 	}
 	
+	/**
+	 * @param ls3list
+	 * @return
+	 */
+	private List<LSTriplet> removeDuplicates(final List<LSTriplet> ls3list) {
+		LOG.debug("# Regexes List = {}", ls3list.size());
+		Set<LSTriplet> ls3set = new HashSet<>(ls3list);
+		LOG.debug("# Regexes Set = {}", ls3set.size());
+		List<LSTriplet> newlist = new ArrayList<>(ls3set);
+		return newlist;
+	}
+
 	private void measureSensitivity(List<Snippet> snippets, List<LSTriplet> regExList) {
 		for (LSTriplet triplet : regExList) {
 			int count = sensitivityCount(triplet, snippets);
@@ -295,30 +316,28 @@ public class REDExtractor {
 	}
 
 	private void trimRegEx(final List<Snippet> snippets, List<LSTriplet> ls3list) {
-		Map<LSTriplet, Boolean> prevTrimOpResultBLS = new HashMap<LSTriplet, Boolean>();
-		for (LSTriplet triplet : ls3list) {
-			prevTrimOpResultBLS.put(triplet, true);
+		List<Boolean> blsPrevTrimSuccess = new ArrayList<>(ls3list.size());
+		for (int i = 0; i < ls3list.size(); i++) {
+			blsPrevTrimSuccess.add(Boolean.TRUE);
 		}
-		Map<LSTriplet, Boolean> prevTrimOpResultALS = new HashMap<LSTriplet, Boolean>();
-		for (LSTriplet triplet : ls3list) {
-			prevTrimOpResultALS.put(triplet, true);
-		}
-		String bls = null, als = null;
-		List<LSTriplet> regExList = new ArrayList<LSTriplet>();
-		regExList.addAll(ls3list);
-		leExt.setRegExpressions(regExList);
-		// int count = 1;
+		List<Boolean> alsPrevTrimSuccess = new ArrayList<>(blsPrevTrimSuccess);
+		LOG.info("ForkJoinPool parallelism = " + ForkJoinPool.commonPool().getParallelism());
 		while (true) {
-			boolean processedBLSorALS = true;
-			for (LSTriplet triplet : ls3list) {
-				if (prevTrimOpResultBLS.get(triplet)
+			List<Integer> indexes = new CopyOnWriteArrayList<>();
+			for (int i = 0; i < ls3list.size(); i++) {
+				indexes.add(Integer.valueOf(i));
+			}
+			List<Boolean> processedBLSorALSs = indexes.parallelStream().map((i) -> {
+				boolean processedBLSorALS = true;
+				String bls = null, als = null;
+				LSTriplet triplet = ls3list.get(i);
+				if (blsPrevTrimSuccess.get(i)
 						&& ((triplet.getBLS().length() >= triplet.getALS()
-								.length()) || !prevTrimOpResultALS.get(triplet))) {
+								.length()) || !alsPrevTrimSuccess.get(i))) {
 					processedBLSorALS = false;
 					bls = triplet.getBLS();
 					if (bls.equals("") || bls == null) {
-						prevTrimOpResultBLS.put(triplet, false);
-						// System.out.println("trim fail special bls "+count++);
+						blsPrevTrimSuccess.set(i, Boolean.FALSE);
 					} else {
 						char firstChar = bls.charAt(0);
 						String blsWithoutFirstRegex = null;
@@ -343,24 +362,24 @@ public class REDExtractor {
 						}
 
 						triplet.setBLS(blsWithoutFirstRegex);
-						regExList = new ArrayList<LSTriplet>();
-						regExList.add(triplet);
-						leExt.setRegExpressions(regExList);
+						List<LSTriplet> newRegExList = new ArrayList<LSTriplet>();
+						newRegExList.add(triplet);
+						leExt.setRegExpressions(newRegExList);
 						if (checkForFalsePositives(snippets, leExt)) {
 							triplet.setBLS(bls);
-							prevTrimOpResultBLS.put(triplet, false);
+							blsPrevTrimSuccess.set(i, Boolean.FALSE);
 						} else {
-							prevTrimOpResultBLS.put(triplet, true);
+							blsPrevTrimSuccess.set(i, Boolean.TRUE);
 						}
 					}
 				}
-				if (prevTrimOpResultALS.get(triplet)
+				if (alsPrevTrimSuccess.get(i).booleanValue()
 						&& ((triplet.getBLS().length() <= triplet.getALS()
-								.length()) || !prevTrimOpResultBLS.get(triplet))) {
+								.length()) || !blsPrevTrimSuccess.get(i).booleanValue())) {
 					processedBLSorALS = false;
 					als = triplet.getALS();
 					if (als.equals("") || als == null) {
-						prevTrimOpResultALS.put(triplet, false);
+						alsPrevTrimSuccess.set(i, Boolean.FALSE);
 					} else {
 						String alsWithoutLastRegex = null;
 						if (als.lastIndexOf("\\") == -1)
@@ -385,20 +404,22 @@ public class REDExtractor {
 						}
 
 						triplet.setALS(alsWithoutLastRegex);
-						regExList = new ArrayList<LSTriplet>();
-						regExList.add(triplet);
-						leExt.setRegExpressions(regExList);
+						List<LSTriplet> newRegExList = new ArrayList<LSTriplet>();
+						newRegExList.add(triplet);
+						leExt.setRegExpressions(newRegExList);
 						if (checkForFalsePositives(snippets, leExt)) {
 							triplet.setALS(als);
-							prevTrimOpResultALS.put(triplet, false);
+							alsPrevTrimSuccess.set(i, Boolean.FALSE);
 						} else {
-							prevTrimOpResultALS.put(triplet, true);
+							alsPrevTrimSuccess.set(i, Boolean.TRUE);
 						}
 					}
 				}
-			}
-			if (processedBLSorALS)
+				return processedBLSorALS;
+			}).collect(Collectors.toList());
+			if (!processedBLSorALSs.contains(Boolean.FALSE)) {
 				break;
+			}
 		}
 	}
 
@@ -694,6 +715,12 @@ public class REDExtractor {
 					score.setTn(score.getTn() + 1);
 				} else {
 					score.setFn(score.getFn() + 1);
+					pw.println("<##### ERROR - FN: Regexes");
+					pw.println(""
+						+ (ex == null ? "null"
+							: ex.getRegExpressions() == null ? "null"
+							: ex.getRegExpressions().toString()));
+					pw.println("#####>");
 				}
 			} else if (actual == null || actual.size() == 0) {
 				score.setFp(score.getFp() + 1);

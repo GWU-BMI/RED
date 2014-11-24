@@ -113,4 +113,29 @@ public class LSTriplet {
 		this.sensitivity = sensitivity;
 	}
 
+	@Override
+	public int hashCode() {
+		int hc = 17;
+		hc = 31 * hc + (BLS == null ? 0 : BLS.hashCode());
+		hc = 31 * hc + (LS == null ? 0 : LS.hashCode());
+		hc = 31 * hc + (ALS == null ? 0 : ALS.hashCode());
+		return hc;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+		if (!(obj instanceof LSTriplet)) {
+			return false;
+		}
+		LSTriplet t = (LSTriplet)obj;
+		return (BLS == t.BLS || (BLS != null && BLS.equals(t.BLS)))
+				&&
+				(LS == t.LS || (LS != null && LS.equals(t.LS)))
+				&&
+				(ALS == t.ALS || (ALS != null && ALS.equals(t.ALS)));
+	}
+
 }

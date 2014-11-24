@@ -5,6 +5,8 @@ import gov.va.research.red.ex.REDExCrossValidator;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.Arrays;
 import java.util.List;
 
@@ -44,8 +46,18 @@ public class REDExCrossValidatorTest {
 	@Test
 	public void testCrossValidate() {
 		try {
+			URL vttFileURL = getClass().getClassLoader().getResource(TEST_VTT_FILENAME);
+			Assert.assertNotNull(vttFileURL);
+			File vttFile = null;
+			try {
+				vttFile = new File(vttFileURL.toURI());
+			} catch (URISyntaxException e) {
+				throw new AssertionError(e);
+			}
+			Assert.assertNotNull(vttFile);
+			Assert.assertTrue(vttFile.exists());
 			REDExCrossValidator rexcv = new REDExCrossValidator();
-			List<CVScore> results = rexcv.crossValidate(Arrays.asList(new File[] { new File(TEST_VTT_FILENAME) }), "weight", 10);
+			List<CVScore> results = rexcv.crossValidate(Arrays.asList(new File[] { vttFile }), "weight", 10);
 			int i = 0;
 			for (CVScore score : results) {
 				LOG.info("--- Run " + (i++) + " ---");
