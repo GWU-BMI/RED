@@ -208,6 +208,14 @@ public class RegExCategorizer {
 			regEx.setSpecifity((double)specifity/initialNegativeRegExs.size());
 		}
 		
+		/*for (RegEx regEx : initialPositiveRegExs) {
+			regEx.setRegEx("(?i)"+regEx.getRegEx());
+		}
+		
+		for (RegEx regEx : initialNegativeRegExs) {
+			regEx.setRegEx("(?i)"+regEx.getRegEx());
+		}*/
+		
 		//cvScore = testClassifier(snippetsAll, initialPositiveRegExs, initialNegativeRegExs, null, yesLabels);
 		/*System.out.println("Pos regex");
 		for (RegEx regEx : initialPositiveRegExs) {
@@ -431,8 +439,8 @@ public class RegExCategorizer {
 	}
 	
 	private void overallCollapser(RegEx regEx, boolean positive) {
-		int posScore = calculatePositiveScore(regEx, positive, false);
-		int negScore = calculateNegativeScore(regEx, positive, false);
+		//int posScore = calculatePositiveScore(regEx, positive, false);
+		//int negScore = calculateNegativeScore(regEx, positive, false);
 		String regStr = regEx.getRegEx();
 		int initialStart=0,initalEnd = 0;
 		int splitter = 0;
@@ -451,7 +459,7 @@ public class RegExCategorizer {
 			initalEnd = end;
 			while (end <= regEx.getRegEx().length()-15) {
 				boolean breakCond = true;
-				if (regStr.subSequence(end, end+9).equals("[A-Za-z ]")) {
+				if (regStr.substring(end, end+9).equals("[A-Za-z ]")) {
 					end = end + 15;
 					tempStart = end - 3;
 					tempEnd = tempStart + 2;
@@ -491,6 +499,245 @@ public class RegExCategorizer {
 		}
 	}
 	
+	private void collapserPunct(RegEx regEx, boolean positive) {
+		int posScore = calculatePositiveScore(regEx, positive, false);
+		int negScore = calculateNegativeScore(regEx, positive, false);
+		int noLabelScore = calculateNoLabelScore(regEx);
+		if (positive) {
+			negScore += noLabelScore;
+			//regEx.setSpecifity(posScore);
+		} else {
+			posScore += noLabelScore;
+			//regEx.setSpecifity(negScore);
+		}
+		String regStr = regEx.getRegEx();
+		int initialStart=0,initalEnd = 0;
+		int splitter = 0;
+		while (regStr.substring(splitter, regStr.length()).contains("[A-Za-z ]")) {
+			int startIndex = regStr.substring(splitter, regStr.length()).indexOf("[A-Za-z ]");
+			startIndex = startIndex + splitter;
+			int tempEnd,tempStart,sum=0;
+			tempStart = startIndex+12;
+			tempEnd = tempStart + 2;
+			sum += Integer.parseInt(regStr.substring(tempStart, tempEnd));
+			int n=0;
+			boolean found = false;
+			int start = startIndex;
+			while (start > 0) {
+				boolean breakCond = true;
+				if (start > 7 && regStr.substring(start - 8, start).equals("\\s{1,10}")) {
+					breakCond = false;
+					sum += 8;
+					start = start - 8;
+				}
+				if (start > 8 && regStr.substring(start - 9, start).equals("\\p{Punct}")) {
+					breakCond = false;
+					sum += 5;
+					found = true;
+					start = start - 9;
+				}
+				if (breakCond) {
+					break;
+				}
+			}
+			int end = startIndex+15;
+			splitter = end;
+			initalEnd = end;
+			while (end <= regEx.getRegEx().length()) {
+				boolean breakCond = true;
+				if ((end+8) <= regEx.getRegEx().length() && regStr.substring(end, end+8).equals("\\s{1,10}")) {
+					end = end + 8;
+					sum += 8;
+					breakCond = false;
+					n++;
+				}
+				if ((end+9) <= regEx.getRegEx().length() && regStr.substring(end, end+9).equals("\\p{Punct}")) {
+					breakCond = false;
+					sum += 5;
+					found = true;
+					end = end + 9;
+				}
+				if (breakCond) {
+					break;
+				}
+			}
+			if (found) {
+				StringBuilder regStrBld = new StringBuilder(regStr);
+				if (sum < 10) {
+					regStrBld.replace(start, end, "[A-Za-z \\p{Punct}]{1,0"+sum+"}");
+				}else {
+					regStrBld.replace(start, end, "[A-Za-z \\p{Punct}]{1,"+sum+"}");
+				}
+				regEx.setRegEx(regStrBld.toString());
+				int tempPosScore = calculatePositiveScore(regEx, positive, false);
+				int tempNegScore = calculateNegativeScore(regEx, positive, false);
+				int tempnoLabelScore = calculateNoLabelScore(regEx);
+				if (positive) {
+					tempNegScore += tempnoLabelScore;
+					//regEx.setSpecifity(posScore);
+				} else {
+					tempPosScore += tempnoLabelScore;
+					//regEx.setSpecifity(negScore);
+				}
+				if (positive) {
+					if (tempPosScore >= posScore && tempNegScore <= negScore) {
+						regStr = regStrBld.toString();
+						splitter = start + 24;
+					} else {
+						regEx.setRegEx(regStr);
+						splitter = startIndex + 15;
+					}
+				} else {
+					if (tempPosScore <= posScore && tempNegScore >= negScore) {
+						regStr = regStrBld.toString();
+						splitter = start + 24;
+					} else {
+						regEx.setRegEx(regStr);
+						splitter = startIndex + 15;
+					}
+				}
+			}
+		}
+		
+		
+		posScore = calculatePositiveScore(regEx, positive, false);
+		negScore = calculateNegativeScore(regEx, positive, false);
+		noLabelScore = calculateNoLabelScore(regEx);
+		if (positive) {
+			negScore += noLabelScore;
+			//regEx.setSpecifity(posScore);
+		} else {
+			posScore += noLabelScore;
+			//regEx.setSpecifity(negScore);
+		}
+		regStr = regEx.getRegEx();
+		splitter = 0;
+		boolean foundSpace = false;
+		while (regStr.substring(splitter, regStr.length()).contains("[A-Za-z]")) {
+			int startIndex = regStr.substring(splitter, regStr.length()).indexOf("[A-Za-z]");
+			startIndex = startIndex + splitter;
+			int tempEnd,tempStart,sum=0;
+			tempStart = startIndex+11;
+			tempEnd = tempStart + 2;
+			sum += Integer.parseInt(regStr.substring(tempStart, tempEnd));
+			int n=0;
+			boolean found = false;
+			int start = startIndex;
+			while (start > 0) {
+				boolean breakCond = true;
+				if (start > 7 && regStr.substring(start - 8, start).equals("\\s{1,10}")) {
+					breakCond = false;
+					sum += 8;
+					start = start - 8;
+					foundSpace = true;
+				}
+				if (start > 8 && regStr.substring(start - 9, start).equals("\\p{Punct}")) {
+					breakCond = false;
+					sum += 5;
+					found = true;
+					start = start - 9;
+				}
+				if (breakCond) {
+					break;
+				}
+			}
+			int end = startIndex+14;
+			splitter = end;
+			initalEnd = end;
+			while (end <= regEx.getRegEx().length()) {
+				boolean breakCond = true;
+				if ((end+8) <= regEx.getRegEx().length() && regStr.substring(end, end+8).equals("\\s{1,10}")) {
+					end = end + 8;
+					sum += 8;
+					breakCond = false;
+					foundSpace = true;
+					n++;
+				}
+				if ((end+9) <= regEx.getRegEx().length() && regStr.substring(end, end+9).equals("\\p{Punct}")) {
+					breakCond = false;
+					sum += 5;
+					found = true;
+					end = end + 9;
+				}
+				if (breakCond) {
+					break;
+				}
+			}
+			if (found && foundSpace) {
+				StringBuilder regStrBld = new StringBuilder(regStr);
+				if (sum < 10) {
+					regStrBld.replace(start, end, "[A-Za-z \\p{Punct}]{1,0"+sum+"}");
+				}else {
+					regStrBld.replace(start, end, "[A-Za-z \\p{Punct}]{1,"+sum+"}");
+				}
+				regEx.setRegEx(regStrBld.toString());
+				int tempPosScore = calculatePositiveScore(regEx, positive, false);
+				int tempNegScore = calculateNegativeScore(regEx, positive, false);
+				int tempnoLabelScore = calculateNoLabelScore(regEx);
+				if (positive) {
+					tempNegScore += tempnoLabelScore;
+					//regEx.setSpecifity(posScore);
+				} else {
+					tempPosScore += tempnoLabelScore;
+					//regEx.setSpecifity(negScore);
+				}
+				if (positive) {
+					if (tempPosScore >= posScore && tempNegScore <= negScore) {
+						regStr = regStrBld.toString();
+						splitter = start + 24;
+					} else {
+						regEx.setRegEx(regStr);
+						splitter = startIndex + 14;
+					}
+				} else {
+					if (tempPosScore <= posScore && tempNegScore >= negScore) {
+						regStr = regStrBld.toString();
+						splitter = start + 24;
+					} else {
+						regEx.setRegEx(regStr);
+						splitter = startIndex + 14;
+					}
+				}
+			}
+			else if (found) {
+				StringBuilder regStrBld = new StringBuilder(regStr);
+				if (sum < 10) {
+					regStrBld.replace(start, end, "[A-Za-z\\p{Punct}]{1,0"+sum+"}");
+				}else {
+					regStrBld.replace(start, end, "[A-Za-z\\p{Punct}]{1,"+sum+"}");
+				}
+				regEx.setRegEx(regStrBld.toString());
+				int tempPosScore = calculatePositiveScore(regEx, positive, false);
+				int tempNegScore = calculateNegativeScore(regEx, positive, false);
+				int tempnoLabelScore = calculateNoLabelScore(regEx);
+				if (positive) {
+					tempNegScore += tempnoLabelScore;
+					//regEx.setSpecifity(posScore);
+				} else {
+					tempPosScore += tempnoLabelScore;
+					//regEx.setSpecifity(negScore);
+				}
+				if (positive) {
+					if (tempPosScore >= posScore && tempNegScore <= negScore) {
+						regStr = regStrBld.toString();
+						splitter = start + 23;
+					} else {
+						regEx.setRegEx(regStr);
+						splitter = startIndex + 14;
+					}
+				} else {
+					if (tempPosScore <= posScore && tempNegScore >= negScore) {
+						regStr = regStrBld.toString();
+						splitter = start + 23;
+					} else {
+						regEx.setRegEx(regStr);
+						splitter = startIndex + 14;
+					}
+				}
+			}
+		}
+	}
+	
 	private void collapse(RegEx regEx, boolean positive) {
 		int posScore = calculatePositiveScore(regEx, positive, false);
 		int negScore = calculateNegativeScore(regEx, positive, false);
@@ -516,7 +763,7 @@ public class RegExCategorizer {
 			int n = 1;
 			while (start > 7) {
 				boolean breakCond = true;
-				if (regStr.subSequence(start-8, start).equals("\\s{1,10}")) {
+				if (regStr.substring(start-8, start).equals("\\s{1,10}")) {
 					start = start - 8;
 					breakCond = false;
 					found = true;
@@ -524,7 +771,7 @@ public class RegExCategorizer {
 					totalSum += 10;
 				}
 				if (start > 13) {
-					if (regStr.subSequence(start-14, start-6).equals("[a-zA-Z]")) {
+					if (regStr.substring(start-14, start-6).equals("[a-zA-Z]")) {
 						start = start - 14;
 						tempStart = start + 11;
 						tempEnd = tempStart + 2;
@@ -542,7 +789,7 @@ public class RegExCategorizer {
 			initalEnd = end;
 			while (end <= regEx.getRegEx().length()-8) {
 				boolean breakCond = true;
-				if (regStr.subSequence(end, end + 8).equals("\\s{1,10}")) {
+				if (regStr.substring(end, end + 8).equals("\\s{1,10}")) {
 					end = end + 8;
 					breakCond = false;
 					found = true;
@@ -550,7 +797,7 @@ public class RegExCategorizer {
 					n++;
 				}
 				if (end <=  regEx.getRegEx().length()-14) {
-					if (regStr.subSequence(end, end+8).equals("[a-zA-Z]")) {
+					if (regStr.substring(end, end+8).equals("[a-zA-Z]")) {
 						end = end + 14;
 						tempStart = end-3;
 						tempEnd = tempStart + 2;
@@ -726,6 +973,7 @@ public class RegExCategorizer {
 							System.out.println(replacedString);
 						}*/
 						collapse(regEx, true);
+						collapserPunct(regEx,true);
 						//overallCollapser(regEx, true);
 						if (PERFORM_TRIMMING) {
 							performTrimmingIndividual(regEx, true);
@@ -817,6 +1065,7 @@ public class RegExCategorizer {
 					if (tempPosScore <= posScore && tempNegScore >= negScore) {
 						regEx.setRegEx(replacedString);
 						collapse(regEx, false);
+						collapserPunct(regEx,false);
 						//overallCollapser(regEx, false);
 						if (PERFORM_TRIMMING) {
 							performTrimmingIndividual(regEx, false);
@@ -1071,7 +1320,7 @@ public class RegExCategorizer {
 		String regExStr = regEx.getRegEx();
 		char start = regExStr.charAt(0);
 		int cutLocation=1;
-		if (start == '\\') {
+		if (start == '\\' || start == '[') {
 			while(true){
 				if (cutLocation == regExStr.length()) {
 					return null;
@@ -1101,15 +1350,23 @@ public class RegExCategorizer {
 		String regExStr = regEx.getRegEx();
 		char end = regExStr.charAt(regExStr.length()-1);
 		int cutLocation=regExStr.length()-2;
+		boolean foundAZRegEx = false;
 		if (end == '+' || end == '}') {
 			while(true){
 				if (cutLocation < 0) {
 					return null;
 				}
 				char currentChar = regExStr.charAt(cutLocation--);
-				if (currentChar == '\\') {
+				if (!foundAZRegEx && currentChar == '\\') {
 					cutLocation = cutLocation+1;
 					break;
+				}
+				if (foundAZRegEx && currentChar == '[') {
+					cutLocation = cutLocation+1;
+					break;
+				}
+				if (currentChar == ']') {
+					foundAZRegEx = true;
 				}
 			}
 		} else {
