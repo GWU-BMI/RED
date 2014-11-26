@@ -3,6 +3,7 @@ package gov.va.research.red.ex;
 import gov.va.research.red.CVScore;
 import gov.va.research.red.CrossValidatable;
 import gov.va.research.red.LSTriplet;
+import gov.va.research.red.LabeledSegment;
 import gov.va.research.red.RegEx;
 import gov.va.research.red.Snippet;
 import gov.va.research.red.VTTReader;
@@ -11,12 +12,15 @@ import gov.va.research.red.cat.RegExCategorizer;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ForkJoinPool;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
@@ -80,30 +84,43 @@ public class REDExCrossValidator implements CrossValidatable {
 		List<List<Snippet>> partitions = partitionSnippets(folds, snippets);
 
 		// Run evaluations, "folds" number of times, alternating which partition is being used for testing.
-		PrintWriter pw = new PrintWriter(new File("training and testing.txt"));
-		int fold = 0;
-		List<CVScore> results = new ArrayList<>();
-		for (List<Snippet> partition : partitions) {
-			pw.println("##### FOLD " + (++fold) + " #####");
-			// set up training and testing sets for this fold
-			List<Snippet> testing = partition;
-			List<Snippet> training = new ArrayList<>();
-			for (List<Snippet> p : partitions) {
-				if (p != testing) {
-					training.addAll(p);
+		List<CVScore> results = null;
+		try (PrintWriter globalpw = new PrintWriter(new File("training and testing.txt"))) {
+			AtomicInteger fold = new AtomicInteger(0);
+			results = partitions.parallelStream().map((partition) -> {
+				CVScore score = null;
+				try (StringWriter sw = new StringWriter()) {
+					try (PrintWriter pw = new PrintWriter(sw)) {
+						pw.println("##### FOLD " + (fold.addAndGet(1)) + " #####");
+						// set up training and testing sets for this fold
+						List<Snippet> testing = partition;
+						List<Snippet> training = new ArrayList<>();
+						for (List<Snippet> p : partitions) {
+							if (p != testing) {
+								training.addAll(p);
+							}
+						}
+			
+						// Train
+						LSExtractor ex;
+						try {
+							ex = trainExtractor(label, training, pw);
+						} catch (Exception e) {
+							throw new RuntimeException(e);
+						}
+			
+						// Test
+						REDExtractor rexe = new REDExtractor();
+						score = rexe.testExtractor(testing, ex, pw);
+					}
+					globalpw.println();
+					globalpw.println(sw.toString());
+				} catch (IOException e) {
+					throw new RuntimeException(e);
 				}
-			}
-
-			// Train
-			LSExtractor ex = trainExtractor(label, training, pw);
-
-			// Test
-			REDExtractor rexe = new REDExtractor();
-			CVScore score = rexe.testExtractor(testing, ex, pw);
-
-			results.add(score);
+				return score;
+			}).collect(Collectors.toList());
 		}
-		pw.close();
 		return results;
 	}
 	
@@ -235,10 +252,34 @@ public class REDExCrossValidator implements CrossValidatable {
 		REDExtractor rexe = new REDExtractor();
 		List<LSTriplet> trained = rexe.extractRegexExpressions(training, label, null);
 		if (pw != null) {
-			pw.println("--- Training snippets:");
+			List<Snippet> labelled = new ArrayList<>();
+			List<Snippet> unlabelled = new ArrayList<>();
 			for (Snippet trainingSnippet : training) {
-				pw.println(trainingSnippet.getText());
+				boolean isLabelled = false;
+				if (trainingSnippet.getLabeledSegments() != null) {
+					for (LabeledSegment ls : trainingSnippet.getLabeledSegments()) {
+						if (label.equalsIgnoreCase(ls.getLabel())) {
+							isLabelled = true;
+							break;
+						}
+					}
+				}
+				if (isLabelled) {
+					labelled.add(trainingSnippet);
+				} else {
+					unlabelled.add(trainingSnippet);
+				}
+			}
+			pw.println("--- Training snippets:");
+			pw.println("--- positive for " + label);
+			for (Snippet s : labelled) {
+				pw.println(s.getText());
 				pw.println("----------");
+			}
+			pw.println("--- negative for " + label);
+			for (Snippet s : unlabelled) {
+				pw.println(s.getText());
+				pw.println("----------");				
 			}
 			pw.println();
 			pw.println("--- Trained Regexes:");

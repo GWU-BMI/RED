@@ -41,7 +41,7 @@ import org.slf4j.LoggerFactory;
 public class VTTReader {
 
 	private static final String SNIPPET_TEXT_BEGIN_REGEX = "Snippet\\s?Text:";
-	private static final Pattern SNIPPET_TEXT_BEGIN_PATTERN = Pattern.compile(SNIPPET_TEXT_BEGIN_REGEX);
+	private static final Pattern SNIPPET_TEXT_BEGIN_PATTERN = Pattern.compile(SNIPPET_TEXT_BEGIN_REGEX, Pattern.CASE_INSENSITIVE);
 	private static final String SNIPPET_TEXT_END = "----------------------------------------------------------------------------------";
 	private static final Logger LOG = LoggerFactory.getLogger(VTTReader.class);
 

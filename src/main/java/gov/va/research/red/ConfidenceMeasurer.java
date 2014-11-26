@@ -35,7 +35,7 @@ public class ConfidenceMeasurer {
 		for(RegEx regEx : regExes) {
 			Pattern pattern = patternMap.get(regEx);
 			if (pattern == null) {
-				pattern = Pattern.compile(regEx.getRegEx());
+				pattern = Pattern.compile(regEx.getRegEx(), Pattern.CASE_INSENSITIVE);
 				patternMap.put(regEx, pattern);
 			}
 			Matcher matcher = pattern.matcher(snippet.getText());

@@ -4,16 +4,23 @@ import gov.va.research.red.LSTriplet;
 import gov.va.research.red.MatchedElement;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ForkJoinPool;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class LSExtractor implements Extractor {
+	private static final Logger LOG = LoggerFactory.getLogger(LSExtractor.class);
 	
 	private List<LSTriplet> regExpressions;
 	private Map<String, Pattern> patternCache = new ConcurrentHashMap<>();
@@ -29,17 +36,9 @@ public class LSExtractor implements Extractor {
 		Set<MatchedElement> returnSet = null;
 		List<LSTriplet> regExpressions = getRegExpressions();
 		if(regExpressions != null && !regExpressions.isEmpty()){
-			returnSet = new HashSet<>();
-			for(LSTriplet triplet : regExpressions){
-				Pattern pattern = Pattern.compile(triplet.toStringRegEx());
-//				synchronized(patternCache) {
-//					if(patternCache.containsKey(triplet.toStringRegEx())){
-//						pattern = patternCache.get(triplet.toStringRegEx()); 
-//					}else{
-//						pattern = Pattern.compile(triplet.toStringRegEx());
-//						patternCache.put(triplet.toStringRegEx(), pattern);
-//					}
-//				}
+			returnSet = regExpressions.parallelStream().map((triplet) -> {
+				Set<MatchedElement> matchedElements = new HashSet<>();
+				Pattern pattern = Pattern.compile(triplet.toStringRegEx(), Pattern.CASE_INSENSITIVE);
 				Matcher matcher = pattern.matcher(target);
 				boolean test = matcher.find();
 				if(test){
@@ -47,10 +46,14 @@ public class LSExtractor implements Extractor {
 					if(candidateLS != null && !candidateLS.equals("")){
 						int startPos = target.indexOf(candidateLS);
 						int endPos = startPos + candidateLS.length();
-						returnSet.add(new MatchedElement(startPos, endPos, candidateLS));
+						matchedElements.add(new MatchedElement(startPos, endPos, candidateLS));
 					}
 				}
-			}
+				return matchedElements;
+			}).reduce(Collections.newSetFromMap(new ConcurrentHashMap<>()), (s1, s2) -> {
+				s1.addAll(s2);
+				return s1;
+			});
 		}
 		if(returnSet == null || returnSet.isEmpty())
 			return null;

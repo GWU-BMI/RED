@@ -11,21 +11,20 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.TreeSet;
 import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.ForkJoinPool;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -87,7 +86,7 @@ public class REDExtractor {
 					LOG.warn("False positive matches:");
 					for (Snippet fp : twfp.getValue().getFalsePositive()) {
 						Pattern p = Pattern.compile(twfp.getKey()
-								.toStringRegEx());
+								.toStringRegEx(), Pattern.CASE_INSENSITIVE);
 						Matcher m = p.matcher(fp.getText());
 						m.find();
 						LOG.warn("<fp actual='" + fp.getLabeledStrings()
@@ -103,23 +102,23 @@ public class REDExtractor {
 			trimRegEx(snippets, ls3list);
 			ls3list = removeDuplicates(ls3list);
 
-			leExt.setRegExpressions(ls3list);
-			CVScore scoreAfterTrimming = testExtractor(snippets, leExt);
+//			leExt.setRegExpressions(ls3list);
+//			CVScore scoreAfterTrimming = testExtractor(snippets, leExt);
 
 			// remove reduntant expressions
-			List<LSTriplet> testList = new ArrayList<LSTriplet>(ls3list);
-			int fnToTestAgainst = scoreAfterTrimming.getFn();
-			CVScore tempScore = null;
-			for (LSTriplet triplet : ls3list) {
-				testList.remove(triplet);
-				leExt.setRegExpressions(testList);
-				tempScore = testExtractor(snippets, leExt);
-				if (tempScore.getFn() < fnToTestAgainst)
-					fnToTestAgainst = tempScore.getFn();
-				else
-					testList.add(triplet);
-			}
-			ls3list = testList;
+//			List<LSTriplet> testList = new ArrayList<LSTriplet>(ls3list);
+//			int fnToTestAgainst = scoreAfterTrimming.getFn();
+//			CVScore tempScore = null;
+//			for (LSTriplet triplet : ls3list) {
+//				testList.remove(triplet);
+//				leExt.setRegExpressions(testList);
+//				tempScore = testExtractor(snippets, leExt);
+//				if (tempScore.getFn() < fnToTestAgainst)
+//					fnToTestAgainst = tempScore.getFn();
+//				else
+//					testList.add(triplet);
+//			}
+//			ls3list = testList;
 
 			// the tree replacement algorithm
 			List<PotentialMatch> potentialListBLS = new ArrayList<>();
@@ -188,7 +187,8 @@ public class REDExtractor {
 	 */
 	private List<LSTriplet> removeDuplicates(final List<LSTriplet> ls3list) {
 		LOG.debug("# Regexes List = {}", ls3list.size());
-		Set<LSTriplet> ls3set = new HashSet<>(ls3list);
+		Set<LSTriplet> ls3set = new TreeSet<>(new LSTriplet.IgnoreCaseComparator());
+		ls3set.addAll(ls3list);
 		LOG.debug("# Regexes Set = {}", ls3set.size());
 		List<LSTriplet> newlist = new ArrayList<>(ls3set);
 		return newlist;
@@ -206,7 +206,7 @@ public class REDExtractor {
 		Pattern pattern = patternCache.get(regEx.toStringRegEx());
 		int count = 0;
 		if (pattern == null) {
-			pattern = Pattern.compile(regEx.toStringRegEx());
+			pattern = Pattern.compile(regEx.toStringRegEx(), Pattern.CASE_INSENSITIVE);
 			patternCache.put(regEx.toStringRegEx(), pattern);
 		}
 		for (Snippet snippt : snippets) {
@@ -321,14 +321,13 @@ public class REDExtractor {
 			blsPrevTrimSuccess.add(Boolean.TRUE);
 		}
 		List<Boolean> alsPrevTrimSuccess = new ArrayList<>(blsPrevTrimSuccess);
-		LOG.info("ForkJoinPool parallelism = " + ForkJoinPool.commonPool().getParallelism());
 		while (true) {
 			List<Integer> indexes = new CopyOnWriteArrayList<>();
 			for (int i = 0; i < ls3list.size(); i++) {
 				indexes.add(Integer.valueOf(i));
 			}
-			List<Boolean> processedBLSorALSs = indexes.parallelStream().map((i) -> {
-				boolean processedBLSorALS = true;
+			boolean processedBLSorALS = true;
+			for (int i = 0; i < ls3list.size(); i++) {
 				String bls = null, als = null;
 				LSTriplet triplet = ls3list.get(i);
 				if (blsPrevTrimSuccess.get(i)
@@ -415,9 +414,8 @@ public class REDExtractor {
 						}
 					}
 				}
-				return processedBLSorALS;
-			}).collect(Collectors.toList());
-			if (!processedBLSorALSs.contains(Boolean.FALSE)) {
+			}
+			if (processedBLSorALS) {
 				break;
 			}
 		}
@@ -555,7 +553,7 @@ public class REDExtractor {
 			throws IOException {
 		List<Pattern> patterns = new ArrayList<Pattern>();
 		for (LSTriplet item : listLS) {
-			patterns.add(Pattern.compile(item.toStringRegEx()));
+			patterns.add(Pattern.compile(item.toStringRegEx(), Pattern.CASE_INSENSITIVE));
 
 		}
 		VTTReader vtt = new VTTReader();
@@ -696,18 +694,21 @@ public class REDExtractor {
 	 */
 	public CVScore testExtractor(List<Snippet> testing, LSExtractor ex,
 			PrintWriter pw) {
+		PrintWriter localPW = null;
+		StringWriter sw = null;
 		if (pw != null) {
-			pw.println();
+			sw = new StringWriter();
+			localPW = new PrintWriter(sw);
 		}
 		CVScore score = new CVScore();
 		for (Snippet snippet : testing) {
 			List<MatchedElement> candidates = ex.extract(snippet.getText());
 			String predicted = REDExtractor.chooseBestCandidate(candidates);
 			List<String> actual = snippet.getLabeledStrings();
-			if (pw != null) {
-				pw.println("--- Test Snippet:");
-				pw.println(snippet.getText());
-				pw.println("Predicted: " + predicted + ", Actual: " + actual);
+			if (localPW != null) {
+				localPW.println("--- Test Snippet:");
+				localPW.println(snippet.getText());
+				localPW.println(">>> Predicted: " + predicted + ", Actual: " + actual);
 			}
 			// Score
 			if (predicted == null) {
@@ -715,12 +716,12 @@ public class REDExtractor {
 					score.setTn(score.getTn() + 1);
 				} else {
 					score.setFn(score.getFn() + 1);
-					pw.println("<##### ERROR - FN: Regexes");
-					pw.println(""
+					localPW.println("<##### ERROR - FN: Regexes");
+					localPW.println(""
 						+ (ex == null ? "null"
 							: ex.getRegExpressions() == null ? "null"
 							: ex.getRegExpressions().toString()));
-					pw.println("#####>");
+					localPW.println("#####>");
 				}
 			} else if (actual == null || actual.size() == 0) {
 				score.setFp(score.getFp() + 1);
@@ -730,6 +731,16 @@ public class REDExtractor {
 				} else {
 					score.setFp(score.getFp() + 1);
 				}
+			}
+		}
+		if (pw != null && localPW != null && sw != null) {
+			localPW.close();
+			pw.println();
+			pw.append(sw.toString());
+			try {
+				sw.close();
+			} catch (IOException e) {
+				throw new RuntimeException(e);
 			}
 		}
 		return score;
@@ -779,7 +790,7 @@ public class REDExtractor {
 		for (LSTriplet ls3 : ls3list) {
 			List<Snippet> correct = new ArrayList<>();
 			List<Snippet> falsePositive = new ArrayList<>();
-			Pattern ls3pattern = Pattern.compile(ls3.toStringRegEx());
+			Pattern ls3pattern = Pattern.compile(ls3.toStringRegEx(), Pattern.CASE_INSENSITIVE);
 			for (Snippet snippet : snippets) {
 				List<Snippet> lsCorrectMatch = new ArrayList<>();
 				List<Snippet> lsFalseMatch = new ArrayList<>();

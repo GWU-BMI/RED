@@ -16,6 +16,8 @@
  */
 package gov.va.research.red;
 
+import java.util.Comparator;
+
 
 /**
  * Value Class for storing Labeled Segments and the surrounding textual context
@@ -136,6 +138,20 @@ public class LSTriplet {
 				(LS == t.LS || (LS != null && LS.equals(t.LS)))
 				&&
 				(ALS == t.ALS || (ALS != null && ALS.equals(t.ALS)));
+	}
+	
+	public static class IgnoreCaseComparator implements Comparator<LSTriplet> {
+		/*
+		 * (non-Javadoc)
+		 * 
+		 * @see java.util.Comparator#compare(java.lang.Object, java.lang.Object)
+		 */
+		@Override
+		public int compare(LSTriplet o1, LSTriplet o2) {
+			return String.CASE_INSENSITIVE_ORDER.compare(
+					o1 == null ? null : o1.toString(),
+					o2 == null ? null : o2.toString());
+		}
 	}
 
 }

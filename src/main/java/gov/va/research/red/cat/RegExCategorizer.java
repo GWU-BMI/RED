@@ -181,7 +181,7 @@ public class RegExCategorizer {
 			for (Snippet snippet : snippetsYes) {
 				Pattern p = patternCache.get(regEx);
 				if (p == null) {
-					p = Pattern.compile(regEx.getRegEx());
+					p = Pattern.compile(regEx.getRegEx(), Pattern.CASE_INSENSITIVE);
 					patternCache.put(regEx, p);
 				}
 				Matcher matcher = p.matcher(snippet.getText());
@@ -197,7 +197,7 @@ public class RegExCategorizer {
 			for (Snippet snippet : snippetsNo) {
 				Pattern p = patternCache.get(regEx);
 				if (p == null) {
-					p = Pattern.compile(regEx.getRegEx());
+					p = Pattern.compile(regEx.getRegEx(), Pattern.CASE_INSENSITIVE);
 					patternCache.put(regEx, p);
 				}
 				Matcher matcher = p.matcher(snippet.getText());
@@ -1132,7 +1132,7 @@ public class RegExCategorizer {
 		Pattern pattern = patternCache.get(regEx);
 		int posScore = 0;
 		if (pattern == null) {
-			pattern = Pattern.compile(regEx.getRegEx());
+			pattern = Pattern.compile(regEx.getRegEx(), Pattern.CASE_INSENSITIVE);
 			patternCache.put(regEx, pattern);
 		}
 		for (Snippet snippet : snippetsYes) {
@@ -1173,7 +1173,7 @@ public class RegExCategorizer {
 		Pattern pattern = patternCache.get(regEx);
 		int negScore = 0;
 		if (pattern == null) {
-			pattern = Pattern.compile(regEx.getRegEx());
+			pattern = Pattern.compile(regEx.getRegEx(), Pattern.CASE_INSENSITIVE);
 			patternCache.put(regEx, pattern);
 		}
 		for (Snippet snippet : snippetsNo) {
@@ -1214,7 +1214,7 @@ public class RegExCategorizer {
 		Pattern pattern = patternCache.get(regEx);
 		int noLabelScore = 0;
 		if (pattern == null) {
-			pattern = Pattern.compile(regEx.getRegEx());
+			pattern = Pattern.compile(regEx.getRegEx(), Pattern.CASE_INSENSITIVE);
 			patternCache.put(regEx, pattern);
 		}
 		for (Snippet snippet : snippetsNoLabel) {
