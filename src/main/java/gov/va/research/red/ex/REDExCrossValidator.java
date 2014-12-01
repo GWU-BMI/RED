@@ -271,15 +271,13 @@ public class REDExCrossValidator implements CrossValidatable {
 				}
 			}
 			pw.println("--- Training snippets:");
-			pw.println("--- positive for " + label);
 			for (Snippet s : labelled) {
+				pw.println("--- pos. for " + label);
 				pw.println(s.getText());
-				pw.println("----------");
 			}
-			pw.println("--- negative for " + label);
 			for (Snippet s : unlabelled) {
+				pw.println("--- neg. for " + label);
 				pw.println(s.getText());
-				pw.println("----------");				
 			}
 			pw.println();
 			pw.println("--- Trained Regexes:");

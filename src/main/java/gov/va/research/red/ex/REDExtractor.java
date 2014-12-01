@@ -17,6 +17,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -95,11 +96,16 @@ public class REDExtractor {
 					}
 				}
 			}
+			
+			ls3list = generalizeLS(ls3list);
+			LOG.info("generalized LSs");
+			ls3list = removeDuplicates(ls3list);
 
 			// check if we can remove the first regex from bls. Keep on
 			// repeating
 			// the process till we can't remove any regex's from the bls's.
 			trimRegEx(snippets, ls3list);
+			LOG.info("trimmed regexes");
 			ls3list = removeDuplicates(ls3list);
 
 //			leExt.setRegExpressions(ls3list);
@@ -181,6 +187,24 @@ public class REDExtractor {
 		return null;
 	}
 	
+	/**
+	 * Generalize the LS element of each triplet to work for all LSs in the list.
+	 * @param ls3list
+	 * @return A new LSTriplet list, with each LS segment replaced by a combination of all LSs in the list.
+	 */
+	private List<LSTriplet> generalizeLS(final List<LSTriplet> ls3list) {
+		Set<String> lsSet = new HashSet<>();
+		for (LSTriplet ls3 : ls3list) {
+			if (lsSet.add(ls3.getLS()));
+		}
+		String genLSRegex = String.join("|", lsSet);
+		List<LSTriplet> genLSTriplets = new ArrayList<>(ls3list.size());
+		for (LSTriplet ls3 : ls3list) {
+			genLSTriplets.add(new LSTriplet(ls3.getBLS(), genLSRegex, ls3.getALS()));
+		}
+		return genLSTriplets;
+	}
+
 	/**
 	 * @param ls3list
 	 * @return
