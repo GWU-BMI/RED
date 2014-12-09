@@ -889,7 +889,6 @@ public class RegExCategorizer {
 		Set<Entry<String, Integer>> entries = wordFreqMapPos.entrySet();
 		List<Entry<String, Integer>> sortedEntryList = new ArrayList<Map.Entry<String,Integer>>(entries);
 		Collections.sort(sortedEntryList, new Comparator<Entry<String, Integer>>() {
-
 			@Override
 			public int compare(Entry<String, Integer> o1,
 					Entry<String, Integer> o2) {
@@ -902,88 +901,75 @@ public class RegExCategorizer {
 			}
 		});
 		int size = sortedEntryList.size();
-		//if (leastfreqWordRemovalLevel > (size)) {
-			leastfreqWordRemovalLevel = size;
-		//}
-		for (int i=0;i< leastfreqWordRemovalLevel;i++) {
+		leastfreqWordRemovalLevel = size;
+		for (int i=0; i < leastfreqWordRemovalLevel; i++) {
 			Entry<String, Integer> leastFreqEntry = sortedEntryList.get(i);
-			//if (NOT_KEYWORD_TRAINING || (!leastFreqEntry.getKey().equalsIgnoreCase("diabetes") && !leastFreqEntry.getKey().equalsIgnoreCase("history") && !leastFreqEntry.getKey().equalsIgnoreCase("mellitus") && !leastFreqEntry.getKey().equalsIgnoreCase("family") && !leastFreqEntry.getKey().equalsIgnoreCase("past"))) {
-			/*if (leastFreqEntry.getKey().length() == 1) {
-				continue;
-			}*/
-				for (RegEx regEx : initialPositiveRegExs) {
-					int posScore = calculatePositiveScore(regEx, true, false);
-					int negScore = calculateNegativeScore(regEx, true, false);
-					int noLabelScore = calculateNoLabelScore(regEx);
-					negScore += noLabelScore;
-					
-					String regExStr = regEx.getRegEx();
-					if (leastFreqEntry.getKey().equalsIgnoreCase("As") && regExStr.contains("her") && regExStr.contains("As")) {
-						int a = 1;
-						a++;
-					} /*else {
-						continue;
-					}*/
-					String replacedString = null;
-					if (leastFreqEntry.getKey().length() < 10) {
-						replacedString = regExStr.replaceAll("(?i)}"+leastFreqEntry.getKey()+"\\\\", "}[a-zA-Z]{1,0"+leastFreqEntry.getKey().length()+"}\\\\");
-						replacedString = replacedString.replaceAll("(?i)}"+leastFreqEntry.getKey()+"\\[", "}[a-zA-Z]{1,0"+leastFreqEntry.getKey().length()+"}[");
-						int start = 0;
-						while (start < replacedString.length() && replacedString.charAt(start) != '\\' && replacedString.charAt(start) != '[') {
-							start++;
-						}
-						if (leastFreqEntry.getKey().equalsIgnoreCase(replacedString.substring(0, start))) {
-							replacedString = "[a-zA-Z]{1,0"+leastFreqEntry.getKey().length()+"}"+replacedString.substring(start, replacedString.length());
-						}
-						int end = replacedString.length();
-						end--;
-						while ( end > 0 && replacedString.charAt(end) != '}' && replacedString.charAt(end) != '+') {
-							end--;
-						}
-						if (leastFreqEntry.getKey().equalsIgnoreCase(replacedString.substring(end+1, replacedString.length()))) {
-							replacedString = replacedString.substring(0, end+1)+"[a-zA-Z]{1,0"+leastFreqEntry.getKey().length()+"}";
-						}
-					} else {
-						replacedString = regExStr.replaceAll("(?i)}"+leastFreqEntry.getKey()+"\\\\", "}[a-zA-Z]{1,"+leastFreqEntry.getKey().length()+"}\\\\");
-						replacedString = replacedString.replaceAll("(?i)}"+leastFreqEntry.getKey()+"\\[", "}[a-zA-Z]{1,"+leastFreqEntry.getKey().length()+"}[");
-						int start = 0;
-						while (start < replacedString.length() && replacedString.charAt(start) != '\\' && replacedString.charAt(start) != '[') {
-							start++;
-						}
-						if (leastFreqEntry.getKey().equalsIgnoreCase(replacedString.substring(0, start))) {
-							replacedString = "[a-zA-Z]{1,"+leastFreqEntry.getKey().length()+"}"+replacedString.substring(start, replacedString.length());
-						}
-						int end = replacedString.length();
-						end--;
-						while ( end > 0 && replacedString.charAt(end) != '}' && replacedString.charAt(end) != '+') {
-							end--;
-						}
-						if (leastFreqEntry.getKey().equalsIgnoreCase(replacedString.substring(end+1, replacedString.length()))) {
-							replacedString = replacedString.substring(0, end+1)+"[a-zA-Z]{1,"+leastFreqEntry.getKey().length()+"}";
-						}
+			for (RegEx regEx : initialPositiveRegExs) {
+				int posScore = calculatePositiveScore(regEx, true, false);
+				int negScore = calculateNegativeScore(regEx, true, false);
+				int noLabelScore = calculateNoLabelScore(regEx);
+				negScore += noLabelScore;
+				
+				String regExStr = regEx.getRegEx();
+				if (leastFreqEntry.getKey().equalsIgnoreCase("As") && regExStr.contains("her") && regExStr.contains("As")) {
+					int a = 1;
+					a++;
+				}
+				String replacedString = null;
+				if (leastFreqEntry.getKey().length() < 10) {
+					replacedString = regExStr.replaceAll("(?i)}"+leastFreqEntry.getKey()+"\\\\", "}[a-zA-Z]{1,0"+leastFreqEntry.getKey().length()+"}\\\\");
+					replacedString = replacedString.replaceAll("(?i)}"+leastFreqEntry.getKey()+"\\[", "}[a-zA-Z]{1,0"+leastFreqEntry.getKey().length()+"}[");
+					int start = 0;
+					while (start < replacedString.length() && replacedString.charAt(start) != '\\' && replacedString.charAt(start) != '[') {
+						start++;
 					}
-					RegEx temp = new RegEx(replacedString);
-					int tempPosScore = calculatePositiveScore(temp, true, false);
-					int tempNegScore = calculateNegativeScore(temp, true, false);
-					int tempnoLabelScore = calculateNoLabelScore(regEx);
-					tempNegScore += tempnoLabelScore;
-					if (tempPosScore >= posScore && tempNegScore <= negScore) {
-						regEx.setRegEx(replacedString);
-						/*if (replacedString.contains("trochanteric")) {
-							System.out.println(replacedString);
-						}*/
-						collapse(regEx, true);
-						collapserPunct(regEx,true);
-						//overallCollapser(regEx, true);
-						if (PERFORM_TRIMMING) {
-							performTrimmingIndividual(regEx, true);
-						}
-						if (PERFORM_USELESS_REMOVAL) {
-							uselessRegRemover(regEx, true);
-						}
+					if (leastFreqEntry.getKey().equalsIgnoreCase(replacedString.substring(0, start))) {
+						replacedString = "[a-zA-Z]{1,0"+leastFreqEntry.getKey().length()+"}"+replacedString.substring(start, replacedString.length());
+					}
+					int end = replacedString.length();
+					end--;
+					while ( end > 0 && replacedString.charAt(end) != '}' && replacedString.charAt(end) != '+') {
+						end--;
+					}
+					if (leastFreqEntry.getKey().equalsIgnoreCase(replacedString.substring(end+1, replacedString.length()))) {
+						replacedString = replacedString.substring(0, end+1)+"[a-zA-Z]{1,0"+leastFreqEntry.getKey().length()+"}";
+					}
+				} else {
+					replacedString = regExStr.replaceAll("(?i)}"+leastFreqEntry.getKey()+"\\\\", "}[a-zA-Z]{1,"+leastFreqEntry.getKey().length()+"}\\\\");
+					replacedString = replacedString.replaceAll("(?i)}"+leastFreqEntry.getKey()+"\\[", "}[a-zA-Z]{1,"+leastFreqEntry.getKey().length()+"}[");
+					int start = 0;
+					while (start < replacedString.length() && replacedString.charAt(start) != '\\' && replacedString.charAt(start) != '[') {
+						start++;
+					}
+					if (leastFreqEntry.getKey().equalsIgnoreCase(replacedString.substring(0, start))) {
+						replacedString = "[a-zA-Z]{1,"+leastFreqEntry.getKey().length()+"}"+replacedString.substring(start, replacedString.length());
+					}
+					int end = replacedString.length();
+					end--;
+					while ( end > 0 && replacedString.charAt(end) != '}' && replacedString.charAt(end) != '+') {
+						end--;
+					}
+					if (leastFreqEntry.getKey().equalsIgnoreCase(replacedString.substring(end+1, replacedString.length()))) {
+						replacedString = replacedString.substring(0, end+1)+"[a-zA-Z]{1,"+leastFreqEntry.getKey().length()+"}";
 					}
 				}
-			//}
+				RegEx temp = new RegEx(replacedString);
+				int tempPosScore = calculatePositiveScore(temp, true, false);
+				int tempNegScore = calculateNegativeScore(temp, true, false);
+				int tempnoLabelScore = calculateNoLabelScore(regEx);
+				tempNegScore += tempnoLabelScore;
+				if (tempPosScore >= posScore && tempNegScore <= negScore) {
+					regEx.setRegEx(replacedString);
+					collapse(regEx, true);
+					collapserPunct(regEx,true);
+					if (PERFORM_TRIMMING) {
+						performTrimmingIndividual(regEx, true);
+					}
+					if (PERFORM_USELESS_REMOVAL) {
+						uselessRegRemover(regEx, true);
+					}
+				}
+			}
 		}
 	}
 	
