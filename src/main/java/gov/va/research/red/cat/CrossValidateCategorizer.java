@@ -20,6 +20,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -105,7 +106,7 @@ public class CrossValidateCategorizer {
 
 			// Train
 			RegExCategorizer regExCategorizer = new RegExCategorizer();
-			Map<String, List<RegEx>> regExsPosNeg = regExCategorizer.extractRegexClassifications(trainingYes, trainingNo, trainingNoLabel, yesLabels, noLabels);
+			Map<String, Collection<RegEx>> regExsPosNeg = regExCategorizer.extractRegexClassifications(trainingYes, trainingNo, trainingNoLabel, yesLabels, noLabels);
 			if (regExsPosNeg != null) {
 				List<Snippet> snippetsAll = new ArrayList<Snippet>();
 				snippetsAll.addAll(partitionYes);

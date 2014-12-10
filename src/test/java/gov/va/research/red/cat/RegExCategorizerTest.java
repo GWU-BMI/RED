@@ -29,6 +29,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -95,7 +96,7 @@ public class RegExCategorizerTest {
 			yesLabels.add("yes");
 			List<String> noLabels = new ArrayList<>();
 			noLabels.add("no");
-			Map<String, List<RegEx>> retMap = crex.findRegexesAndSaveInFile(new File(CLASSIFIER_TEST_URI), yesLabels, noLabels, "classifier2.txt", true);
+			Map<String, Collection<RegEx>> retMap = crex.findRegexesAndSaveInFile(new File(CLASSIFIER_TEST_URI), yesLabels, noLabels, "classifier2.txt", true);
 			System.out.println("Pos regex");
 			for (RegEx regEx : retMap.get("POSITIVE")) {
 				System.out.println(regEx.getRegEx()+"\t"+regEx.getSpecifity());
