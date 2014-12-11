@@ -26,9 +26,9 @@ import java.util.List;
  */
 public class CVUtils {
 	/**
-	 * @param folds
-	 * @param snippets
-	 * @return
+	 * @param folds Number of folds (partitions) for cross-validation.
+	 * @param snippets The snippets to partition.
+	 * @return <code>folds</code> lists of snippets, partitioned evenly.
 	 */
 	public static List<List<Snippet>> partitionSnippets(int folds,
 			List<Snippet> snippets) {
