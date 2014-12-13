@@ -30,8 +30,8 @@ import java.util.regex.Pattern;
  */
 public class RegExCategorizer {
 	
+	private static final String P_PUNCT = "\\p{Punct}";
 	private static final Map<RegEx, Pattern> patternCache = new HashMap<RegEx, Pattern>();
-	private int leastfreqWordRemovalLevel = 10;
 	private static final String POSITIVE = "POSITIVE";
 	private static final String NEGATIVE = "NEGATIVE";
 	private static final boolean PERFORM_TRIMMING = true;
@@ -72,12 +72,12 @@ public class RegExCategorizer {
 		return rtMap;
 	}
 	
-	public Map<String, Collection<RegEx>> extractRegexClassifications(List<Snippet> snippetsYesM, List<Snippet> snippetsNoM, List<Snippet> snippetsNoLabelM, List<String> yesLabelsM, List<String> noLabelsM) throws IOException {
+	public Map<String, Collection<RegEx>> extractRegexClassifications(List<Snippet> snippetsYesM, List<Snippet> snippetsNoM, List<Snippet> snippetsNoLabelM, Collection<String> yesLabelsM, Collection<String> noLabelsM) throws IOException {
 		List<Snippet> snippetsYes = snippetsYesM;
 		List<Snippet> snippetsNo = snippetsNoM;
 		List<Snippet> snippetsNoLabel = snippetsNoLabelM;
-		List<String> yesLabels = yesLabelsM;
-		List<String> noLabels = noLabelsM;
+		Collection<String> yesLabels = yesLabelsM;
+		Collection<String> noLabels = noLabelsM;
 		List<Snippet> snippetsYesAndUnlabeled = new ArrayList<>(snippetsYes.size() + snippetsNoLabel.size());
 		snippetsYesAndUnlabeled.addAll(snippetsYes);
 		snippetsYesAndUnlabeled.addAll(snippetsNoLabel);
@@ -93,8 +93,19 @@ public class RegExCategorizer {
 		
 		Collection<RegEx> initialPositiveRegExs = initialize(snippetsYes, yesLabels);
 		Collection<RegEx> initialNegativeRegExs = initialize(snippetsNo, noLabels);
+		
+		System.out.println("     1 - pos");
+		printRegExs(initialPositiveRegExs);
+		System.out.println("     1 - neg");
+		printRegExs(initialNegativeRegExs);
+
 		removeDuplicates(initialPositiveRegExs);
 		removeDuplicates(initialNegativeRegExs);
+		
+		System.out.println("     2 - pos");
+		printRegExs(initialPositiveRegExs);
+		System.out.println("     2 - neg");
+		printRegExs(initialNegativeRegExs);
 
 		Iterator<RegEx> it = initialPositiveRegExs.iterator();
 		while (it.hasNext()) {
@@ -114,6 +125,11 @@ public class RegExCategorizer {
 		initialPositiveRegExs = removeDuplicates(initialPositiveRegExs);
 		initialNegativeRegExs = removeDuplicates(initialNegativeRegExs);
 		
+		System.out.println("     3 - pos");
+		printRegExs(initialPositiveRegExs);
+		System.out.println("     3 - neg");
+		printRegExs(initialNegativeRegExs);
+		
 		
 		Map<String,Integer> wordFreqMapPos = createFrequencyMap(initialPositiveRegExs);
 		Map<String,Integer> wordFreqMapNeg = createFrequencyMap(initialNegativeRegExs);
@@ -122,6 +138,10 @@ public class RegExCategorizer {
 		initialPositiveRegExs = removeDuplicates(initialPositiveRegExs);
 		initialNegativeRegExs = removeDuplicates(initialNegativeRegExs);
 		
+		System.out.println("     4 - pos");
+		printRegExs(initialPositiveRegExs);
+		System.out.println("     4 - neg");
+		printRegExs(initialNegativeRegExs);
 		
 		if (PERFORM_TRIMMING_OVERALL) {
 			performTrimming(initialPositiveRegExs, snippetsNoAndUnlabeled, yesLabels);
@@ -130,7 +150,11 @@ public class RegExCategorizer {
 			initialNegativeRegExs = removeDuplicates(initialNegativeRegExs);
 		}
 		
-		
+		System.out.println("     5 - pos");
+		printRegExs(initialPositiveRegExs);
+		System.out.println("     5 - neg");
+		printRegExs(initialNegativeRegExs);
+
 		// collapsing
 		
 		/*for (RegEx regEx : initialPositiveRegExs) {
@@ -155,14 +179,18 @@ public class RegExCategorizer {
 		}
 		
 		for (RegEx regEx : initialPositiveRegExs) {
-			overallCollapser(regEx);
+			Collapse.overallCollapser(regEx);
 		}
 		for (RegEx regEx : initialNegativeRegExs) {
-			overallCollapser(regEx);
+			Collapse.overallCollapser(regEx);
 		}
 		initialPositiveRegExs = removeDuplicates(initialPositiveRegExs);
 		initialNegativeRegExs = removeDuplicates(initialNegativeRegExs);
 		
+		System.out.println("     6 - pos");
+		printRegExs(initialPositiveRegExs);
+		System.out.println("     6 - neg");
+		printRegExs(initialNegativeRegExs);
 		
 		for (RegEx regEx : initialPositiveRegExs) {
 			int specifity = 0;
@@ -219,6 +247,12 @@ public class RegExCategorizer {
 		positiveAndNegativeRegEx.put(NEGATIVE, initialNegativeRegExs);
 		
 		return positiveAndNegativeRegEx;
+	}
+
+	private void printRegExs(Collection<RegEx> initialPositiveRegExs) {
+		for (RegEx re : initialPositiveRegExs) {
+			System.out.println("" + re.getRegEx());
+		}
 	}
 	
 	private void printSnippetsFile(Collection<Snippet> snippets, Collection<String> labels, String baseFilename) throws IOException {
@@ -286,318 +320,40 @@ public class RegExCategorizer {
 		return new HashSet<RegEx>(regExes);
 	}
 
-	private void uselessRegRemover(RegEx regEx, List<Snippet> negSnippets, List<String> posLabels){		
-		String regExStr = regEx.getRegEx();
-		StringBuilder regExStrBld = new StringBuilder(regExStr);
-		String backup = null;
-		int start = 0,end =0;
-		while (true) {
-			backup = regExStrBld.toString();
-			while (start < backup.length() && backup.charAt(start) != '\\' && backup.charAt(start) != '[') {
-				start++;
-				end++;
-			}
-			if (start == backup.length()) {
-				break;
-			}
-			while (end < backup.length() && backup.charAt(end) != '}' && backup.charAt(end) != '+') {
-				end++;
-			}
-			end++;
-			if (end == backup.length()) {
-				break;
-			}
-			regExStrBld.replace(start, end, "");
-			regEx.setRegEx(regExStrBld.toString());
-			if (!anyMatches(regEx, negSnippets, posLabels)) {
-				end = start;
-			} else {
-				start = end;
-				regEx.setRegEx(backup);
-				regExStrBld = new StringBuilder(backup);
-			}
-		}
+	private void uselessRegRemover(RegEx regEx, Collection<Snippet> negSnippets, Collection<String> posLabels){		
+//		String regExStr = regEx.getRegEx();
+//		StringBuilder regExStrBld = new StringBuilder(regExStr);
+//		String backup = null;
+//		int start = 0,end =0;
+//		while (true) {
+//			backup = regExStrBld.toString();
+//			while (start < backup.length() && backup.charAt(start) != '\\' && backup.charAt(start) != '[') {
+//				start++;
+//				end++;
+//			}
+//			if (start == backup.length()) {
+//				break;
+//			}
+//			while (end < backup.length() && backup.charAt(end) != '}' && backup.charAt(end) != '+') {
+//				end++;
+//			}
+//			end++;
+//			if (end == backup.length()) {
+//				break;
+//			}
+//			regExStrBld.replace(start, end, "");
+//			regEx.setRegEx(regExStrBld.toString());
+//			if (!anyMatches(regEx, negSnippets, posLabels)) {
+//				end = start;
+//			} else {
+//				start = end;
+//				regEx.setRegEx(backup);
+//				regExStrBld = new StringBuilder(backup);
+//			}
+//		}
 	}
 	
-	private void overallCollapser(RegEx regEx) {
-		String regStr = regEx.getRegEx();
-		int splitter = 0;
-		while (regStr.substring(splitter, regStr.length()).contains("[A-Za-z ]")) {
-			int startIndex = regStr.substring(splitter, regStr.length()).indexOf("[A-Za-z ]");
-			startIndex = startIndex + splitter;
-			int start = startIndex;
-			int tempEnd,tempStart,sum=0;
-			tempStart = startIndex+12;
-			tempEnd = tempStart + 2;
-			sum += Integer.parseInt(regStr.substring(tempStart, tempEnd));
-			boolean found = false;
-			int end = startIndex+15;
-			splitter = end;
-			while (end <= regEx.getRegEx().length()-15) {
-				boolean breakCond = true;
-				if (regStr.substring(end, end+9).equals("[A-Za-z ]")) {
-					end = end + 15;
-					tempStart = end - 3;
-					tempEnd = tempStart + 2;
-					sum += Integer.parseInt(regStr.substring(tempStart, tempEnd));
-					breakCond = false;
-					found = true;
-				}
-				if (breakCond) {
-					break;
-				}
-			}
-			if (found) {
-				StringBuilder regStrBld = new StringBuilder(regStr);
-				if (sum < 10) {
-					regStrBld.replace(start, end, "[A-Za-z ]{1,0"+sum+"}");
-				}else {
-					regStrBld.replace(start, end, "[A-Za-z ]{1,"+sum+"}");
-				}
-				splitter = start + 15;
-				regEx.setRegEx(regStrBld.toString());
-				regStr = regStrBld.toString();
-			}
-		}
-	}
-	
-	private void collapserPunct(RegEx regEx, List<Snippet> negSnippets, List<String> posLabels) {
-		String regStr = regEx.getRegEx();
-		int splitter = 0;
-		while (regStr.substring(splitter, regStr.length()).contains("[A-Za-z ]")) {
-			int startIndex = regStr.substring(splitter, regStr.length()).indexOf("[A-Za-z ]");
-			startIndex = startIndex + splitter;
-			int tempEnd,tempStart,sum=0;
-			tempStart = startIndex+12;
-			tempEnd = tempStart + 2;
-			sum += Integer.parseInt(regStr.substring(tempStart, tempEnd));
-			boolean found = false;
-			int start = startIndex;
-			while (start > 0) {
-				boolean breakCond = true;
-				if (start > 7 && regStr.substring(start - 8, start).equals("\\s{1,10}")) {
-					breakCond = false;
-					sum += 8;
-					start = start - 8;
-				}
-				if (start > 8 && regStr.substring(start - 9, start).equals("\\p{Punct}")) {
-					breakCond = false;
-					sum += 5;
-					found = true;
-					start = start - 9;
-				}
-				if (breakCond) {
-					break;
-				}
-			}
-			int end = startIndex+15;
-			splitter = end;
-			while (end <= regEx.getRegEx().length()) {
-				boolean breakCond = true;
-				if ((end+8) <= regEx.getRegEx().length() && regStr.substring(end, end+8).equals("\\s{1,10}")) {
-					end = end + 8;
-					sum += 8;
-					breakCond = false;
-				}
-				if ((end+9) <= regEx.getRegEx().length() && regStr.substring(end, end+9).equals("\\p{Punct}")) {
-					breakCond = false;
-					sum += 5;
-					found = true;
-					end = end + 9;
-				}
-				if (breakCond) {
-					break;
-				}
-			}
-			if (found) {
-				StringBuilder regStrBld = new StringBuilder(regStr);
-				if (sum < 10) {
-					regStrBld.replace(start, end, "[A-Za-z \\p{Punct}]{1,0"+sum+"}");
-				}else {
-					regStrBld.replace(start, end, "[A-Za-z \\p{Punct}]{1,"+sum+"}");
-				}
-				regEx.setRegEx(regStrBld.toString());
-				if (!anyMatches(regEx, negSnippets, posLabels)) {
-					regStr = regStrBld.toString();
-					splitter = start + 24;
-				} else {
-					regEx.setRegEx(regStr);
-					splitter = startIndex + 15;
-				}
-			}
-		}
-		
-		regStr = regEx.getRegEx();
-		splitter = 0;
-		boolean foundSpace = false;
-		while (regStr.substring(splitter, regStr.length()).contains("[A-Za-z]")) {
-			int startIndex = regStr.substring(splitter, regStr.length()).indexOf("[A-Za-z]");
-			startIndex = startIndex + splitter;
-			int tempEnd,tempStart,sum=0;
-			tempStart = startIndex+11;
-			tempEnd = tempStart + 2;
-			sum += Integer.parseInt(regStr.substring(tempStart, tempEnd));
-			boolean found = false;
-			int start = startIndex;
-			while (start > 0) {
-				boolean breakCond = true;
-				if (start > 7 && regStr.substring(start - 8, start).equals("\\s{1,10}")) {
-					breakCond = false;
-					sum += 8;
-					start = start - 8;
-					foundSpace = true;
-				}
-				if (start > 8 && regStr.substring(start - 9, start).equals("\\p{Punct}")) {
-					breakCond = false;
-					sum += 5;
-					found = true;
-					start = start - 9;
-				}
-				if (breakCond) {
-					break;
-				}
-			}
-			int end = startIndex+14;
-			splitter = end;
-			while (end <= regEx.getRegEx().length()) {
-				boolean breakCond = true;
-				if ((end+8) <= regEx.getRegEx().length() && regStr.substring(end, end+8).equals("\\s{1,10}")) {
-					end = end + 8;
-					sum += 8;
-					breakCond = false;
-					foundSpace = true;
-				}
-				if ((end+9) <= regEx.getRegEx().length() && regStr.substring(end, end+9).equals("\\p{Punct}")) {
-					breakCond = false;
-					sum += 5;
-					found = true;
-					end = end + 9;
-				}
-				if (breakCond) {
-					break;
-				}
-			}
-			if (found && foundSpace) {
-				StringBuilder regStrBld = new StringBuilder(regStr);
-				if (sum < 10) {
-					regStrBld.replace(start, end, "[A-Za-z \\p{Punct}]{1,0"+sum+"}");
-				}else {
-					regStrBld.replace(start, end, "[A-Za-z \\p{Punct}]{1,"+sum+"}");
-				}
-				regEx.setRegEx(regStrBld.toString());
-				if (!anyMatches(regEx, negSnippets, posLabels)) {
-					regStr = regStrBld.toString();
-					splitter = start + 24;
-				} else {
-					regEx.setRegEx(regStr);
-					splitter = startIndex + 14;
-				}
-			}
-			else if (found) {
-				StringBuilder regStrBld = new StringBuilder(regStr);
-				if (sum < 10) {
-					regStrBld.replace(start, end, "[A-Za-z\\p{Punct}]{1,0"+sum+"}");
-				}else {
-					regStrBld.replace(start, end, "[A-Za-z\\p{Punct}]{1,"+sum+"}");
-				}
-				regEx.setRegEx(regStrBld.toString());
-				if (!anyMatches(regEx, negSnippets, posLabels)) {
-					regStr = regStrBld.toString();
-					splitter = start + 23;
-				} else {
-					regEx.setRegEx(regStr);
-					splitter = startIndex + 14;
-				}
-			}
-		}
-	}
-	
-	private void collapse(RegEx regEx, List<Snippet> negSnippets, List<String> posLabels) {
-		String regStr = regEx.getRegEx();
-		int initialStart=0,initalEnd = 0;
-		while (regStr.contains("[a-zA-Z]")) {
-			int startIndex = regStr.indexOf("[a-zA-Z]");
-			int start = startIndex;
-			int tempStart,tempEnd, totalSum;
-			tempStart = startIndex + 11;
-			tempEnd = tempStart + 2;
-			totalSum = Integer.parseInt(regStr.substring(tempStart, tempEnd));
-			initialStart = start;
-			boolean found = false;
-			while (start > 7) {
-				boolean breakCond = true;
-				if (regStr.substring(start-8, start).equals("\\s{1,10}")) {
-					start = start - 8;
-					breakCond = false;
-					found = true;
-					totalSum += 10;
-				}
-				if (start > 13) {
-					if (regStr.substring(start-14, start-6).equals("[a-zA-Z]")) {
-						start = start - 14;
-						tempStart = start + 11;
-						tempEnd = tempStart + 2;
-						totalSum += Integer.parseInt(regStr.substring(tempStart, tempEnd));
-						breakCond = false;
-						found = true;
-					}
-				}
-				if (breakCond) {
-					break;
-				}
-			}
-			int end = startIndex+14;
-			initalEnd = end;
-			while (end <= regEx.getRegEx().length()-8) {
-				boolean breakCond = true;
-				if (regStr.substring(end, end + 8).equals("\\s{1,10}")) {
-					end = end + 8;
-					breakCond = false;
-					found = true;
-					totalSum += 10;
-				}
-				if (end <=  regEx.getRegEx().length()-14) {
-					if (regStr.substring(end, end+8).equals("[a-zA-Z]")) {
-						end = end + 14;
-						tempStart = end-3;
-						tempEnd = tempStart + 2;
-						totalSum += Integer.parseInt(regStr.substring(tempStart, tempEnd));
-						breakCond = false;
-						found = true;
-					}
-				}
-				if (breakCond) {
-					break;
-				}
-			}
-			if (found) {
-				StringBuilder regStrBld = new StringBuilder(regStr);
-				totalSum = totalSum + 10;
-				if (totalSum < 10) {
-					regStrBld.replace(start, end, "[A-Za-z ]{1,0"+totalSum+"}");
-				}else {
-					regStrBld.replace(start, end, "[A-Za-z ]{1,"+totalSum+"}");
-				}
-				regEx.setRegEx(regStrBld.toString());
-				overallCollapser(regEx);
-				if (!anyMatches(regEx, negSnippets, posLabels)) {
-					regStr = regStrBld.toString();
-				} else {
-					regStrBld = new StringBuilder(regStr);
-					regStrBld.replace(initialStart, initalEnd-6, "[A-Za-z]");
-					regEx.setRegEx(regStrBld.toString());
-					regStr = regStrBld.toString();
-				}
-			} else {
-				StringBuilder regStrBld = new StringBuilder(regStr);
-				regStrBld.replace(start, end-6, "[A-Za-z]");
-				regEx.setRegEx(regStrBld.toString());
-				regStr = regStrBld.toString();
-			}
-		}
-	}
-	
-	private List<RegEx> initialize(List<Snippet> snippets, List<String> labels) {
+	private List<RegEx> initialize(Collection<Snippet> snippets, Collection<String> labels) {
 		List<RegEx> initialRegExs = null;
 		initialRegExs = new ArrayList<RegEx>(snippets.size());
 		initializeInitialRegEx(snippets, labels, initialRegExs);
@@ -611,7 +367,7 @@ public class RegExCategorizer {
 		return initialRegExs;
 	}
 		
-	private void removeLeastFrequent(Collection<RegEx> initialPositiveRegExs, List<Snippet> negSnippets, List<String> posLabels, Map<String,Integer> wordFreqMapPos) {
+	private void removeLeastFrequent(Collection<RegEx> initialPositiveRegExs, Collection<Snippet> negSnippets, Collection<String> posLabels, Map<String,Integer> wordFreqMapPos) {
 		Set<Entry<String, Integer>> entries = wordFreqMapPos.entrySet();
 		List<Entry<String, Integer>> sortedEntryList = new ArrayList<Map.Entry<String,Integer>>(entries);
 		Collections.sort(sortedEntryList, new Comparator<Entry<String, Integer>>() {
@@ -627,64 +383,46 @@ public class RegExCategorizer {
 			}
 		});
 		int size = sortedEntryList.size();
-		leastfreqWordRemovalLevel = size;
-		for (int i=0; i < leastfreqWordRemovalLevel; i++) {
+		for (int i=0; i < size; i++) {
 			Entry<String, Integer> leastFreqEntry = sortedEntryList.get(i);
+			String leastFrequent = leastFreqEntry.getKey();
 			for (RegEx regEx : initialPositiveRegExs) {
 				String regExStr = regEx.getRegEx();
 				String replacedString = null;
-				if (leastFreqEntry.getKey().length() < 10) {
-					String replaceRegex = "(?i)}"+leastFreqEntry.getKey()+"\\\\";
-					String withString = "}[a-zA-Z]{1,0"+leastFreqEntry.getKey().length()+"}\\\\";
-					replacedString = regExStr.replaceAll(replaceRegex, withString);
-					       replaceRegex = "(?i)}"+leastFreqEntry.getKey()+"\\[";
-					withString = "}[a-zA-Z]{1,0"+leastFreqEntry.getKey().length()+"}[";
-					replacedString = replacedString.replaceAll(replaceRegex, withString);
+				if (regExStr.contains(leastFrequent)) {
+					String replaceRegex = "}" + leastFrequent + "\\\\";
+					String withString = "}[A-Z]{1," + leastFrequent.length() + "}\\\\";
+					replacedString = Pattern.compile(replaceRegex, Pattern.CASE_INSENSITIVE).matcher(regExStr).replaceAll(withString);
+					replaceRegex = "}" + leastFrequent + "\\[";
+					withString = "}[A-Z]{1," + leastFrequent.length() + "}[";
+					replacedString = Pattern.compile(replaceRegex, Pattern.CASE_INSENSITIVE).matcher(replacedString).replaceAll(withString);
 					int start = 0;
 					while (start < replacedString.length() && replacedString.charAt(start) != '\\' && replacedString.charAt(start) != '[') {
 						start++;
 					}
-					if (leastFreqEntry.getKey().equalsIgnoreCase(replacedString.substring(0, start))) {
-						replacedString = "[a-zA-Z]{1,0"+leastFreqEntry.getKey().length()+"}"+replacedString.substring(start, replacedString.length());
+					if (leastFrequent.equalsIgnoreCase(replacedString.substring(0, start))) {
+						replacedString = "[A-Z]{1," + leastFrequent.length() + "}" + replacedString.substring(start, replacedString.length());
 					}
 					int end = replacedString.length();
 					end--;
 					while ( end > 0 && replacedString.charAt(end) != '}' && replacedString.charAt(end) != '+') {
 						end--;
 					}
-					if (leastFreqEntry.getKey().equalsIgnoreCase(replacedString.substring(end+1, replacedString.length()))) {
-						replacedString = replacedString.substring(0, end+1)+"[a-zA-Z]{1,0"+leastFreqEntry.getKey().length()+"}";
+					if (leastFrequent.equalsIgnoreCase(replacedString.substring(end+1, replacedString.length()))) {
+						replacedString = replacedString.substring(0, end+1) + "[A-Z]{1," + leastFrequent.length() + "}";
 					}
-				} else {
-					replacedString = regExStr.replaceAll("(?i)}"+leastFreqEntry.getKey()+"\\\\", "}[a-zA-Z]{1,"+leastFreqEntry.getKey().length()+"}\\\\");
-					replacedString = replacedString.replaceAll("(?i)}"+leastFreqEntry.getKey()+"\\[", "}[a-zA-Z]{1,"+leastFreqEntry.getKey().length()+"}[");
-					int start = 0;
-					while (start < replacedString.length() && replacedString.charAt(start) != '\\' && replacedString.charAt(start) != '[') {
-						start++;
-					}
-					if (leastFreqEntry.getKey().equalsIgnoreCase(replacedString.substring(0, start))) {
-						replacedString = "[a-zA-Z]{1,"+leastFreqEntry.getKey().length()+"}"+replacedString.substring(start, replacedString.length());
-					}
-					int end = replacedString.length();
-					end--;
-					while ( end > 0 && replacedString.charAt(end) != '}' && replacedString.charAt(end) != '+') {
-						end--;
-					}
-					if (leastFreqEntry.getKey().equalsIgnoreCase(replacedString.substring(end+1, replacedString.length()))) {
-						replacedString = replacedString.substring(0, end+1)+"[a-zA-Z]{1,"+leastFreqEntry.getKey().length()+"}";
-					}
-				}
-				RegEx temp = new RegEx(replacedString);
-				boolean fps = anyMatches(temp, negSnippets, posLabels);
-				if (!fps) {
-					regEx.setRegEx(replacedString);
-					collapse(regEx, negSnippets, posLabels);
-					collapserPunct(regEx, negSnippets, posLabels);
-					if (PERFORM_TRIMMING) {
-						performTrimmingIndividual(regEx, negSnippets, posLabels);
-					}
-					if (PERFORM_USELESS_REMOVAL) {
-						uselessRegRemover(regEx, negSnippets, posLabels);
+					RegEx temp = new RegEx(replacedString);
+					boolean fps = anyMatches(temp, negSnippets, posLabels);
+					if (!fps) {
+						regEx.setRegEx(replacedString);
+						Collapse.collapseWhitespace(regEx);
+						Collapse.collapsePunct(regEx);
+						if (PERFORM_TRIMMING) {
+							performTrimmingIndividual(regEx, negSnippets, posLabels);
+						}
+						if (PERFORM_USELESS_REMOVAL) {
+							uselessRegRemover(regEx, negSnippets, posLabels);
+						}
 					}
 				}
 			}
@@ -692,35 +430,47 @@ public class RegExCategorizer {
 	}
 	
 	/**
-	 * @param temp
-	 * @return
+	 * @param regex The regular expression to check.
+	 * @param snippets The snippets to match the regular expression against.
+	 * @param excludeLabels Do not check against snippet labeled segments with these labels.
+	 * @return <code>true</code> if there are any matches, <code>false</code> otherwise.
 	 */
 	private boolean anyMatches(RegEx regex, Collection<Snippet> snippets, Collection<String> excludeLabels) {
-		Pattern pattern = patternCache.get(regex);
-		if (pattern == null) {
-			pattern = Pattern.compile(regex.getRegEx(), Pattern.CASE_INSENSITIVE);
-			patternCache.put(regex, pattern);
-		}
-		for (Snippet snippet : snippets) {
-			if (snippet.getLabeledSegments() != null) {
-				for (LabeledSegment ls : snippet.getLabeledSegments()) {
-					if (!excludeLabels.contains(ls.getLabel())) {
-						String labeledString = ls.getLabeledString();
-						if (labeledString != null && !labeledString.equals("")) {
-							Matcher m = pattern.matcher(labeledString);
-							if (m.find()) {
-								return true;
+		long start = System.currentTimeMillis();
+		try {
+			Pattern pattern = patternCache.get(regex);
+			if (pattern == null) {
+				pattern = Pattern.compile(regex.getRegEx(), Pattern.CASE_INSENSITIVE);
+				patternCache.put(regex, pattern);
+			}
+			for (Snippet snippet : snippets) {
+				if (snippet.getLabeledSegments() != null) {
+					for (LabeledSegment ls : snippet.getLabeledSegments()) {
+						if (!excludeLabels.contains(ls.getLabel())) {
+							String labeledString = ls.getLabeledString();
+							if (labeledString != null && !labeledString.equals("")) {
+								Matcher m = pattern.matcher(labeledString);
+								if (m.find()) {
+									return true;
+								}
 							}
 						}
 					}
+				} else {
+				Matcher m = pattern.matcher(snippet.getText());
+					if (m.find()) {
+						return true;
+					}
 				}
 			}
-			Matcher m = pattern.matcher(snippet.getText());
-			if (m.find()) {
-				return true;
+	
+			return false;
+		} finally {
+			long elapsed = System.currentTimeMillis() - start;
+			if (elapsed > 5000) {
+				System.out.println("" + elapsed + ": " + regex.getRegEx());
 			}
 		}
-		return false;
 	}
 
 	private Map<String,Integer> createFrequencyMap(Collection<RegEx> initialRegExs) {
@@ -742,7 +492,7 @@ public class RegExCategorizer {
 		return wordFreqMap;
 	}
 	
-	private void performTrimming(Collection<RegEx> initialPositiveRegExs, List<Snippet> negSnippets, List<String> posLabels) {
+	private void performTrimming(Collection<RegEx> initialPositiveRegExs, Collection<Snippet> negSnippets, Collection<String> posLabels) {
 		for (RegEx regEx : initialPositiveRegExs) {
 			boolean frontTrim = true;
 			boolean backTrim = true;
@@ -778,7 +528,7 @@ public class RegExCategorizer {
 		}
 	}
 	
-	private void performTrimmingIndividual(RegEx regEx, List<Snippet> negSnippets, List<String> posLabels) {
+	private void performTrimmingIndividual(RegEx regEx, Collection<Snippet> negSnippets, Collection<String> posLabels) {
 		boolean frontTrim = true;
 		boolean backTrim = true;
 		if (frontTrim) {
@@ -856,8 +606,8 @@ public class RegExCategorizer {
 		return new RegEx(regExStr.substring(0,cutLocation));
 	}
 	
-	private void initializeInitialRegEx(final List<Snippet> snippets,
-			List<String> labels, List<RegEx> initialRegExs) {
+	private void initializeInitialRegEx(final Collection<Snippet> snippets,
+			Collection<String> labels, Collection<RegEx> initialRegExs) {
 		for (Snippet snippet : snippets) {
 			for (String label : labels) {
 				LabeledSegment labeledSegment = snippet.getLabeledSegment(label);
@@ -871,7 +621,7 @@ public class RegExCategorizer {
 		}
 	}
 	
-	public CVScore testClassifier(List<Snippet> testing, Collection<RegEx> regularExpressions, Collection<RegEx> negativeRegularExpressions, CategorizerTester tester, List<String> labels) throws IOException {
+	public CVScore testClassifier(List<Snippet> testing, Collection<RegEx> regularExpressions, Collection<RegEx> negativeRegularExpressions, CategorizerTester tester, Collection<String> labels) throws IOException {
 		CVScore score = new CVScore();
 		if(tester == null)
 			tester = new CategorizerTester();
@@ -919,7 +669,7 @@ public class RegExCategorizer {
 	{
 		for(RegEx x : regexColl)
 		{
-			x.setRegEx(x.getRegEx().replaceAll("\\p{Punct}","\\\\p{Punct}"));
+			x.setRegEx(x.getRegEx().replaceAll(P_PUNCT,"\\\\p{Punct}"));
 		}
 		return regexColl;
 	}

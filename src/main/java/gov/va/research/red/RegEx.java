@@ -3,6 +3,7 @@ package gov.va.research.red;
 public class RegEx {
 	private String regEx;
 	private double specifity = 0.0;
+	private double sensitivity = 0.0;
 	
 	public RegEx(String regEx) {
 		this.regEx = regEx;
@@ -25,7 +26,15 @@ public class RegEx {
 		return specifity;
 	}
 
-	public void setSpecifity(double specifity) {
+	public void setSpecifity(double sensitivity) {
+		this.sensitivity = sensitivity;
+	}
+
+	public double getSensitivity() {
+		return sensitivity;
+	}
+
+	public void setSensitivity(double specifity) {
 		this.specifity = specifity;
 	}
 

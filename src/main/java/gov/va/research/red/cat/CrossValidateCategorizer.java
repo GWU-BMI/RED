@@ -62,7 +62,7 @@ public class CrossValidateCategorizer {
 		return crossValidateClassifier(snippetsYes, snippetsNo, snippetsNoLabel, yesLabels, noLabels, folds);
 	}
 	
-	public List<CVScore> crossValidateClassifier(List<Snippet> snippetsYes,List<Snippet> snippetsNo, List<Snippet> snippetsNoLabel, List<String> yesLabels, List<String> noLabels, int folds) throws IOException {
+	public List<CVScore> crossValidateClassifier(List<Snippet> snippetsYes,List<Snippet> snippetsNo, List<Snippet> snippetsNoLabel, Collection<String> yesLabels, Collection<String> noLabels, int folds) throws IOException {
 		// randomize the order of the snippets
 		Collections.shuffle(snippetsYes);
 		Collections.shuffle(snippetsNo);
@@ -78,28 +78,28 @@ public class CrossValidateCategorizer {
 		PrintWriter pw = new PrintWriter(new File("training and testing.txt"));
 		int fold = 0;
 		for (int i=0;i<folds;i++) {
-			List<Snippet> partitionYes = partitionsYes.get(i);
-			List<Snippet> partitionNo = partitionsNo.get(i);
-			List<Snippet> partitionNoLabel = partitionsNoLabel.get(i);
+			List<Snippet> testingYes = partitionsYes.get(i);
+			List<Snippet> testingNo = partitionsNo.get(i);
+			List<Snippet> testingNoLabel = partitionsNoLabel.get(i);
 			pw.println("##### FOLD " + (++fold) + " #####");
 			// set up training and testing sets for this fold
 			List<Snippet> trainingYes = new ArrayList<>();
 			for (List<Snippet> p : partitionsYes) {
-				if (p != partitionYes) {
+				if (p != testingYes) {
 					trainingYes.addAll(p);
 				}
 			}
 			
 			List<Snippet> trainingNo = new ArrayList<>();
 			for (List<Snippet> p : partitionsNo) {
-				if (p != partitionNo) {
+				if (p != testingNo) {
 					trainingNo.addAll(p);
 				}
 			}
 			
 			List<Snippet> trainingNoLabel = new ArrayList<>();
 			for (List<Snippet> p : partitionsNoLabel) {
-				if (p != partitionNoLabel) {
+				if (p != testingNoLabel) {
 					trainingNoLabel.addAll(p);
 				}
 			}
@@ -107,12 +107,14 @@ public class CrossValidateCategorizer {
 			// Train
 			RegExCategorizer regExCategorizer = new RegExCategorizer();
 			Map<String, Collection<RegEx>> regExsPosNeg = regExCategorizer.extractRegexClassifications(trainingYes, trainingNo, trainingNoLabel, yesLabels, noLabels);
+
+			// Test
 			if (regExsPosNeg != null) {
-				List<Snippet> snippetsAll = new ArrayList<Snippet>();
-				snippetsAll.addAll(partitionYes);
-				snippetsAll.addAll(partitionNo);
-				snippetsAll.addAll(partitionNoLabel);
-				CVScore score = regExCategorizer.testClassifier(snippetsAll, regExsPosNeg.get("POSITIVE"), regExsPosNeg.get("NEGATIVE"), null, yesLabels);
+				List<Snippet> testingAll = new ArrayList<Snippet>();
+				testingAll.addAll(testingYes);
+				testingAll.addAll(testingNo);
+				testingAll.addAll(testingNoLabel);
+				CVScore score = regExCategorizer.testClassifier(testingAll, regExsPosNeg.get("POSITIVE"), regExsPosNeg.get("NEGATIVE"), null, yesLabels);
 				results.add(score);
 			}
 		}
