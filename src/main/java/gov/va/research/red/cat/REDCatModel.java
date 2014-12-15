@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.TreeMap;
 import java.util.regex.Pattern;
 
@@ -38,19 +39,23 @@ public class REDCatModel {
 		this.regexesByCategory = regexesByCategory;
 	}
 	
-	public String categorize(final String text) {
-		TreeMap<Integer, String> categoryMatches = new TreeMap<>();
+	public CategoryConfidence categorize(final String text) {
+		TreeMap<Double, String> categoryMatches = new TreeMap<>();
 		Map<String, Collection<RegExPattern>> patternsByCategory = getPatternsByCategory();
 		for (String category : patternsByCategory.keySet()) {
-			int score = 0;
+			double score = 0.0;
 			for (RegExPattern pattern : patternsByCategory.get(category)) {
 				if (pattern.getPattern().matcher(text).find()) {
 					score += pattern.getRegEx().getSensitivity();
 				}
 			}
-			categoryMatches.put(Integer.valueOf(score), category);
+			categoryMatches.put(Double.valueOf(score), category);
 		}
-		return categoryMatches.lastEntry().getValue();
+		Entry<Double,String> maxEntry = categoryMatches.lastEntry();
+		double confidence = (maxEntry == null ? 0 : maxEntry.getKey().doubleValue());
+		String category = (maxEntry == null ? null : maxEntry.getValue());
+		CategoryConfidence cc = new CategoryConfidence(category, confidence);
+		return cc;
 	}
 
 	/**
@@ -65,6 +70,7 @@ public class REDCatModel {
 				for (RegEx regEx : regExes) {
 					patterns.add(new RegExPattern(regEx));
 				}
+				patternsByCategory.put(category, patterns);
 			}
 		}
 		return patternsByCategory;
@@ -94,5 +100,26 @@ public class REDCatModel {
 			return pattern;
 		}
 	}
- 
+
+	public class CategoryConfidence {
+		private String category;
+		private double confidence;
+		public CategoryConfidence(String category, double confidence) {
+			this.category = category;
+			this.confidence = confidence;
+		}
+		public String getCategory() {
+			return category;
+		}
+		public void setCategory(String category) {
+			this.category = category;
+		}
+		public double getConfidence() {
+			return confidence;
+		}
+		public void setConfidence(double confidence) {
+			this.confidence = confidence;
+		}
+		
+	}
 }

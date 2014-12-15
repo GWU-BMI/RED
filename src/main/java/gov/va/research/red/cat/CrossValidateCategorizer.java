@@ -114,7 +114,7 @@ public class CrossValidateCategorizer {
 				testingAll.addAll(testingYes);
 				testingAll.addAll(testingNo);
 				testingAll.addAll(testingNoLabel);
-				CVScore score = regExCategorizer.testClassifier(testingAll, regExsPosNeg.get("POSITIVE"), regExsPosNeg.get("NEGATIVE"), null, yesLabels);
+				CVScore score = regExCategorizer.testClassifier(testingAll, regExsPosNeg.get(Boolean.TRUE.toString()), regExsPosNeg.get(Boolean.FALSE.toString()), null, yesLabels);
 				results.add(score);
 			}
 		}

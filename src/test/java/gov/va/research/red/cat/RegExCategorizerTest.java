@@ -99,11 +99,11 @@ public class RegExCategorizerTest {
 			Map<String, Collection<RegEx>> retMap = crex.findRegexesAndSaveInFile(new File(CLASSIFIER_TEST_URI), yesLabels, noLabels, "classifier2.txt", true);
 			System.out.println("Pos regex");
 			for (RegEx regEx : retMap.get("POSITIVE")) {
-				System.out.println(regEx.getRegEx()+"\t"+regEx.getSpecifity());
+				System.out.println(regEx.getRegEx()+"\t"+regEx.getSensitivity());
 			}
 			System.out.println("Neg regex");
 			for (RegEx regEx : retMap.get("NEGATIVE")) {
-				System.out.println(regEx.getRegEx()+"\t"+regEx.getSpecifity());
+				System.out.println(regEx.getRegEx()+"\t"+regEx.getSensitivity());
 			}
 			/*REDExCrossValidator rexcv = new REDExCrossValidator();
 			List<CVScore> results = rexcv.crossValidateClassifier(Arrays.asList(new File[] { new File(CLASSIFIER_TEST_URI) }), yesLabels, noLabels, 10);

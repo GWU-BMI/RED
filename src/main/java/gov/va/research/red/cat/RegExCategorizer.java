@@ -32,8 +32,6 @@ public class RegExCategorizer {
 	
 	private static final String P_PUNCT = "\\p{Punct}";
 	private static final Map<RegEx, Pattern> patternCache = new HashMap<RegEx, Pattern>();
-	private static final String POSITIVE = "POSITIVE";
-	private static final String NEGATIVE = "NEGATIVE";
 	private static final boolean PERFORM_TRIMMING = true;
 	private static final boolean PERFORM_TRIMMING_OVERALL = true;
 	private static final boolean PERFORM_USELESS_REMOVAL_OVERALL = true;
@@ -93,19 +91,9 @@ public class RegExCategorizer {
 		
 		Collection<RegEx> initialPositiveRegExs = initialize(snippetsYes, yesLabels);
 		Collection<RegEx> initialNegativeRegExs = initialize(snippetsNo, noLabels);
-		
-		System.out.println("     1 - pos");
-		printRegExs(initialPositiveRegExs);
-		System.out.println("     1 - neg");
-		printRegExs(initialNegativeRegExs);
 
 		removeDuplicates(initialPositiveRegExs);
 		removeDuplicates(initialNegativeRegExs);
-		
-		System.out.println("     2 - pos");
-		printRegExs(initialPositiveRegExs);
-		System.out.println("     2 - neg");
-		printRegExs(initialNegativeRegExs);
 
 		Iterator<RegEx> it = initialPositiveRegExs.iterator();
 		while (it.hasNext()) {
@@ -125,12 +113,6 @@ public class RegExCategorizer {
 		initialPositiveRegExs = removeDuplicates(initialPositiveRegExs);
 		initialNegativeRegExs = removeDuplicates(initialNegativeRegExs);
 		
-		System.out.println("     3 - pos");
-		printRegExs(initialPositiveRegExs);
-		System.out.println("     3 - neg");
-		printRegExs(initialNegativeRegExs);
-		
-		
 		Map<String,Integer> wordFreqMapPos = createFrequencyMap(initialPositiveRegExs);
 		Map<String,Integer> wordFreqMapNeg = createFrequencyMap(initialNegativeRegExs);
 		removeLeastFrequent(initialPositiveRegExs, snippetsNoAndUnlabeled, yesLabels, wordFreqMapPos);
@@ -138,22 +120,12 @@ public class RegExCategorizer {
 		initialPositiveRegExs = removeDuplicates(initialPositiveRegExs);
 		initialNegativeRegExs = removeDuplicates(initialNegativeRegExs);
 		
-		System.out.println("     4 - pos");
-		printRegExs(initialPositiveRegExs);
-		System.out.println("     4 - neg");
-		printRegExs(initialNegativeRegExs);
-		
 		if (PERFORM_TRIMMING_OVERALL) {
 			performTrimming(initialPositiveRegExs, snippetsNoAndUnlabeled, yesLabels);
 			performTrimming(initialNegativeRegExs, snippetsYesAndUnlabeled, noLabels);
 			initialPositiveRegExs = removeDuplicates(initialPositiveRegExs);
 			initialNegativeRegExs = removeDuplicates(initialNegativeRegExs);
 		}
-		
-		System.out.println("     5 - pos");
-		printRegExs(initialPositiveRegExs);
-		System.out.println("     5 - neg");
-		printRegExs(initialNegativeRegExs);
 
 		// collapsing
 		
@@ -187,11 +159,6 @@ public class RegExCategorizer {
 		initialPositiveRegExs = removeDuplicates(initialPositiveRegExs);
 		initialNegativeRegExs = removeDuplicates(initialNegativeRegExs);
 		
-		System.out.println("     6 - pos");
-		printRegExs(initialPositiveRegExs);
-		System.out.println("     6 - neg");
-		printRegExs(initialNegativeRegExs);
-		
 		for (RegEx regEx : initialPositiveRegExs) {
 			int specifity = 0;
 			for (Snippet snippet : snippetsYes) {
@@ -205,7 +172,7 @@ public class RegExCategorizer {
 					specifity++;
 				}
 			}
-			regEx.setSpecifity((double)specifity/initialPositiveRegExs.size());
+			regEx.setSensitivity((double)specifity/initialPositiveRegExs.size());
 		}
 		
 		for (RegEx regEx : initialNegativeRegExs) {
@@ -221,7 +188,7 @@ public class RegExCategorizer {
 					specifity++;
 				}
 			}
-			regEx.setSpecifity((double)specifity/initialNegativeRegExs.size());
+			regEx.setSensitivity((double)specifity/initialNegativeRegExs.size());
 		}
 		
 		/*for (RegEx regEx : initialPositiveRegExs) {
@@ -243,8 +210,8 @@ public class RegExCategorizer {
 		}*/
 		/*System.out.println(cvScore.getEvaluation());*/
 		Map<String, Collection<RegEx>> positiveAndNegativeRegEx = new HashMap<String, Collection<RegEx>>();
-		positiveAndNegativeRegEx.put(POSITIVE, initialPositiveRegExs);
-		positiveAndNegativeRegEx.put(NEGATIVE, initialNegativeRegExs);
+		positiveAndNegativeRegEx.put(Boolean.TRUE.toString(), initialPositiveRegExs);
+		positiveAndNegativeRegEx.put(Boolean.FALSE.toString(), initialNegativeRegExs);
 		
 		return positiveAndNegativeRegEx;
 	}
@@ -436,41 +403,32 @@ public class RegExCategorizer {
 	 * @return <code>true</code> if there are any matches, <code>false</code> otherwise.
 	 */
 	private boolean anyMatches(RegEx regex, Collection<Snippet> snippets, Collection<String> excludeLabels) {
-		long start = System.currentTimeMillis();
-		try {
-			Pattern pattern = patternCache.get(regex);
-			if (pattern == null) {
-				pattern = Pattern.compile(regex.getRegEx(), Pattern.CASE_INSENSITIVE);
-				patternCache.put(regex, pattern);
-			}
-			for (Snippet snippet : snippets) {
-				if (snippet.getLabeledSegments() != null) {
-					for (LabeledSegment ls : snippet.getLabeledSegments()) {
-						if (!excludeLabels.contains(ls.getLabel())) {
-							String labeledString = ls.getLabeledString();
-							if (labeledString != null && !labeledString.equals("")) {
-								Matcher m = pattern.matcher(labeledString);
-								if (m.find()) {
-									return true;
-								}
+		Pattern pattern = patternCache.get(regex);
+		if (pattern == null) {
+			pattern = Pattern.compile(regex.getRegEx(), Pattern.CASE_INSENSITIVE);
+			patternCache.put(regex, pattern);
+		}
+		for (Snippet snippet : snippets) {
+			if (snippet.getLabeledSegments() != null) {
+				for (LabeledSegment ls : snippet.getLabeledSegments()) {
+					if (!excludeLabels.contains(ls.getLabel())) {
+						String labeledString = ls.getLabeledString();
+						if (labeledString != null && !labeledString.equals("")) {
+							Matcher m = pattern.matcher(labeledString);
+							if (m.find()) {
+								return true;
 							}
 						}
 					}
-				} else {
-				Matcher m = pattern.matcher(snippet.getText());
-					if (m.find()) {
-						return true;
-					}
+				}
+			} else {
+			Matcher m = pattern.matcher(snippet.getText());
+				if (m.find()) {
+					return true;
 				}
 			}
-	
-			return false;
-		} finally {
-			long elapsed = System.currentTimeMillis() - start;
-			if (elapsed > 5000) {
-				System.out.println("" + elapsed + ": " + regex.getRegEx());
-			}
 		}
+		return false;
 	}
 
 	private Map<String,Integer> createFrequencyMap(Collection<RegEx> initialRegExs) {
