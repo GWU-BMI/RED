@@ -96,7 +96,7 @@ public class RegExCategorizerTest {
 			yesLabels.add("yes");
 			List<String> noLabels = new ArrayList<>();
 			noLabels.add("no");
-			Map<String, Collection<RegEx>> retMap = crex.findRegexesAndSaveInFile(new File(CLASSIFIER_TEST_URI), yesLabels, noLabels, "classifier2.txt", true);
+			Map<String, Collection<RegEx>> retMap = crex.findRegexesAndOutputResults(new File(CLASSIFIER_TEST_URI), yesLabels, noLabels);
 			System.out.println("Pos regex");
 			for (RegEx regEx : retMap.get("POSITIVE")) {
 				System.out.println(regEx.getRegEx()+"\t"+regEx.getSensitivity());
@@ -131,7 +131,7 @@ public class RegExCategorizerTest {
 		File vttFile = new File(CLASSIFIER_TEST_URI);
 		snippets.addAll(vttr.extractSnippets(vttFile, ""));
 		RegExCategorizer regExCategorizer = new RegExCategorizer();
-		regExCategorizer.findRegexesAndSaveInFile(vttFile, yesLabels, noLabels, null, false);
+		regExCategorizer.findRegexesAndOutputResults(vttFile, yesLabels, noLabels);
 	}
 
 	/**

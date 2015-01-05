@@ -37,10 +37,17 @@ public class RegExCategorizer {
 	private static final boolean PERFORM_USELESS_REMOVAL_OVERALL = true;
 	private static final boolean PERFORM_USELESS_REMOVAL = true;
 	private static final boolean FILE_TRANSFER = true;
-		
-	public Map<String, Collection<RegEx>> findRegexesAndSaveInFile (
-			final File vttFile, List<String> yesLabels, List<String> noLabels,
-			final String classifierOutputFileName, boolean printScore) throws IOException {
+	
+	/**
+	 * Reads a vtt file and generates collections of positive and negative regular expressions for classification.
+	 * @param vttFile The VTT file containing positive and negative snippets.
+	 * @param yesLabels The snippet labels to consider positive.
+	 * @param noLabels The snippet labels to consider negative.
+	 * @return A two entry map containing collections of regular expressions, one collection matching positive snippets and one collection matching negative snippets.
+	 * @throws IOException
+	 */
+	public Map<String, Collection<RegEx>> findRegexesAndOutputResults (
+			final File vttFile, List<String> yesLabels, List<String> noLabels) throws IOException {
 		VTTReader vttr = new VTTReader();
 		List<Snippet> snippetsYes = new ArrayList<>();
 		for (String yesLabel : yesLabels) {
@@ -58,7 +65,7 @@ public class RegExCategorizer {
 		List<Snippet> snippetsNoAndUnlabeled = new ArrayList<>(snippetsNo.size() + snippetsNoLabel.size());
 		snippetsNoAndUnlabeled.addAll(snippetsNo);
 		snippetsNoAndUnlabeled.addAll(snippetsNoLabel);
-		Map<String, Collection<RegEx>> rtMap =  extractRegexClassifications(snippetsYes, snippetsNo, snippetsNoLabel, yesLabels, noLabels);
+		Map<String, Collection<RegEx>> rtMap =  generateRegexClassifications(snippetsYes, snippetsNo, snippetsNoLabel, yesLabels, noLabels);
 		if (FILE_TRANSFER) {
 			printSnippetsFile(snippetsYes, yesLabels, "Positive");
 			printSnippetsFile(snippetsNo, noLabels, "Negative");
@@ -70,7 +77,16 @@ public class RegExCategorizer {
 		return rtMap;
 	}
 	
-	public Map<String, Collection<RegEx>> extractRegexClassifications(List<Snippet> snippetsYesM, List<Snippet> snippetsNoM, List<Snippet> snippetsNoLabelM, Collection<String> yesLabelsM, Collection<String> noLabelsM) throws IOException {
+	/**
+	 * Create regular expressions for classification of positive and negative snippets
+	 * @param snippetsYesM Positive snippets.
+	 * @param snippetsNoM Negative snippets.
+	 * @param snippetsNoLabelM Snippets that are neither positive or negative.
+	 * @param yesLabelsM Labels considered positive.
+	 * @param noLabelsM Labels considered negative
+	 * @return A two entry map containing collections of regular expressions, one collection matching positive snippets and one collection matching negative snippets.
+	 */
+	public Map<String, Collection<RegEx>> generateRegexClassifications(List<Snippet> snippetsYesM, List<Snippet> snippetsNoM, List<Snippet> snippetsNoLabelM, Collection<String> yesLabelsM, Collection<String> noLabelsM) {
 		List<Snippet> snippetsYes = snippetsYesM;
 		List<Snippet> snippetsNo = snippetsNoM;
 		List<Snippet> snippetsNoLabel = snippetsNoLabelM;
