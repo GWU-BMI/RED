@@ -106,7 +106,7 @@ public class CrossValidateCategorizer {
 
 			// Train
 			RegExCategorizer regExCategorizer = new RegExCategorizer();
-			Map<String, Collection<RegEx>> regExsPosNeg = regExCategorizer.extractRegexClassifications(trainingYes, trainingNo, trainingNoLabel, yesLabels, noLabels);
+			Map<String, Collection<RegEx>> regExsPosNeg = regExCategorizer.generateRegexClassifications(trainingYes, trainingNo, trainingNoLabel, yesLabels, noLabels);
 
 			// Test
 			if (regExsPosNeg != null) {
