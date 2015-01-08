@@ -7,6 +7,11 @@ public class RegEx {
 	public RegEx(String regEx) {
 		this.regEx = regEx;
 	}
+	
+	public RegEx(String regEx, double sensitivity) {
+		this.regEx = regEx;
+		this.sensitivity = sensitivity;
+	}
 
 	public String getRegEx() {
 		return regEx;

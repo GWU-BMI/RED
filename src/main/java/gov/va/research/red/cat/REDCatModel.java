@@ -20,6 +20,7 @@ import gov.va.research.red.RegEx;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -58,9 +59,10 @@ public class REDCatModel {
 		return cc;
 	}
 
-	/**
-	 * @return
-	 */
+	public Map<String, Collection<RegEx>> getRegexesByCategory() {
+		return Collections.unmodifiableMap(regexesByCategory);
+	}
+	
 	private Map<String, Collection<RegExPattern>> getPatternsByCategory() {
 		if (patternsByCategory == null) {
 			patternsByCategory = new HashMap<>();
