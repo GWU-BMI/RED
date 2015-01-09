@@ -108,8 +108,8 @@ public class RegExCategorizer {
 		Collection<RegEx> initialPositiveRegExs = initialize(snippetsYes, yesLabels);
 		Collection<RegEx> initialNegativeRegExs = initialize(snippetsNo, noLabels);
 
-		removeDuplicates(initialPositiveRegExs);
-		removeDuplicates(initialNegativeRegExs);
+		initialPositiveRegExs = removeDuplicates(initialPositiveRegExs);
+		initialNegativeRegExs = removeDuplicates(initialNegativeRegExs);
 
 		Iterator<RegEx> it = initialPositiveRegExs.iterator();
 		while (it.hasNext()) {
