@@ -126,8 +126,6 @@ public class RegExCategorizer {
 				it.remove();
 			}
 		}
-		initialPositiveRegExs = removeDuplicates(initialPositiveRegExs);
-		initialNegativeRegExs = removeDuplicates(initialNegativeRegExs);
 		
 		Map<String,Integer> wordFreqMapPos = createFrequencyMap(initialPositiveRegExs);
 		Map<String,Integer> wordFreqMapNeg = createFrequencyMap(initialNegativeRegExs);
