@@ -52,7 +52,7 @@ public class LSTriplet {
 	 */
 	@Override
 	public String toString() {
-		return "" + BLS + " " + LS  + " " + ALS;
+		return toStringRegEx();//"" + BLS + " " + LS  + " " + ALS;
 	}
 	
 	/**
