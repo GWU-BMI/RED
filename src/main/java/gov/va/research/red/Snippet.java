@@ -31,8 +31,8 @@ public class Snippet {
 	
 	/**
 	 * returns  the labeled segment with the parameter as the label.
-	 * @param label
-	 * @return
+	 * @param label The label of the labeled segment to return
+	 * @return the first labeled segment with the <code>label</code>
 	 */
 	public LabeledSegment getLabeledSegment(String label) {
 		if (labeledSegments == null) {

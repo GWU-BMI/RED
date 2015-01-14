@@ -727,10 +727,10 @@ public class REDExtractor {
 	}
 
 	/**
-	 * @param pw
-	 * @param testing
-	 * @param ex
-	 * @return
+	 * @param testing A list of snippets to use for testing.
+	 * @param ex The extractor to be tested.
+	 * @param pw A PrintWriter for recording output. May be <code>null</code>.
+	 * @return The cross-validation score.
 	 */
 	public CVScore testExtractor(List<Snippet> testing, LSExtractor ex,
 			PrintWriter pw) {
@@ -871,8 +871,8 @@ public class REDExtractor {
 	}
 
 	/**
-	 * @param candidates
-	 * @return
+	 * @param candidates The possible candidates to choose from.
+	 * @return The best candidate.
 	 */
 	public static String chooseBestCandidate(List<MatchedElement> candidates) {
 		String category = null;

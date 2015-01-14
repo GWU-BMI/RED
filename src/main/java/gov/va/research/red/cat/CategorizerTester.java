@@ -31,8 +31,7 @@ public class CategorizerTester {
 	}
 	
 	public boolean test(Collection<RegEx> regularExpressions, Collection<RegEx> negativeregularExpressions, Snippet snippet, boolean actual) throws IOException{
-		int posScore = 0,negScore = 0;
-		double maxPosSpecifity =0.0, maxNegSpecifity = 0.0;
+		double maxPosSensitivity =0.0, maxNegSensitivity = 0.0;
 		StringBuilder strToWrite = new StringBuilder();
 		strToWrite.append("\n");
 		strToWrite.append("\n");
@@ -53,11 +52,10 @@ public class CategorizerTester {
 			Matcher matcher = pattern.matcher(snippet.getText());
 			boolean test = matcher.find();
 			if(test) {
-				strToWrite.append(segment.getRegEx()+"\t"+segment.getSpecifity());
+				strToWrite.append(segment.getRegEx()+"\t"+segment.getSensitivity());
 				strToWrite.append("\n");
-				posScore++;
-				if (Double.compare(segment.getSpecifity(), maxPosSpecifity) > 0) {
-					maxPosSpecifity = segment.getSpecifity();
+				if (Double.compare(segment.getSensitivity(), maxPosSensitivity) > 0) {
+					maxPosSensitivity = segment.getSensitivity();
 				}
 			}
 		}
@@ -75,28 +73,18 @@ public class CategorizerTester {
 			Matcher matcher = pattern.matcher(snippet.getText());
 			boolean test = matcher.find();
 			if(test) {
-				strToWrite.append(segment.getRegEx()+"\t"+segment.getSpecifity());
+				strToWrite.append(segment.getRegEx()+"\t"+segment.getSensitivity());
 				strToWrite.append("\n");
-				negScore++;
-				if (Double.compare(segment.getSpecifity(), maxNegSpecifity) > 0) {
-					maxNegSpecifity = segment.getSpecifity();
+				if (Double.compare(segment.getSensitivity(), maxNegSensitivity) > 0) {
+					maxNegSensitivity = segment.getSensitivity();
 				}
 			}
 		}
-		//writer.flush();
 		
 		boolean predicted = false;
-		if (Double.compare(maxPosSpecifity, maxNegSpecifity) > 0) {
+		if (Double.compare(maxPosSensitivity, maxNegSensitivity) > 0) {
 			predicted = true;
 		}
-		/*if (posScore > negScore) {
-			predicted = true;
-		} else {
-			predicted =  false;
-		}*/
-		/*if (posScore == negScore && posScore > 0) {
-			return true;
-		}*/
 		if ((!actual && predicted) || (actual && !predicted)) {
 			writer.write(strToWrite.toString());
 			writer.flush();

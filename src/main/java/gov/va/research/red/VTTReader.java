@@ -49,7 +49,7 @@ public class VTTReader {
 	 * Reads a VTT file.
 	 * @param vttFile The VTT format file.
 	 * @return A VTT document representation of the VTT file.
-	 * @throws IOException
+	 * @throws IOException when <code>vttFile</code> is not valid.
 	 */
 	public VttDocument read(final File vttFile) throws IOException {
 		VttDocument vttDoc = new VttDocument();
@@ -65,7 +65,7 @@ public class VTTReader {
 	 * @param vttFile The VTT file to extract triplets from.
 	 * @param label The label of the segments to extract.
 	 * @return Labeled segment triplets (before labeled segment, labeled segment, after labeled segment)
-	 * @throws IOException
+	 * @throws IOException when a problem occurs reading <code>vttFile</code>.
 	 */
 	public List<LSTriplet> extractLSTriplets(final File vttFile, final String label) throws IOException {
 		List<Snippet> snippets = extractSnippets(vttFile, label);
@@ -85,7 +85,7 @@ public class VTTReader {
 	 * @param vttFile The VTT file to extract triplets from.
 	 * @param includeLabel The label of the segments to extract.
 	 * @return Snippets containing labeled segments for the specified label.
-	 * @throws IOException
+	 * @throws IOException when a problem occurs reading <code>vttFile</code>.
 	 */
 	public List<Snippet> extractSnippets(final File vttFile, final String includeLabel)
 			throws IOException {
@@ -168,7 +168,7 @@ public class VTTReader {
 	 * Extracts snippets from a vtt file
 	 * @param vttFile The VTT file to extract triplets from.
 	 * @return All snippets in the vtt file.
-	 * @throws IOException
+	 * @throws IOException when a problem occurs reading <code>vttFile</code>.
 	 */
 	public Collection<Snippet> extractSnippets(final File vttFile)
 			throws IOException {
@@ -205,7 +205,7 @@ public class VTTReader {
 	 * Extracts snippets from a vtt file
 	 * @param vttFile The VTT file to extract triplets from.
 	 * @return All snippets in the vtt file.
-	 * @throws IOException
+	 * @throws IOException when a problem occurs reading <code>vttFile</code>.
 	 */
 	public Collection<Snippet> extractSnippetsAll(final File vttFile)
 			throws IOException {
@@ -262,7 +262,7 @@ public class VTTReader {
 	 * @param vttFile The VTT file to extract triplets from.
 	 * @param labels Labeled segments with any of these labels will be included with the snippets.
 	 * @return All snippets in the vtt file, including labeled segments matching the collection of labels.
-	 * @throws IOException
+	 * @throws IOException when a problem occurs reading <code>vttFile</code>.
 	 */
 	public Collection<Snippet> findSnippets(final File vttFile, final Collection<String> labels)
 			throws IOException {

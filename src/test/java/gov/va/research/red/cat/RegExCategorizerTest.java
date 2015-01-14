@@ -29,6 +29,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -95,14 +96,14 @@ public class RegExCategorizerTest {
 			yesLabels.add("yes");
 			List<String> noLabels = new ArrayList<>();
 			noLabels.add("no");
-			Map<String, List<RegEx>> retMap = crex.findRegexesAndSaveInFile(new File(CLASSIFIER_TEST_URI), yesLabels, noLabels, "classifier2.txt", true);
+			Map<String, Collection<RegEx>> retMap = crex.findRegexesAndOutputResults(new File(CLASSIFIER_TEST_URI), yesLabels, noLabels);
 			System.out.println("Pos regex");
 			for (RegEx regEx : retMap.get("POSITIVE")) {
-				System.out.println(regEx.getRegEx()+"\t"+regEx.getSpecifity());
+				System.out.println(regEx.getRegEx()+"\t"+regEx.getSensitivity());
 			}
 			System.out.println("Neg regex");
 			for (RegEx regEx : retMap.get("NEGATIVE")) {
-				System.out.println(regEx.getRegEx()+"\t"+regEx.getSpecifity());
+				System.out.println(regEx.getRegEx()+"\t"+regEx.getSensitivity());
 			}
 			/*REDExCrossValidator rexcv = new REDExCrossValidator();
 			List<CVScore> results = rexcv.crossValidateClassifier(Arrays.asList(new File[] { new File(CLASSIFIER_TEST_URI) }), yesLabels, noLabels, 10);
@@ -130,7 +131,7 @@ public class RegExCategorizerTest {
 		File vttFile = new File(CLASSIFIER_TEST_URI);
 		snippets.addAll(vttr.extractSnippets(vttFile, ""));
 		RegExCategorizer regExCategorizer = new RegExCategorizer();
-		regExCategorizer.findRegexesAndSaveInFile(vttFile, yesLabels, noLabels, null, false);
+		regExCategorizer.findRegexesAndOutputResults(vttFile, yesLabels, noLabels);
 	}
 
 	/**

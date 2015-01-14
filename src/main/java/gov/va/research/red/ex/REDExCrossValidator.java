@@ -1,6 +1,7 @@
 package gov.va.research.red.ex;
 
 import gov.va.research.red.CVScore;
+import gov.va.research.red.CVUtils;
 import gov.va.research.red.CrossValidatable;
 import gov.va.research.red.LSTriplet;
 import gov.va.research.red.LabeledSegment;
@@ -90,7 +91,7 @@ public class REDExCrossValidator implements CrossValidatable {
 		Collections.shuffle(snippets);
 		
 		// partition snippets into one partition per fold
-		List<List<Snippet>> partitions = partitionSnippets(folds, snippets);
+		List<List<Snippet>> partitions = CVUtils.partitionSnippets(folds, snippets);
 
 		// Run evaluations, "folds" number of times, alternating which partition is being used for testing.
 		List<CVScore> results = null;
@@ -136,113 +137,6 @@ public class REDExCrossValidator implements CrossValidatable {
 			}).collect(Collectors.toList());
 		}
 		return results;
-	}
-	
-	/* (non-Javadoc)
-	 * @see gov.va.research.red.CrossValidatable#crossValidate(java.util.List, java.lang.String, int)
-	 */
-	public List<CVScore> crossValidateClassifier(List<File> vttFiles, List<String> yesLabels, List<String> noLabels, int folds)
-			throws IOException {
-		VTTReader vttr = new VTTReader();
-		// get snippets
-		List<Snippet> snippetsYes = new ArrayList<>();
-		for (File vttFile : vttFiles) {
-			for (String label : yesLabels) {
-				snippetsYes.addAll(vttr.extractSnippets(vttFile, label));
-			}
-		}
-		
-		List<Snippet> snippetsNo = new ArrayList<>();
-		for (File vttFile : vttFiles) {
-			for (String label : noLabels) {
-				snippetsNo.addAll(vttr.extractSnippets(vttFile, label));
-			}
-		}
-		
-		List<Snippet> snippetsNoLabel = new ArrayList<>();
-		for (File vttFile : vttFiles) {
-			snippetsNoLabel.addAll(vttr.extractSnippets(vttFile));
-		}
-		
-		// randomize the order of the snippets
-		Collections.shuffle(snippetsYes);
-		Collections.shuffle(snippetsNo);
-		Collections.shuffle(snippetsNoLabel);
-		
-		// partition snippets into one partition per fold
-		List<List<Snippet>> partitionsYes = partitionSnippets(folds, snippetsYes);
-		List<List<Snippet>> partitionsNo = partitionSnippets(folds, snippetsNo);
-		List<List<Snippet>> partitionsNoLabel = partitionSnippets(folds, snippetsNoLabel);
-
-		// Run evaluations, "folds" number of times, alternating which partition is being used for testing.
-		List<CVScore> results = new ArrayList<>(folds);
-		PrintWriter pw = new PrintWriter(new File("training and testing.txt"));
-		int fold = 0;
-		for (int i=0;i<folds;i++) {
-			List<Snippet> partitionYes = partitionsYes.get(i);
-			List<Snippet> partitionNo = partitionsNo.get(i);
-			List<Snippet> partitionNoLabel = partitionsNoLabel.get(i);
-			pw.println("##### FOLD " + (++fold) + " #####");
-			// set up training and testing sets for this fold
-			List<Snippet> trainingYes = new ArrayList<>();
-			for (List<Snippet> p : partitionsYes) {
-				if (p != partitionYes) {
-					trainingYes.addAll(p);
-				}
-			}
-			
-			List<Snippet> trainingNo = new ArrayList<>();
-			for (List<Snippet> p : partitionsNo) {
-				if (p != partitionNo) {
-					trainingNo.addAll(p);
-				}
-			}
-			
-			List<Snippet> trainingNoLabel = new ArrayList<>();
-			for (List<Snippet> p : partitionsNoLabel) {
-				if (p != partitionNoLabel) {
-					trainingNoLabel.addAll(p);
-				}
-			}
-
-			// Train
-			RegExCategorizer regExCategorizer = new RegExCategorizer();
-			Map<String, List<RegEx>> regExsPosNeg = regExCategorizer.extractRegexClassifications(trainingYes, trainingNo, trainingNoLabel, yesLabels, noLabels);
-			if (regExsPosNeg != null) {
-				List<Snippet> snippetsAll = new ArrayList<Snippet>();
-				snippetsAll.addAll(partitionYes);
-				snippetsAll.addAll(partitionNo);
-				snippetsAll.addAll(partitionNoLabel);
-				CVScore score = regExCategorizer.testClassifier(snippetsAll, regExsPosNeg.get("POSITIVE"), regExsPosNeg.get("NEGATIVE"), null, yesLabels);
-				results.add(score);
-			}
-		}
-		pw.close();
-		return results;
-	}
-	
-	/**
-	 * @param folds
-	 * @param snippets
-	 * @return
-	 */
-	private List<List<Snippet>> partitionSnippets(int folds,
-			List<Snippet> snippets) {
-		List<List<Snippet>> partitions = new ArrayList<>(folds);
-		for (int i = 0; i < folds; i++) {
-			partitions.add(new ArrayList<Snippet>());
-		}
-		Iterator<Snippet> snippetIter = snippets.iterator();
-		int partitionIdx = 0;
-		while (snippetIter.hasNext()) {
-			if (partitionIdx >= folds) {
-				partitionIdx = 0;
-			}
-			List<Snippet> partition = partitions.get(partitionIdx);
-			partition.add(snippetIter.next());
-			partitionIdx++;
-		}
-		return partitions;
 	}
 
 	/**

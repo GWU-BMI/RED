@@ -59,7 +59,7 @@ public class LSTriplet {
 	 * to be used only when the triplets contain regular expressions
 	 * instead of snippets. Joins the regular expressions contained
 	 * in the BLS, LS and ALS into a single string.
-	 * @return
+	 * @return A regex representation of the LSTriplet
 	 */
 	public String toStringRegEx(){
 		return "" + BLS + "(" + LS  + ")" + ALS;
