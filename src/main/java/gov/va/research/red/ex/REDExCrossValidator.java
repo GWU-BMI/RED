@@ -8,7 +8,7 @@ import gov.va.research.red.LabeledSegment;
 import gov.va.research.red.RegEx;
 import gov.va.research.red.Snippet;
 import gov.va.research.red.VTTReader;
-import gov.va.research.red.cat.RegExCategorizer;
+import gov.va.research.red.cat.REDCategorizer;
 
 import java.io.File;
 import java.io.IOException;

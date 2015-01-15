@@ -22,7 +22,6 @@ import gov.va.research.red.Snippet;
 import java.util.Collection;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.regex.PatternSyntaxException;
 
 /**
  * @author doug
@@ -30,14 +29,34 @@ import java.util.regex.PatternSyntaxException;
  */
 public class Collapser {
 
-	private static final Pattern COLLAPSIBLE_PATTERN = Pattern.compile("(?:\\[A-Z\\]\\{1,\\d+\\}(?:\\\\p\\{Punct\\})?\\\\s\\{1,10\\}){2,}"/*"(?:\\[A-Z \\](?!\\{))+"*/,
+	private static final Pattern COLLAPSIBLE_PATTERN = Pattern.compile("(?:\\[A-Z\\]\\{1,\\d+\\}(?:\\\\p\\{Punct\\})?\\\\s\\{1,10\\}){2,}",
 			Pattern.CASE_INSENSITIVE);
 	private static final Pattern WORD_PATTERN = Pattern.compile("\\[A-Z\\]\\{1,(\\d+)\\}");
 	
+	/**
+	 * Collapsed repeated generic word regexes separated by whitespace or punctuation into a single generic word regex with repetition.
+	 * Checks for resulting false positives and reverts any changes that cause them.
+	 * @param regEx The regular expression to collapse.
+	 * @param negSnippets A collection of snippets with labeled segments that should not match the regex unless they are labeled with one of <code>posLabels</code>.
+	 * @param posLabels A collection of labels that identifying labeled segments that should match the <code>regEx</code>.
+	 */
 	public static void collapse(RegEx regEx, Collection<Snippet> negSnippets, Collection<String> posLabels) {
+		StringBuilder newRE = collapse(regEx);
+		boolean fps = SnippetRegexMatcher.anyMatches(new RegEx(newRE.toString()), negSnippets, posLabels);
+		if (!fps) {
+			regEx.setRegEx(newRE.toString());
+		}
+
+	}
+
+	/**
+	 * Collapsed repeated generic word regexes separated by whitespace or punctuation into a single generic word regex with repetition.
+	 * @param regEx The regular expression to collapse.
+	 */
+	static StringBuilder collapse(RegEx regEx) {
 		Matcher m = COLLAPSIBLE_PATTERN.matcher(regEx.getRegEx());
+		StringBuilder newRE = new StringBuilder();
 		if (m.find()) {
-			StringBuilder newRE = new StringBuilder();
 			int prevEnd = 0;
 			do {
 				newRE.append(regEx.getRegEx().substring(prevEnd, m.start()));
@@ -58,15 +77,8 @@ public class Collapser {
 				prevEnd = m.end();
 			} while (m.find());
 			newRE.append(regEx.getRegEx().substring(prevEnd));
-			boolean fps = SnippetRegexMatcher.anyMatches(new RegEx(newRE.toString()), negSnippets, posLabels);
-			if (!fps) {
-				regEx.setRegEx(newRE.toString());
-			} else {
-				System.err.println("FP on collapse");
-				System.err.println("<:" + regEx.getRegEx());
-				System.err.println(">:" + newRE.toString());
-			}
 		}
+		return newRE;
 	}
 
 }

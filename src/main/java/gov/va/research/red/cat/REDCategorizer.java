@@ -28,7 +28,7 @@ import java.util.regex.Pattern;
  * 
  * please check if no label snippet getter works properly
  */
-public class RegExCategorizer {
+public class REDCategorizer {
 	
 	private static final String P_PUNCT = "\\p{Punct}";
 	static final Map<RegEx, Pattern> patternCache = new HashMap<RegEx, Pattern>();

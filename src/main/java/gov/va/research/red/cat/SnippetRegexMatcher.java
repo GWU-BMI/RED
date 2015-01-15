@@ -36,14 +36,14 @@ public class SnippetRegexMatcher {
 	 * @return <code>true</code> if there are any matches, <code>false</code> otherwise.
 	 */
 	static boolean anyMatches(RegEx regex, Collection<Snippet> snippets, Collection<String> excludeLabels) {
-		Pattern pattern = RegExCategorizer.patternCache.get(regex);
+		Pattern pattern = REDCategorizer.patternCache.get(regex);
 		if (pattern == null) {
 			try {
 				pattern = Pattern.compile(regex.getRegEx(), Pattern.CASE_INSENSITIVE);
 			} catch (Exception e) {
 				throw e;
 			}
-			RegExCategorizer.patternCache.put(regex, pattern);
+			REDCategorizer.patternCache.put(regex, pattern);
 		}
 		for (Snippet snippet : snippets) {
 			if (snippet.getLabeledSegments() != null) {
