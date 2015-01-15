@@ -20,7 +20,7 @@ public class CategorizerTester {
 	private BufferedWriter writer = null;
 	
 	public CategorizerTester() throws IOException {
-		resultsFile = new File("categorizerErrorTesting");
+		resultsFile = new File("categorizerErrorTesting.txt");
 		FileWriter fwriter = null;
 		fwriter = new FileWriter(resultsFile,true);
 		writer = new BufferedWriter(fwriter);
