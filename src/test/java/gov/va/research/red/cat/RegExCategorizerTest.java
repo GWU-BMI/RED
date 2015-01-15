@@ -98,11 +98,11 @@ public class RegExCategorizerTest {
 			noLabels.add("no");
 			Map<String, Collection<RegEx>> retMap = crex.findRegexesAndOutputResults(new File(CLASSIFIER_TEST_URI), yesLabels, noLabels);
 			System.out.println("Pos regex");
-			for (RegEx regEx : retMap.get("POSITIVE")) {
+			for (RegEx regEx : retMap.get("true")) {
 				System.out.println(regEx.getRegEx()+"\t"+regEx.getSensitivity());
 			}
 			System.out.println("Neg regex");
-			for (RegEx regEx : retMap.get("NEGATIVE")) {
+			for (RegEx regEx : retMap.get("false")) {
 				System.out.println(regEx.getRegEx()+"\t"+regEx.getSensitivity());
 			}
 			/*REDExCrossValidator rexcv = new REDExCrossValidator();
@@ -137,7 +137,7 @@ public class RegExCategorizerTest {
 	/**
 	 * Test method for {@link gov.va.research.red.cat.CategorizerLoader.ClassifierLoader#getYesRegEx()}.
 	 */
-	@Test
+	//@Test
 	public void testgetYesRegEx() {
 		CategorizerLoader loader = new CategorizerLoader("classifier2.txt");
 		try {
@@ -154,7 +154,7 @@ public class RegExCategorizerTest {
 	/**
 	 * Test method for {@link gov.va.research.red.cat.CategorizerLoader.ClassifierLoader#getNoRegEx()}.
 	 */
-	@Test
+	//@Test
 	public void testgetNoRegEx() {
 		CategorizerLoader loader = new CategorizerLoader("classifier2.txt");
 		try {
