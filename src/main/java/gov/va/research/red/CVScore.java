@@ -107,10 +107,12 @@ public class CVScore {
 	public static CVScore aggregate(List<CVScore> scores) {
 		CVScore aggregate = new CVScore();
 		for (CVScore score : scores) {
-			aggregate.tp += score.tp;
-			aggregate.tn += score.tn;
-			aggregate.fp += score.fp;
-			aggregate.fn += score.fn;
+			if (score != null) {
+				aggregate.tp += score.tp;
+				aggregate.tn += score.tn;
+				aggregate.fp += score.fp;
+				aggregate.fn += score.fn;
+			}
 		}
 		return aggregate;
 	}

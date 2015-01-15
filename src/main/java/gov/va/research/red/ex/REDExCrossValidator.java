@@ -8,7 +8,7 @@ import gov.va.research.red.LabeledSegment;
 import gov.va.research.red.RegEx;
 import gov.va.research.red.Snippet;
 import gov.va.research.red.VTTReader;
-import gov.va.research.red.cat.RegExCategorizer;
+import gov.va.research.red.cat.REDCategorizer;
 
 import java.io.File;
 import java.io.IOException;
@@ -47,15 +47,18 @@ public class REDExCrossValidator implements CrossValidatable {
 			}
 			String label = conf.getString("label");
 			int folds = conf.getInt("folds");
+			Boolean stopAfterFirstFold = conf.getBoolean("stopAfterFirstFold", Boolean.FALSE);
 			
 			REDExCrossValidator rexcv = new REDExCrossValidator();
-			List<CVScore> results = rexcv.crossValidate(vttfiles, label, folds);
+			List<CVScore> results = rexcv.crossValidate(vttfiles, label, folds, stopAfterFirstFold.booleanValue());
 			
 			// Display results
 			int i = 0;
 			for (CVScore s : results) {
-				LOG.info("--- Run " + (i++) + " ---");
-				LOG.info(s.getEvaluation());
+				if (s != null) {
+					LOG.info("--- Run " + (i++) + " ---");
+					LOG.info(s.getEvaluation());
+				}
 			}
 			LOG.info("--- Aggregate ---");
 			LOG.info(CVScore.aggregate(results).getEvaluation());
@@ -63,12 +66,18 @@ public class REDExCrossValidator implements CrossValidatable {
 		}
 	}
 
+	
 	/* (non-Javadoc)
 	 * @see gov.va.research.red.CrossValidatable#crossValidate(java.util.List, java.lang.String, int)
 	 */
 	@Override
 	public List<CVScore> crossValidate(List<File> vttFiles, String label, int folds)
 			throws IOException {
+		return crossValidate(vttFiles, label, folds, false);
+	}
+	
+	public List<CVScore> crossValidate(List<File> vttFiles, String label, int folds, boolean stopAfterFirstFold)
+				throws IOException {
 		VTTReader vttr = new VTTReader();
 		// get snippets
 		List<Snippet> snippets = new ArrayList<>();
@@ -92,7 +101,12 @@ public class REDExCrossValidator implements CrossValidatable {
 				CVScore score = null;
 				try (StringWriter sw = new StringWriter()) {
 					try (PrintWriter pw = new PrintWriter(sw)) {
-						pw.println("##### FOLD " + (fold.addAndGet(1)) + " #####");
+						int newFold = fold.addAndGet(1);
+						pw.println("##### FOLD " + newFold + " #####");
+						if (stopAfterFirstFold && (newFold > 1)) {
+							pw.println(">>> skipping");
+							return null;
+						}
 						// set up training and testing sets for this fold
 						List<Snippet> testing = partition;
 						List<Snippet> training = new ArrayList<>();

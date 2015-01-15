@@ -90,7 +90,7 @@ public class RegExCategorizerTest {
 
 	@Test
 	public void testExtractClassifier(){
-		RegExCategorizer crex = new RegExCategorizer();
+		REDCategorizer crex = new REDCategorizer();
 		try {
 			List<String> yesLabels = new ArrayList<>();
 			yesLabels.add("yes");
@@ -132,7 +132,7 @@ public class RegExCategorizerTest {
 		VTTReader vttr = new VTTReader();
 		File vttFile = new File(CLASSIFIER_TEST_URI);
 		snippets.addAll(vttr.extractSnippets(vttFile, ""));
-		RegExCategorizer regExCategorizer = new RegExCategorizer();
+		REDCategorizer regExCategorizer = new REDCategorizer();
 		regExCategorizer.findRegexesAndOutputResults(vttFile, yesLabels, noLabels);
 	}
 

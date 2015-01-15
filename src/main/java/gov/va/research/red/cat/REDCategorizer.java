@@ -28,15 +28,17 @@ import java.util.regex.Pattern;
  * 
  * please check if no label snippet getter works properly
  */
-public class RegExCategorizer {
+public class REDCategorizer {
 	
 	private static final String P_PUNCT = "\\p{Punct}";
-	private static final Map<RegEx, Pattern> patternCache = new HashMap<RegEx, Pattern>();
+	static final Map<RegEx, Pattern> patternCache = new HashMap<RegEx, Pattern>();
 	private static final boolean PERFORM_TRIMMING = true;
 	private static final boolean PERFORM_TRIMMING_OVERALL = true;
-	private static final boolean PERFORM_USELESS_REMOVAL_OVERALL = true;
 	private static final boolean PERFORM_USELESS_REMOVAL = true;
 	private static final boolean FILE_TRANSFER = true;
+	private static final Pattern STARTS_WITH_COLLAPSE_PATTERN = Pattern.compile("^\\(\\?:\\[A-Z\\]\\{1,\\d+\\}\\(\\?:\\\\s\\{1,\\d+\\}\\|\\\\p\\{Punct\\}\\)\\)\\{1,\\d+\\}");
+	private static final Pattern ENDS_WITH_COLLAPSE_PATTERN = Pattern.compile("\\(\\?:\\[A-Z\\]\\{1,\\d+\\}\\(\\?:\\\\s\\{1,\\d+\\}\\|\\\\p\\{Punct\\}\\)\\)\\{1,\\d+\\}$");
+
 	
 	/**
 	 * Reads a vtt file and generates collections of positive and negative regular expressions for classification.
@@ -108,33 +110,40 @@ public class RegExCategorizer {
 		Collection<RegEx> initialPositiveRegExs = initialize(snippetsYes, yesLabels);
 		Collection<RegEx> initialNegativeRegExs = initialize(snippetsNo, noLabels);
 
-		removeDuplicates(initialPositiveRegExs);
-		removeDuplicates(initialNegativeRegExs);
+		// Remove any duplicates
+		initialPositiveRegExs = removeDuplicates(initialPositiveRegExs);
+		initialNegativeRegExs = removeDuplicates(initialNegativeRegExs);
 
+		// Remove any regexes that have false positives initially
 		Iterator<RegEx> it = initialPositiveRegExs.iterator();
 		while (it.hasNext()) {
 			RegEx reg = it.next();
-			if (anyMatches(reg, snippetsNoAndUnlabeled, yesLabels)) {
+			if (SnippetRegexMatcher.anyMatches(reg, snippetsNoAndUnlabeled, yesLabels)) {
 				it.remove();
 			}
 		}
-		
 		it = initialNegativeRegExs.iterator();
 		while (it.hasNext()) {
 			RegEx reg = it.next();
-			if (anyMatches(reg, snippetsYesAndUnlabeled, noLabels)) {
+			if (SnippetRegexMatcher.anyMatches(reg, snippetsYesAndUnlabeled, noLabels)) {
 				it.remove();
 			}
 		}
-		initialPositiveRegExs = removeDuplicates(initialPositiveRegExs);
-		initialNegativeRegExs = removeDuplicates(initialNegativeRegExs);
+
+		// Collapse
+		collapse(initialPositiveRegExs, yesLabels, snippetsNoAndUnlabeled);
+		collapse(initialNegativeRegExs, noLabels, snippetsYesAndUnlabeled);
 		
+		// Generalize words when possible without causing FPs, from least to most frequent
 		Map<String,Integer> wordFreqMapPos = createFrequencyMap(initialPositiveRegExs);
 		Map<String,Integer> wordFreqMapNeg = createFrequencyMap(initialNegativeRegExs);
 		removeLeastFrequent(initialPositiveRegExs, snippetsNoAndUnlabeled, yesLabels, wordFreqMapPos);
 		removeLeastFrequent(initialNegativeRegExs, snippetsYesAndUnlabeled, noLabels, wordFreqMapNeg);
 		initialPositiveRegExs = removeDuplicates(initialPositiveRegExs);
 		initialNegativeRegExs = removeDuplicates(initialNegativeRegExs);
+		
+		collapse(initialPositiveRegExs, yesLabels, snippetsNoAndUnlabeled);
+		collapse(initialNegativeRegExs, noLabels, snippetsYesAndUnlabeled);
 		
 		if (PERFORM_TRIMMING_OVERALL) {
 			performTrimming(initialPositiveRegExs, snippetsNoAndUnlabeled, yesLabels);
@@ -143,88 +152,20 @@ public class RegExCategorizer {
 			initialNegativeRegExs = removeDuplicates(initialNegativeRegExs);
 		}
 
-		// collapsing
+		// Collapse
+		collapse(initialPositiveRegExs, yesLabels, snippetsNoAndUnlabeled);
+		collapse(initialNegativeRegExs, noLabels, snippetsYesAndUnlabeled);
 		
-		/*for (RegEx regEx : initialPositiveRegExs) {
-			collapse(regEx, true);
-		}
-		
-		for (RegEx regEx : initialNegativeRegExs) {
-			collapse(regEx, false);
-		}
-		removeDuplicates(initialPositiveRegExs);
-		removeDuplicates(initialNegativeRegExs);*/
-		
-		// end collapsing
-		
-		if (PERFORM_USELESS_REMOVAL_OVERALL) {
-			for (RegEx regEx : initialPositiveRegExs) {
-				uselessRegRemover(regEx, snippetsNoAndUnlabeled, yesLabels);
-			}
-			for (RegEx regEx : initialNegativeRegExs) {
-				uselessRegRemover(regEx, snippetsYesAndUnlabeled, noLabels);
-			}
-		}
-		
-		for (RegEx regEx : initialPositiveRegExs) {
-			Collapse.overallCollapser(regEx);
-		}
-		for (RegEx regEx : initialNegativeRegExs) {
-			Collapse.overallCollapser(regEx);
-		}
+		// Remove duplicates
 		initialPositiveRegExs = removeDuplicates(initialPositiveRegExs);
 		initialNegativeRegExs = removeDuplicates(initialNegativeRegExs);
 		
-		for (RegEx regEx : initialPositiveRegExs) {
-			int specifity = 0;
-			for (Snippet snippet : snippetsYes) {
-				Pattern p = patternCache.get(regEx);
-				if (p == null) {
-					p = Pattern.compile(regEx.getRegEx(), Pattern.CASE_INSENSITIVE);
-					patternCache.put(regEx, p);
-				}
-				Matcher matcher = p.matcher(snippet.getText());
-				if (matcher.find()) {
-					specifity++;
-				}
-			}
-			regEx.setSensitivity((double)specifity/initialPositiveRegExs.size());
-		}
-		
-		for (RegEx regEx : initialNegativeRegExs) {
-			int specifity = 0;
-			for (Snippet snippet : snippetsNo) {
-				Pattern p = patternCache.get(regEx);
-				if (p == null) {
-					p = Pattern.compile(regEx.getRegEx(), Pattern.CASE_INSENSITIVE);
-					patternCache.put(regEx, p);
-				}
-				Matcher matcher = p.matcher(snippet.getText());
-				if (matcher.find()) {
-					specifity++;
-				}
-			}
-			regEx.setSensitivity((double)specifity/initialNegativeRegExs.size());
-		}
-		
-		/*for (RegEx regEx : initialPositiveRegExs) {
-			regEx.setRegEx("(?i)"+regEx.getRegEx());
-		}
-		
-		for (RegEx regEx : initialNegativeRegExs) {
-			regEx.setRegEx("(?i)"+regEx.getRegEx());
-		}*/
-		
-		//cvScore = testClassifier(snippetsAll, initialPositiveRegExs, initialNegativeRegExs, null, yesLabels);
-		/*System.out.println("Pos regex");
-		for (RegEx regEx : initialPositiveRegExs) {
-			System.out.println(regEx.getRegEx()+"\t"+regEx.getSpecifity()+"\n");
-		}
-		System.out.println("\nNeg regex");
-		for (RegEx regEx : initialNegativeRegExs) {
-			System.out.println(regEx.getRegEx()+"\t"+regEx.getSpecifity()+"\n");
-		}*/
-		/*System.out.println(cvScore.getEvaluation());*/
+		// Calculate specificity
+		calculateSpecificity(snippetsYes, initialPositiveRegExs);
+		calculateSpecificity(snippetsNo, initialNegativeRegExs);
+
+		collapse(initialPositiveRegExs, yesLabels, snippetsNoAndUnlabeled);
+		collapse(initialNegativeRegExs, noLabels, snippetsYesAndUnlabeled);
 		Map<String, Collection<RegEx>> positiveAndNegativeRegEx = new HashMap<String, Collection<RegEx>>();
 		positiveAndNegativeRegEx.put(Boolean.TRUE.toString(), initialPositiveRegExs);
 		positiveAndNegativeRegEx.put(Boolean.FALSE.toString(), initialNegativeRegExs);
@@ -232,12 +173,43 @@ public class RegExCategorizer {
 		return positiveAndNegativeRegEx;
 	}
 
-	private void printRegExs(Collection<RegEx> initialPositiveRegExs) {
-		for (RegEx re : initialPositiveRegExs) {
-			System.out.println("" + re.getRegEx());
+	/**
+	 * @param labelToExcludeFromNegFPCheck
+	 * @param snippetsToCheckForFP
+	 * @param regExsToCollapse
+	 */
+	private void collapse(Collection<RegEx> regExsToCollapse,
+			Collection<String> labelToExcludeFromNegFPCheck,
+			List<Snippet> snippetsToCheckForFP) {
+		for (RegEx regEx : regExsToCollapse) {
+			Collapser.collapse(regEx, snippetsToCheckForFP, labelToExcludeFromNegFPCheck);
 		}
 	}
-	
+
+	/**
+	 * @param snippets
+	 * @param regexes
+	 */
+	private void calculateSpecificity(List<Snippet> snippets,
+			Collection<RegEx> regexes) {
+		for (RegEx regEx : regexes) {
+			int specifity = 0;
+			for (Snippet snippet : snippets) {
+				Pattern p = patternCache.get(regEx);
+				if (p == null) {
+					p = Pattern.compile(regEx.getRegEx(), Pattern.CASE_INSENSITIVE);
+					patternCache.put(regEx, p);
+				}
+				Matcher matcher = p.matcher(snippet.getText());
+				if (matcher.find()) {
+					specifity++;
+				}
+			}
+			regEx.setSensitivity((double)specifity/regexes.size());
+		}
+	}
+
+
 	private void printSnippetsFile(Collection<Snippet> snippets, Collection<String> labels, String baseFilename) throws IOException {
 		File file = new File(baseFilename + "_Snippets");
 		File fileLS = new File(baseFilename + "_Labeled_Segments");
@@ -302,39 +274,6 @@ public class RegExCategorizer {
 	private Collection<RegEx> removeDuplicates(Collection<RegEx> regExes) {
 		return new HashSet<RegEx>(regExes);
 	}
-
-	private void uselessRegRemover(RegEx regEx, Collection<Snippet> negSnippets, Collection<String> posLabels){		
-//		String regExStr = regEx.getRegEx();
-//		StringBuilder regExStrBld = new StringBuilder(regExStr);
-//		String backup = null;
-//		int start = 0,end =0;
-//		while (true) {
-//			backup = regExStrBld.toString();
-//			while (start < backup.length() && backup.charAt(start) != '\\' && backup.charAt(start) != '[') {
-//				start++;
-//				end++;
-//			}
-//			if (start == backup.length()) {
-//				break;
-//			}
-//			while (end < backup.length() && backup.charAt(end) != '}' && backup.charAt(end) != '+') {
-//				end++;
-//			}
-//			end++;
-//			if (end == backup.length()) {
-//				break;
-//			}
-//			regExStrBld.replace(start, end, "");
-//			regEx.setRegEx(regExStrBld.toString());
-//			if (!anyMatches(regEx, negSnippets, posLabels)) {
-//				end = start;
-//			} else {
-//				start = end;
-//				regEx.setRegEx(backup);
-//				regExStrBld = new StringBuilder(backup);
-//			}
-//		}
-	}
 	
 	private List<RegEx> initialize(Collection<Snippet> snippets, Collection<String> labels) {
 		List<RegEx> initialRegExs = null;
@@ -395,16 +334,11 @@ public class RegExCategorizer {
 						replacedString = replacedString.substring(0, end+1) + "[A-Z]{1," + leastFrequent.length() + "}";
 					}
 					RegEx temp = new RegEx(replacedString);
-					boolean fps = anyMatches(temp, negSnippets, posLabels);
+					boolean fps = SnippetRegexMatcher.anyMatches(temp, negSnippets, posLabels);
 					if (!fps) {
 						regEx.setRegEx(replacedString);
-						Collapse.collapseWhitespace(regEx);
-						Collapse.collapsePunct(regEx);
 						if (PERFORM_TRIMMING) {
 							performTrimmingIndividual(regEx, negSnippets, posLabels);
-						}
-						if (PERFORM_USELESS_REMOVAL) {
-							uselessRegRemover(regEx, negSnippets, posLabels);
 						}
 					}
 				}
@@ -412,41 +346,6 @@ public class RegExCategorizer {
 		}
 	}
 	
-	/**
-	 * @param regex The regular expression to check.
-	 * @param snippets The snippets to match the regular expression against.
-	 * @param excludeLabels Do not check against snippet labeled segments with these labels.
-	 * @return <code>true</code> if there are any matches, <code>false</code> otherwise.
-	 */
-	private boolean anyMatches(RegEx regex, Collection<Snippet> snippets, Collection<String> excludeLabels) {
-		Pattern pattern = patternCache.get(regex);
-		if (pattern == null) {
-			pattern = Pattern.compile(regex.getRegEx(), Pattern.CASE_INSENSITIVE);
-			patternCache.put(regex, pattern);
-		}
-		for (Snippet snippet : snippets) {
-			if (snippet.getLabeledSegments() != null) {
-				for (LabeledSegment ls : snippet.getLabeledSegments()) {
-					if (!excludeLabels.contains(ls.getLabel())) {
-						String labeledString = ls.getLabeledString();
-						if (labeledString != null && !labeledString.equals("")) {
-							Matcher m = pattern.matcher(labeledString);
-							if (m.find()) {
-								return true;
-							}
-						}
-					}
-				}
-			} else {
-			Matcher m = pattern.matcher(snippet.getText());
-				if (m.find()) {
-					return true;
-				}
-			}
-		}
-		return false;
-	}
-
 	private Map<String,Integer> createFrequencyMap(Collection<RegEx> initialRegExs) {
 		Map<String,Integer> wordFreqMap = new HashMap<>();
 		for (RegEx regEx : initialRegExs) {
@@ -476,7 +375,7 @@ public class RegExCategorizer {
 					if (frontTrimRegEx == null) {
 						frontTrim = false;
 					} else {
-						if (anyMatches(frontTrimRegEx, negSnippets, posLabels)) {
+						if (SnippetRegexMatcher.anyMatches(frontTrimRegEx, negSnippets, posLabels)) {
 							frontTrim = false;
 						} else {
 							regEx.setRegEx(frontTrimRegEx.getRegEx());
@@ -488,7 +387,7 @@ public class RegExCategorizer {
 					if (backTrimRegEx == null) {
 						backTrim = false;
 					} else {
-						if (anyMatches(backTrimRegEx, negSnippets, posLabels)) {
+						if (SnippetRegexMatcher.anyMatches(backTrimRegEx, negSnippets, posLabels)) {
 							backTrim = false;
 						} else {
 							regEx.setRegEx(backTrimRegEx.getRegEx());
@@ -510,7 +409,7 @@ public class RegExCategorizer {
 			if (frontTrimRegEx == null) {
 				frontTrim = false;
 			} else {
-				if (anyMatches(frontTrimRegEx, negSnippets, posLabels)) {
+				if (SnippetRegexMatcher.anyMatches(frontTrimRegEx, negSnippets, posLabels)) {
 					frontTrim = false;
 				} else {
 					regEx.setRegEx(frontTrimRegEx.getRegEx());
@@ -522,7 +421,7 @@ public class RegExCategorizer {
 			if (backTrimRegEx == null) {
 				backTrim = false;
 			} else {
-				if (anyMatches(backTrimRegEx, negSnippets, posLabels)) {
+				if (SnippetRegexMatcher.anyMatches(backTrimRegEx, negSnippets, posLabels)) {
 					backTrim = false;
 				} else {
 					regEx.setRegEx(backTrimRegEx.getRegEx());
@@ -533,51 +432,65 @@ public class RegExCategorizer {
 	
 	private RegEx frontTrim(RegEx regEx) {
 		String regExStr = regEx.getRegEx();
-		char start = regExStr.charAt(0);
-		int cutLocation=1;
-		if (start == '\\' || start == '[') {
-			while(true){
-				if (cutLocation == regExStr.length()) {
-					return null;
-				}
-				char currentChar = regExStr.charAt(cutLocation++);
-				if (currentChar == '+' || currentChar == '}') {
-					break;
-				}
-			}
+		Matcher m = STARTS_WITH_COLLAPSE_PATTERN.matcher(regExStr);
+		String newRegExStr = null;
+		if (m.find()) {
+			newRegExStr = regExStr.substring(0, m.end());
 		} else {
-			return null;
+			char start = regExStr.charAt(0);
+			int cutLocation=1;
+			if (start == '\\' || start == '[') {
+				while(true){
+					if (cutLocation == regExStr.length()) {
+						return null;
+					}
+					char currentChar = regExStr.charAt(cutLocation++);
+					if (currentChar == '+' || currentChar == '}') {
+						break;
+					}
+				}
+			} else {
+				return null;
+			}
+			newRegExStr = regExStr.substring(0,cutLocation);
 		}
-		return new RegEx(regExStr.substring(cutLocation));
+		return new RegEx(newRegExStr);
 	}
 	
 	private RegEx backTrim(RegEx regEx) {
 		String regExStr = regEx.getRegEx();
-		char end = regExStr.charAt(regExStr.length()-1);
-		int cutLocation=regExStr.length()-2;
-		boolean foundAZRegEx = false;
-		if (end == '+' || end == '}') {
-			while(true){
-				if (cutLocation < 0) {
-					return null;
-				}
-				char currentChar = regExStr.charAt(cutLocation--);
-				if (!foundAZRegEx && currentChar == '\\') {
-					cutLocation = cutLocation+1;
-					break;
-				}
-				if (foundAZRegEx && currentChar == '[') {
-					cutLocation = cutLocation+1;
-					break;
-				}
-				if (currentChar == ']') {
-					foundAZRegEx = true;
-				}
-			}
+		Matcher m = ENDS_WITH_COLLAPSE_PATTERN.matcher(regExStr);
+		String newRegExStr = null;
+		if (m.find()) {
+			newRegExStr = regExStr.substring(0, m.start());
 		} else {
-			return null;
+			char end = regExStr.charAt(regExStr.length()-1);
+			int cutLocation=regExStr.length()-2;
+			boolean foundAZRegEx = false;
+			if (end == '+' || end == '}') {
+				while(true){
+					if (cutLocation < 0) {
+						return null;
+					}
+					char currentChar = regExStr.charAt(cutLocation--);
+					if (!foundAZRegEx && currentChar == '\\') {
+						cutLocation = cutLocation+1;
+						break;
+					}
+					if (foundAZRegEx && currentChar == '[') {
+						cutLocation = cutLocation+1;
+						break;
+					}
+					if (currentChar == ']') {
+						foundAZRegEx = true;
+					}
+				}
+			} else {
+				return null;
+			}
+			newRegExStr = regExStr.substring(0,cutLocation);
 		}
-		return new RegEx(regExStr.substring(0,cutLocation));
+		return new RegEx(newRegExStr);
 	}
 	
 	private void initializeInitialRegEx(final Collection<Snippet> snippets,

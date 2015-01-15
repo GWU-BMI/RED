@@ -21,6 +21,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.StringJoiner;
 import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -97,8 +98,6 @@ public class REDExtractor {
 				}
 			}
 			
-			ls3list = generalizeLS(ls3list);
-			LOG.info("generalized LSs");
 			ls3list = removeDuplicates(ls3list);
 
 			// check if we can remove the first regex from bls. Keep on
@@ -107,6 +106,9 @@ public class REDExtractor {
 			trimRegEx(snippets, ls3list);
 			LOG.info("trimmed regexes");
 			ls3list = removeDuplicates(ls3list);
+			
+			ls3list = generalizeLS(snippets, ls3list);
+			LOG.info("generalized LSs");
 
 //			leExt.setRegExpressions(ls3list);
 //			CVScore scoreAfterTrimming = testExtractor(snippets, leExt);
@@ -188,19 +190,33 @@ public class REDExtractor {
 	}
 	
 	/**
-	 * Generalize the LS element of each triplet to work for all LSs in the list.
+	 * Generalize the LS element of each triplet to work for all LSs in the list that won't cause false positives.
 	 * @param ls3list
-	 * @return A new LSTriplet list, with each LS segment replaced by a combination of all LSs in the list.
+	 * @return A new LSTriplet list, with each LS segment replaced by a combination of all LSs in the list that won't cause false positives.
 	 */
-	private List<LSTriplet> generalizeLS(final List<LSTriplet> ls3list) {
+	private List<LSTriplet> generalizeLS(final List<Snippet> snippets, final List<LSTriplet> ls3list) {
 		Set<String> lsSet = new HashSet<>();
 		for (LSTriplet ls3 : ls3list) {
 			if (lsSet.add(ls3.getLS()));
 		}
-		String genLSRegex = String.join("|", lsSet);
 		List<LSTriplet> genLSTriplets = new ArrayList<>(ls3list.size());
 		for (LSTriplet ls3 : ls3list) {
-			genLSTriplets.add(new LSTriplet(ls3.getBLS(), genLSRegex, ls3.getALS()));
+			LSTriplet origTriplet = new LSTriplet(ls3.getBLS(), ls3.getLS(), ls3.getALS());
+			List<LSTriplet> singleTriplet = new ArrayList<>(1);
+			singleTriplet.add(origTriplet);
+			LSExtractor ex = new LSExtractor(singleTriplet);
+			String genLS = origTriplet.getLS();
+			if (!checkForFalsePositives(snippets, ex)) {
+				for (String ls : lsSet) {
+					String newGenLS = genLS + "|" + ls;
+					singleTriplet.get(0).setLS(newGenLS);
+					ex.setRegExpressions(singleTriplet);
+					if (!checkForFalsePositives(snippets, ex)) {
+						genLS = newGenLS;
+					}
+				}
+			}
+			genLSTriplets.add(singleTriplet.get(0));
 		}
 		return genLSTriplets;
 	}
@@ -741,10 +757,15 @@ public class REDExtractor {
 				} else {
 					score.setFn(score.getFn() + 1);
 					localPW.println("<##### ERROR - FN: Regexes");
-					localPW.println(""
-						+ (ex == null ? "null"
-							: ex.getRegExpressions() == null ? "null"
-							: ex.getRegExpressions().toString()));
+					StringJoiner joiner = new StringJoiner("\n");
+					if (ex != null && ex.getRegExpressions() != null) {
+						for (LSTriplet trip : ex.getRegExpressions()) {
+							joiner.add(trip.toStringRegEx());
+						}
+						localPW.println(joiner.toString());
+					} else {
+						localPW.println("null");
+					}
 					localPW.println("#####>");
 				}
 			} else if (actual == null || actual.size() == 0) {
@@ -787,20 +808,16 @@ public class REDExtractor {
 		for (Snippet snippet : testing) {
 			List<MatchedElement> candidates = ex.extract(snippet.getText());
 			String predicted = chooseBestCandidate(candidates);
-			List<String> actual = snippet.getLabeledStrings();
 
 			// Score
-
-			if (predicted == null) {
-
-			} else if (actual == null || actual.size() == 0) {
-				// score.setFp(score.getFp() + 1);
-				return true;
-			} else {
-				if (snippet.getLabeledStrings().contains(predicted.trim())) {
-					// score.setTp(score.getTp() + 1);
-				} else {
+			if (predicted != null) {
+				List<String> actual = snippet.getLabeledStrings();
+				if (actual == null || actual.size() == 0) {
 					return true;
+				} else {
+					if (!actual.contains(predicted.trim())) {
+						return true;
+					}
 				}
 			}
 		}
