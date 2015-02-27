@@ -104,11 +104,9 @@ public class REDExtractor {
 			// repeating
 			// the process till we can't remove any regex's from the bls's.
 			trimRegEx(snippets, ls3list);
-			LOG.info("trimmed regexes");
 			ls3list = removeDuplicates(ls3list);
 			
 			ls3list = generalizeLS(snippets, ls3list);
-			LOG.info("generalized LSs");
 
 //			leExt.setRegExpressions(ls3list);
 //			CVScore scoreAfterTrimming = testExtractor(snippets, leExt);
@@ -226,10 +224,8 @@ public class REDExtractor {
 	 * @return
 	 */
 	private List<LSTriplet> removeDuplicates(final List<LSTriplet> ls3list) {
-		LOG.debug("# Regexes List = {}", ls3list.size());
 		Set<LSTriplet> ls3set = new TreeSet<>(new LSTriplet.IgnoreCaseComparator());
 		ls3set.addAll(ls3list);
-		LOG.debug("# Regexes Set = {}", ls3set.size());
 		List<LSTriplet> newlist = new ArrayList<>(ls3set);
 		return newlist;
 	}
