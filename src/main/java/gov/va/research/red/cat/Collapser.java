@@ -73,7 +73,8 @@ public class Collapser {
 				}
 				int maxWords = (int)(matches + (matches * .2)); // Add 20% for more generalizability
 				int maxWordLen = (int)(maxlen + (maxlen * .2));
-				newRE.append("(?:[A-Z]{1," + maxWordLen + "}(?:\\s{1,10}|\\p{Punct})){1," + maxWords + "}");
+				//newRE.append("(?:[A-Z]{1," + maxWordLen + "}(?:\\s{1,10}|\\p{Punct})){1," + maxWords + "}");
+				newRE.append("(?:[A-Z]{1," + maxWordLen + "}(?:\\s{1,10}|\\p{Punct}\\s{1,10})){1," + maxWords + "}");
 				prevEnd = m.end();
 			} while (m.find());
 			newRE.append(regEx.getRegEx().substring(prevEnd));

@@ -24,6 +24,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 
 import gov.va.research.red.CVScore;
 import gov.va.research.red.CVUtils;
@@ -64,9 +65,9 @@ public class CrossValidateCategorizer {
 	
 	public List<CVScore> crossValidateClassifier(List<Snippet> snippetsYes,List<Snippet> snippetsNo, List<Snippet> snippetsNoLabel, Collection<String> yesLabels, Collection<String> noLabels, int folds) throws IOException {
 		// randomize the order of the snippets
-		Collections.shuffle(snippetsYes);
-		Collections.shuffle(snippetsNo);
-		Collections.shuffle(snippetsNoLabel);
+		Collections.shuffle(snippetsYes, new Random(1));
+		Collections.shuffle(snippetsNo, new Random(2));
+		Collections.shuffle(snippetsNoLabel, new Random(3));
 		
 		// partition snippets into one partition per fold
 		List<List<Snippet>> partitionsYes = CVUtils.partitionSnippets(folds, snippetsYes);
@@ -75,7 +76,7 @@ public class CrossValidateCategorizer {
 
 		// Run evaluations, "folds" number of times, alternating which partition is being used for testing.
 		List<CVScore> results = new ArrayList<>(folds);
-		PrintWriter pw = new PrintWriter(new File("training and testing.txt"));
+		PrintWriter pw = new PrintWriter(new File("ten-fold cross validation.txt"));
 		int fold = 0;
 		for (int i=0;i<folds;i++) {
 			List<Snippet> testingYes = partitionsYes.get(i);
@@ -114,7 +115,7 @@ public class CrossValidateCategorizer {
 				testingAll.addAll(testingYes);
 				testingAll.addAll(testingNo);
 				testingAll.addAll(testingNoLabel);
-				CVScore score = regExCategorizer.testClassifier(testingAll, regExsPosNeg.get(Boolean.TRUE.toString()), regExsPosNeg.get(Boolean.FALSE.toString()), null, yesLabels);
+				CVScore score = regExCategorizer.testClassifier(testingAll, regExsPosNeg.get(Boolean.TRUE.toString()), regExsPosNeg.get(Boolean.FALSE.toString()), null, yesLabels, noLabels, pw);
 				results.add(score);
 			}
 		}

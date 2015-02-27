@@ -67,5 +67,44 @@ public class SnippetRegexMatcher {
 		}
 		return false;
 	}
-
+	
+	static boolean anyMatches2(RegEx regex, Collection<Snippet> snippets, Collection<String> labels) {
+		Pattern pattern = REDCategorizer.patternCache.get(regex);
+		if (pattern == null) {
+			try {
+				pattern = Pattern.compile(regex.getRegEx(), Pattern.CASE_INSENSITIVE);
+			} catch (Exception e) {
+				throw e;
+			}
+			REDCategorizer.patternCache.put(regex, pattern);
+		}
+		for (Snippet snippet : snippets) {
+			Matcher m = pattern.matcher(snippet.getText());
+			while (m.find()) {
+				int x = m.start();
+				int y = m.end();
+				Collection<LabeledSegment> labeledSegments = snippet.getLabeledSegments();
+				if (labeledSegments==null) {
+					return true; // find a match in a snippet with no labeled segments, so return true;
+				}
+				boolean matchedLabeledSegment = false;
+				for (LabeledSegment ls: labeledSegments) {
+					if (labels.contains(ls.getLabel())) {
+						if (ls.getStart()+ls.getLength()<x) {
+							continue;
+						}
+						if (ls.getStart()>y) {
+							break;
+						}
+						matchedLabeledSegment = true;
+						break;
+					}
+				}
+				if (!matchedLabeledSegment) {
+					return true; // find a match which is not labeled or does not have the right label.
+				}
+			}
+		}
+		return false;
+	}
 }

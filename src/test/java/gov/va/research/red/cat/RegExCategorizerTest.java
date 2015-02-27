@@ -100,14 +100,26 @@ public class RegExCategorizerTest {
 			System.out.println("# of positive regexs = "+retMap.get("true").size());
 			System.out.println("# of negative regexs = "+retMap.get("false").size());
 			System.out.println("Pos regex");
+			/*int n = 0;
 			for (RegEx regEx : retMap.get("true")) {
-				System.out.println(regEx.getRegEx()+"\t"+regEx.getSensitivity());
+				n++;
+				//if (n<=10) continue;
+				if (n>10) break;
+				double sen = Math.round(regEx.getSensitivity()*1000)/1000.0;
+				System.out.println(n+"\t"+sen+"\t"+regEx.getRegEx());
+				//System.out.println(n+"\t"+regEx.getRegEx());
 			}
+			n = 0;
 			System.out.println("Neg regex");
 			for (RegEx regEx : retMap.get("false")) {
-				System.out.println(regEx.getRegEx()+"\t"+regEx.getSensitivity());
-			}
-			/*CrossValidateCategorizer rexcv = new CrossValidateCategorizer();
+				n++;
+				//if (n<=10) continue;
+				if (n>10) break;
+				double sen = Math.round(regEx.getSensitivity()*1000)/1000.0;
+				System.out.println(n+"\t"+sen+"\t"+regEx.getRegEx());
+				//System.out.println(n+"\t"+regEx.getRegEx());
+			}//*/
+			CrossValidateCategorizer rexcv = new CrossValidateCategorizer();
 			List<CVScore> results = rexcv.crossValidateClassifier(Arrays.asList(new File[] { new File(CLASSIFIER_TEST_URI) }), yesLabels, noLabels, 10);
 			int i = 0;
 			for (CVScore score : results) {
@@ -116,7 +128,7 @@ public class RegExCategorizerTest {
 			}
 			System.out.println("--- Aggregate ---");
 			CVScore aggregate = CVScore.aggregate(results);
-			System.out.println(aggregate.getEvaluation());*/
+			System.out.println(aggregate.getEvaluation());//*/
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
