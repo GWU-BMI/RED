@@ -17,6 +17,7 @@
 package gov.va.research.red;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
@@ -47,5 +48,21 @@ public class CVUtils {
 			partitionIdx++;
 		}
 		return partitions;
+	}
+
+	/**
+	 * Determines if a collection of strings contains a given string, ignoring case differences.
+	 * @param strings a collection of strings
+	 * @param string a string
+	 * @return <code>true</code> if <code>string</code> is contained in <code>strings</code> where performing a case insentitive comparison.
+	 */
+	public static boolean containsCI(final Collection<String> strings,
+			final String string) {
+		for (String s : strings) {
+			if (s.equalsIgnoreCase(string)) {
+				return true;
+			}
+		}
+		return false;
 	}
 }

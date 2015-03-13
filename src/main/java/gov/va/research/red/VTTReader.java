@@ -87,7 +87,20 @@ public class VTTReader {
 	 * @return Snippets containing labeled segments for the specified label.
 	 * @throws IOException when a problem occurs reading <code>vttFile</code>.
 	 */
-	public List<Snippet> extractSnippets(final File vttFile, final String includeLabel)
+	public List<Snippet> extractSnippets(final File vttFile, final String includeLabel) throws IOException {
+		Collection<String> includeLabels = new ArrayList<>(1);
+		includeLabels.add(includeLabel);
+		return extractSnippets(vttFile, includeLabels);
+	}
+
+	/**
+	 * Extracts snippets from a vtt file.
+	 * @param vttFile The VTT file to extract triplets from.
+	 * @param includeLabels A collection of the labels of the segments to extract.
+	 * @return Snippets containing labeled segments for the specified label.
+	 * @throws IOException when a problem occurs reading <code>vttFile</code>.
+	 */
+	public List<Snippet> extractSnippets(final File vttFile, final Collection<String> includeLabels)
 			throws IOException {
 		VttDocument vttDoc = read(vttFile);
 		String docText = vttDoc.GetText();
@@ -96,7 +109,7 @@ public class VTTReader {
 
 		for (Markup markup : vttDoc.GetMarkups().GetMarkups()) {
 			// Check if the markup has the requested label
-			if (includeLabel.equalsIgnoreCase(markup.GetTagName())) {
+			if (CVUtils.containsCI(includeLabels, markup.GetTagName())) {
 
 				// Get the labeled text boundaries
 				int labeledOffset = markup.GetOffset();
@@ -123,7 +136,7 @@ public class VTTReader {
 						labStr = labStr.substring(0, labStr.length() - 1);
 						labeledLength--;
 					}
-					LabeledSegment ls = new LabeledSegment(includeLabel, labStr, labeledOffset - p2s.getKey().start, labeledLength);
+					LabeledSegment ls = new LabeledSegment(markup.GetTagName(), labStr, labeledOffset - p2s.getKey().start, labeledLength);
 					Snippet snippet = p2s.getValue();
 					Collection<LabeledSegment> labeledSegments = snippet.getLabeledSegments();
 					if (labeledSegments == null) {

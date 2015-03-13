@@ -1,6 +1,7 @@
 package gov.va.research.red.ex;
 
 import gov.va.research.red.CVScore;
+import gov.va.research.red.CVUtils;
 import gov.va.research.red.LSTriplet;
 import gov.va.research.red.LabeledSegment;
 import gov.va.research.red.MatchedElement;
@@ -12,10 +13,13 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -24,18 +28,23 @@ import java.util.Set;
 import java.util.StringJoiner;
 import java.util.TreeMap;
 import java.util.TreeSet;
-import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class REDExtractor {
 
+	private static final LSTriplet LS3_DUPLICATE = new LSTriplet(null,"DUPLICATE",null);
+	private static final List<LSTriplet> STACK_ENDS = Arrays.asList(new LSTriplet[] { LS3_DUPLICATE });
 	private static final Logger LOG = LoggerFactory
 			.getLogger(REDExtractor.class);
-	private LSExtractor leExt = new LSExtractor(null);
+	private static final Pattern PUNCT_PATTERN = Pattern.compile("\\p{Punct}");
+	private static final Pattern REGEX_SPECIAL_CHARACTERS_PATTERN = Pattern.compile("[\\.\\^\\$\\*\\+\\?\\(\\)\\[\\{\\\\\\|\\-\\]]");
+	private static final Pattern WHITESPACE_PATTERN = Pattern.compile("\\s+");
+	private static final Pattern DIGIT_PATTERN = Pattern.compile("\\d+");
 	private Map<String, Pattern> patternCache = new HashMap<String, Pattern>();
 
 	public List<LSTriplet> discoverRegexes(List<File> vttFiles, String label,
@@ -46,25 +55,39 @@ public class REDExtractor {
 		for (File vttFile : vttFiles) {
 			snippets.addAll(vttr.extractSnippets(vttFile, label));
 		}
-		return extractRegexExpressions(snippets, label, outputFileName);
+		return discoverRegularExpressions(snippets, label, outputFileName);
 	}
 
-	public List<LSTriplet> extractRegexExpressions(
+	public List<LSTriplet> discoverRegularExpressions(
 			final List<Snippet> snippets, final String label,
 			final String outputFileName) throws IOException {
-		List<LSTriplet> ls3list = new ArrayList<>(snippets.size());
+		Collection<String> labels = new ArrayList<>(1);
+		labels.add(label);
+		return discoverRegularExpressions(snippets, labels, outputFileName);
+	}
+
+	public List<LSTriplet> discoverRegularExpressions(
+			final List<Snippet> snippets, final Collection<String> labels,
+			final String outputFileName) throws IOException {
+		List<Deque<LSTriplet>> ls3list = new ArrayList<>(snippets.size());
 		for (Snippet snippet : snippets) {
 			if (snippet.getLabeledSegments() != null) {
 				for (LabeledSegment ls : snippet.getLabeledSegments()) {
-					if (label.equals(ls.getLabel())) {
-						ls3list.add(LSTriplet.valueOf(snippet.getText(), ls));
+					if (CVUtils.containsCI(labels, ls.getLabel())) {
+						Deque<LSTriplet> ls3stack = new ArrayDeque<>();
+						ls3stack.push(LSTriplet.valueOf(snippet.getText(), ls));
+						if (ls3stack.peek().getLS().endsWith(".")) {
+							LOG.error("LS ends in period: " + ls3stack.peek().toStringRegEx());
+						}
+						ls3list.add(ls3stack);
 					}
 				}
 			}
 		}
 		if (ls3list != null && !ls3list.isEmpty()) {
 			// replace all the punctuation marks with their regular expressions.
-			replacePunct(ls3list);
+			//replacePunct(ls3list);
+			escapeRegexSpecialChars(ls3list);
 			// replace all the digits in the LS with their regular expressions.
 			replaceDigitsLS(ls3list);
 			// replace the digits in BLS and ALS with their regular expressions.
@@ -73,7 +96,7 @@ public class REDExtractor {
 			replaceWhiteSpaces(ls3list);
 
 			Map<LSTriplet, TripletMatches> tripsWithFP = findTripletsWithFalsePositives(
-					ls3list, snippets, label);
+					ls3list, snippets, labels);
 			if (tripsWithFP != null && tripsWithFP.size() > 0) {
 				LOG.warn("False positive regexes found before trimming");
 				for (Map.Entry<LSTriplet, TripletMatches> twfp : tripsWithFP
@@ -100,13 +123,17 @@ public class REDExtractor {
 			
 			ls3list = removeDuplicates(ls3list);
 
-			// check if we can remove the first regex from bls. Keep on
-			// repeating
-			// the process till we can't remove any regex's from the bls's.
+			LOG.info("trimming regexes ...");
 			trimRegEx(snippets, ls3list);
+			LOG.info("... done trimming regexes");
 			ls3list = removeDuplicates(ls3list);
 			
+			LOG.info("generalizing LSs ...");
 			ls3list = generalizeLS(snippets, ls3list);
+			LOG.info("... done generalizing LSs");
+			
+			ls3list = generalizeLFtoMF(snippets, ls3list);
+			ls3list = removeDuplicates(ls3list);
 
 //			leExt.setRegExpressions(ls3list);
 //			CVScore scoreAfterTrimming = testExtractor(snippets, leExt);
@@ -127,38 +154,50 @@ public class REDExtractor {
 //			ls3list = testList;
 
 			// the tree replacement algorithm
-			List<PotentialMatch> potentialListBLS = new ArrayList<>();
-			List<PotentialMatch> potentialListALS = new ArrayList<>();
-			treeReplacementLogic(ls3list, potentialListBLS, potentialListALS);
-			Comparator<PotentialMatch> comp = new Comparator<PotentialMatch>() {
+//			LOG.info("performing tree replacement logic ...");
+//			PotentialMatches potentialMatches = treeReplacementLogic(ls3list);
+//			LOG.info("... done performing tree replacement logic");
+//			
+//			LOG.info("replacing potential matches ...");
+//			Comparator<PotentialMatch> comp = new Comparator<PotentialMatch>() {
+//
+//				@Override
+//				public int compare(PotentialMatch o1, PotentialMatch o2) {
+//					if (o1.terms.size() < o2.terms.size())
+//						return 1;
+//					if (o1.terms.size() > o2.terms.size())
+//						return -1;
+//					return 0;
+//				}
+//
+//			};
+//			Collections.sort(potentialMatches.potentialBLSMatches, comp);
+//			Collections.sort(potentialMatches.potentialALSMatches, comp);
+//			replacePotentialMatches(potentialMatches.potentialBLSMatches, ls3list, true, snippets);
+//			replacePotentialMatches(potentialMatches.potentialALSMatches, ls3list, false, snippets);
+//			LOG.info("... done replacing potential matches");			
 
-				@Override
-				public int compare(PotentialMatch o1, PotentialMatch o2) {
-					if (o1.terms.size() < o2.terms.size())
-						return 1;
-					if (o1.terms.size() > o2.terms.size())
-						return -1;
-					return 0;
-				}
+			outputRegexHistory(ls3list);
 
-			};
-			Collections.sort(potentialListBLS, comp);
-			Collections.sort(potentialListALS, comp);
-			replacePotentialMatches(potentialListBLS, ls3list, true, snippets);
-			replacePotentialMatches(potentialListALS, ls3list, false, snippets);
 			List<LSTriplet> returnList = new ArrayList<LSTriplet>(ls3list.size());
-			for (LSTriplet triplet : ls3list) {
-				boolean add = true;
-				for (LSTriplet tripletAdded : returnList) {
-					if (tripletAdded.toStringRegEx().equals(triplet.toStringRegEx())) {
-						add = false;
-						break;
+			for (Deque<LSTriplet> ls3stack : ls3list) {
+				LSTriplet ls3 = ls3stack.peek();
+				if (!isStackEnd(ls3)) {
+					boolean add = true;
+					for (LSTriplet tripletAdded : returnList) {
+						if (tripletAdded.toStringRegEx().equals(ls3.toStringRegEx())) {
+							add = false;
+							break;
+						}
+					}
+					if (add) {
+						returnList.add(ls3);
 					}
 				}
-				if (add) {
-					returnList.add(triplet);
-				}
 			}
+
+
+			LOG.info("measuring sensitivity ...");
 			measureSensitivity(snippets, returnList);
 			if (outputFileName != null && !outputFileName.equals("")) {
 				File file = new File(outputFileName);
@@ -182,9 +221,177 @@ public class REDExtractor {
 				pWriterSens.close();
 				fWriterSens.close();
 			}
+			LOG.info("... done measuring sensitivity");
 			return returnList;
 		}
 		return null;
+	}
+	
+	private List<Deque<LSTriplet>> escapeRegexSpecialChars(List<Deque<LSTriplet>> ls3list) {
+		ls3list.parallelStream().forEach((ls3stack) -> {
+			LSTriplet ls3 = ls3stack.peek();
+			if (!isStackEnd(ls3)) {
+				String newBLS = escapeRegexSpecialChars(ls3.getBLS());
+				String newLS = escapeRegexSpecialChars(ls3.getLS());
+				String newALS = escapeRegexSpecialChars(ls3.getALS());
+				ls3stack.push(new LSTriplet(newBLS, newLS, newALS));
+			}
+		});
+		return ls3list;
+	}
+
+	private String escapeRegexSpecialChars(String str) {
+		Matcher blsMatcher = REGEX_SPECIAL_CHARACTERS_PATTERN.matcher(str);
+		int prevEnd = 0;
+		StringBuilder sb = new StringBuilder();
+		while (blsMatcher.find()) {
+			sb.append(str.substring(prevEnd, blsMatcher.start()));
+			sb.append("\\" + blsMatcher.group());
+			prevEnd = blsMatcher.end();
+		}
+		sb.append(str.substring(prevEnd));
+		return sb.toString();
+	}
+
+	/**
+	 * @param snippets Snippets for testing replacements
+	 * @param ls3list Labeled segment triplets representing regexes
+	 * @return
+	 */
+	private List<Deque<LSTriplet>> generalizeLFtoMF(List<Snippet> snippets,
+			List<Deque<LSTriplet>> ls3list) {
+		// build term frequency list
+		Map<String,TermFreq> termFreqs = new HashMap<>();
+		for (Deque<LSTriplet> ls3stack : ls3list) {
+			LSTriplet ls3 = ls3stack.peek();
+			if (!isStackEnd(ls3)) {
+				String[] blsTerms = ls3.getBLS().split("\\\\s\\{1,50\\}|\\\\p\\{Punct\\}|\\\\d\\+|\\b");
+				String[] alsTerms = ls3.getALS().split("\\\\s\\{1,50\\}|\\\\p\\{Punct\\}|\\\\d\\+|\\b");
+				List<String> terms = new ArrayList<>(Arrays.asList(blsTerms));
+				terms.addAll(Arrays.asList(alsTerms));
+				for (String term : terms) {
+					if (term == null
+							|| term.length() == 0
+							|| (term.length() == 1 && Character.isDigit(term.charAt(0)))
+							|| term.equals(",")
+							|| term.equals("{")
+							|| term.equals("}")) {
+						continue;
+					}
+					TermFreq tf = termFreqs.get(term);
+					if (tf == null) {
+						tf = new TermFreq(term, Integer.valueOf(1));
+						termFreqs.put(term, tf);
+					} else {
+						tf.setFreq(Integer.valueOf(tf.getFreq().intValue() + 1));
+					}
+				}
+			}
+		}
+		List<TermFreq> termFreqList = new ArrayList<>(termFreqs.values());
+		Collections.sort(termFreqList);
+		// Attempt to generalize each term, starting with the least frequent
+		Pattern escPunctPattern = Pattern.compile("\\\\\\p{Punct}");
+		for (TermFreq tf : termFreqList) {
+			String term = tf.getTerm();
+			ls3list.parallelStream().filter((ls3stack) -> !isStackEnd(ls3stack.peek())).forEach((ls3stack) -> {
+				boolean replaced = false;
+				LSTriplet newLS3 = new LSTriplet(ls3stack.peek());
+				Pattern termPattern = Pattern.compile("\\b" + term + "\\b");
+				Matcher blsMatcher = termPattern.matcher(newLS3.getBLS());
+				if (blsMatcher.find()) {
+					if (escPunctPattern.matcher(term).matches()) {
+						newLS3.setBLS(blsMatcher.replaceAll("\\p{Punct}"));
+					} else {
+						newLS3.setBLS(blsMatcher.replaceAll("\\\\S{1," + Math.round(term.length() * 1.2) + "}"));
+					}
+					List<LSTriplet> singleLS3 = new ArrayList<>(1);
+					singleLS3.add(newLS3);
+					LSExtractor lsEx = new LSExtractor(singleLS3);
+					boolean fps = checkForFalsePositives(snippets, lsEx);
+					if (!fps) {
+						replaced = true;
+					}
+				}
+				Matcher alsMatcher = termPattern.matcher(newLS3.getALS());
+				if (alsMatcher.find()) {
+					if (escPunctPattern.matcher(term).matches()) {
+						newLS3.setALS(alsMatcher.replaceAll("\\\\p{Punct}"));
+					} else {
+						newLS3.setALS(alsMatcher.replaceAll("\\\\S{1," + Math.round(term.length() * 1.2) + "}"));
+					}
+					List<LSTriplet> singleLS3 = new ArrayList<>(1);
+					singleLS3.add(newLS3);
+					LSExtractor lsEx = new LSExtractor(singleLS3);
+					boolean fps = checkForFalsePositives(snippets, lsEx);
+					if (!fps) {
+						replaced = true;
+					}
+				}
+				if (replaced) {
+					ls3stack.add(newLS3);
+				}
+			});
+		}
+		return ls3list;
+	}
+	
+	private class TermFreq implements Comparable<TermFreq> {
+		private String term;
+		private Integer freq;
+
+		public TermFreq(String term, Integer freq) {
+			this.term = term;
+			this.freq = freq;
+		}
+		
+		/* (non-Javadoc)
+		 * @see java.lang.Comparable#compareTo(java.lang.Object)
+		 */
+		@Override
+		public int compareTo(TermFreq o) {
+			return ((freq == null ? Integer.MIN_VALUE : freq) - (o.freq == null ? Integer.MIN_VALUE : o.freq));
+		}
+
+		public String getTerm() {
+			return term;
+		}
+
+		public void setTerm(String term) {
+			this.term = term;
+		}
+
+		public Integer getFreq() {
+			return freq;
+		}
+
+		public void setFreq(Integer freq) {
+			this.freq = freq;
+		}
+	}
+
+	/**
+	 * @param ls3list
+	 * @throws IOException 
+	 */
+	private void outputRegexHistory(List<Deque<LSTriplet>> ls3list) throws IOException {
+		try (FileWriter fw = new FileWriter("regex-history-" + System.currentTimeMillis() + ".txt")) {
+			try (PrintWriter pw = new PrintWriter(fw)) {
+				pw.println();
+				for (Deque<LSTriplet> ls3stack : ls3list) {
+					pw.println("---------- GS ----------");
+					for (LSTriplet ls3 : ls3stack) {
+						pw.println("----- RS -----");
+						pw.println(ls3.toStringRegEx());
+					}
+				}
+			}
+		}
+	}
+
+	private class PotentialMatches {
+		public List<PotentialMatch> potentialBLSMatches;
+		public List<PotentialMatch> potentialALSMatches;
 	}
 	
 	/**
@@ -192,42 +399,54 @@ public class REDExtractor {
 	 * @param ls3list
 	 * @return A new LSTriplet list, with each LS segment replaced by a combination of all LSs in the list that won't cause false positives.
 	 */
-	private List<LSTriplet> generalizeLS(final List<Snippet> snippets, final List<LSTriplet> ls3list) {
+	private List<Deque<LSTriplet>> generalizeLS(final List<Snippet> snippets, final List<Deque<LSTriplet>> ls3list) {
 		Set<String> lsSet = new HashSet<>();
-		for (LSTriplet ls3 : ls3list) {
-			if (lsSet.add(ls3.getLS()));
+		for (Deque<LSTriplet> ls3stack : ls3list) {
+			LSTriplet ls3 = ls3stack.peek();
+			if (!isStackEnd(ls3)) {
+				lsSet.add(ls3stack.peek().getLS());
+			}
 		}
-		List<LSTriplet> genLSTriplets = new ArrayList<>(ls3list.size());
-		for (LSTriplet ls3 : ls3list) {
-			LSTriplet origTriplet = new LSTriplet(ls3.getBLS(), ls3.getLS(), ls3.getALS());
-			List<LSTriplet> singleTriplet = new ArrayList<>(1);
-			singleTriplet.add(origTriplet);
-			LSExtractor ex = new LSExtractor(singleTriplet);
-			String genLS = origTriplet.getLS();
-			if (!checkForFalsePositives(snippets, ex)) {
-				for (String ls : lsSet) {
-					String newGenLS = genLS + "|" + ls;
-					singleTriplet.get(0).setLS(newGenLS);
-					ex.setRegExpressions(singleTriplet);
-					if (!checkForFalsePositives(snippets, ex)) {
-						genLS = newGenLS;
-					}
+		for (Deque<LSTriplet> ls3stack : ls3list) {
+			LSTriplet ls3 = ls3stack.peek();
+			if (!isStackEnd(ls3)) {
+				LSTriplet ls3copy = new LSTriplet(ls3);
+				String genLS = String.join("|", lsSet);
+				ls3copy.setLS(genLS);
+				List<LSTriplet> singleTriplet = new ArrayList<>(1);
+				singleTriplet.add(ls3copy);
+				LSExtractor ex = new LSExtractor(singleTriplet);
+				if (!checkForFalsePositives(snippets, ex)) {
+					ls3stack.push(ls3copy);
 				}
 			}
-			genLSTriplets.add(singleTriplet.get(0));
 		}
-		return genLSTriplets;
+		return ls3list;
 	}
 
 	/**
 	 * @param ls3list
 	 * @return
 	 */
-	private List<LSTriplet> removeDuplicates(final List<LSTriplet> ls3list) {
-		Set<LSTriplet> ls3set = new TreeSet<>(new LSTriplet.IgnoreCaseComparator());
-		ls3set.addAll(ls3list);
-		List<LSTriplet> newlist = new ArrayList<>(ls3set);
-		return newlist;
+	private List<Deque<LSTriplet>> removeDuplicates(final List<Deque<LSTriplet>> ls3list) {
+		List<LSTriplet> headList = new ArrayList<>(ls3list.size());
+		for (Deque<LSTriplet> ls3stack : ls3list) {
+			LSTriplet head = ls3stack.peek();
+			if (isStackEnd(head)) {
+				continue;
+			}
+			if (headList.contains(head)) {
+				ls3stack.push(LS3_DUPLICATE);
+			} else {
+				headList.add(head);
+				ls3stack.push(head);
+			}
+		}
+		return ls3list;
+	}
+
+	private static boolean isStackEnd(final LSTriplet ls3) {
+		return STACK_ENDS.contains(ls3);
 	}
 
 	private void measureSensitivity(List<Snippet> snippets, List<LSTriplet> regExList) {
@@ -255,206 +474,225 @@ public class REDExtractor {
 	}
 
 	private void replacePotentialMatches(List<PotentialMatch> potentialMatches,
-			List<LSTriplet> ls3List, boolean processBLS,
+			List<Deque<LSTriplet>> ls3list, boolean processBLS,
 			final List<Snippet> snippets) {
 		for (PotentialMatch match : potentialMatches) {
 			if (match.count == 1) {
 				for (LSTriplet triplet : match.matches) {
-					String key = match.toString();
-					if (processBLS) {
-						String bls = triplet.getBLS();
-						// if(!key.equals("S")){
-						triplet.setBLS(triplet.getBLS().replaceAll(
-								"\\b(?<!\\\\)" + key + "\\b",
-								"\\\\S{1," + key.length() + "}"));// triplet.getBLS().replaceAll("?:"+key,
-																	// "(?:"+key+")");
-						List<LSTriplet> regEx = new ArrayList<LSTriplet>();
-						regEx.add(triplet);
-						leExt.setRegExpressions(regEx);
-						// CVScore cvScore = cv.testExtractor(snippets, leExt);
-						if (checkForFalsePositives(snippets, leExt))
-							triplet.setBLS(bls);
-					} else {
-						String als = triplet.getALS();
-						// if(!key.equals("S")){
-						triplet.setALS(triplet.getALS().replaceAll(
-								"\\b(?<!\\\\)" + key + "\\b",
-								"\\\\S{1," + key.length() + "}"));// triplet.getALS().replaceAll("?:"+key,
-																	// "(?:"+key+")");
-						List<LSTriplet> regEx = new ArrayList<LSTriplet>();
-						regEx.add(triplet);
-						leExt.setRegExpressions(regEx);
-						// CVScore cvScore = cv.testExtractor(snippets, leExt);
-						if (checkForFalsePositives(snippets, leExt))
-							triplet.setALS(als);
+					String termsRegex = match.getTermsRegex();
+					for (Deque<LSTriplet> ls3stack : ls3list) {
+						LSTriplet ls3 = ls3stack.peek();
+						if (!isStackEnd(ls3)) {
+							if (processBLS && ls3.getBLS().equals(triplet.getBLS())) {
+								LSTriplet newLS3 = new LSTriplet(ls3);
+								String replaceRegex = "\\b(?<!\\\\)" + termsRegex + "\\b";
+								String replacement = "\\\\S{1," + termsRegex.length() + "}";
+								newLS3.setBLS(newLS3.getBLS().replaceAll(replaceRegex,replacement));
+								List<LSTriplet> regEx = new ArrayList<LSTriplet>();
+								regEx.add(newLS3);
+								LSExtractor leExt = new LSExtractor(regEx);
+								if (!checkForFalsePositives(snippets, leExt)) {
+									ls3stack.add(newLS3);
+								}
+							} else if (ls3.getALS().equals(triplet.getALS())){
+								LSTriplet newLS3 = new LSTriplet(ls3);
+								String replaceRegex = "\\b(?<!\\\\)" + termsRegex + "\\b";
+								String replacement = "\\\\S{1," + termsRegex.length() + "}";
+								newLS3.setALS(newLS3.getALS().replaceAll(replaceRegex,replacement));
+								List<LSTriplet> regEx = new ArrayList<LSTriplet>();
+								regEx.add(newLS3);
+								LSExtractor leExt = new LSExtractor(regEx);
+								if (!checkForFalsePositives(snippets, leExt)) {
+									ls3stack.add(newLS3);
+								}
+							}
+						}
 					}
 				}
 			}
 		}
 	}
 
-	public List<LSTriplet> replacePunct(List<LSTriplet> ls3list) {
-		String s;
-		for (LSTriplet x : ls3list) {
-			s = x.getLS();
-			s = s.replaceAll("\\p{Punct}", "\\\\p{Punct}");
-			x.setLS(s);
-			s = x.getBLS();
-			s = s.replaceAll("\\p{Punct}", "\\\\p{Punct}");
-			x.setBLS(s);
-			s = x.getALS();
-			s = s.replaceAll("\\p{Punct}", "\\\\p{Punct}");
-			x.setALS(s);
-		}
+	public List<Deque<LSTriplet>> replacePunct(List<Deque<LSTriplet>> ls3list) {
+		ls3list.parallelStream().forEach((ls3stack) -> {
+			LSTriplet ls3 = ls3stack.peek();
+			if (!isStackEnd(ls3)) {
+				String newLS = PUNCT_PATTERN.matcher(ls3.getLS()).replaceAll("\\\\p{Punct}");
+				String newBLS = PUNCT_PATTERN.matcher(ls3.getBLS()).replaceAll("\\\\p{Punct}");
+				String newALS = PUNCT_PATTERN.matcher(ls3.getALS()).replaceAll("\\\\p{Punct}");
+				ls3stack.push(new LSTriplet(newBLS, newLS, newALS));
+			}
+		});
 		return ls3list;
 	}
 
 	// replace digits with '\d+'
-	public List<LSTriplet> replaceDigitsLS(List<LSTriplet> ls3list) {
-		String s;
-		for (LSTriplet x : ls3list) {
-			s = x.getLS();
-			s = s.replaceAll("\\d+", "\\\\d+");
-			x.setLS(s);
-		}
+	public List<Deque<LSTriplet>> replaceDigitsLS(List<Deque<LSTriplet>> ls3list) {
+		ls3list.parallelStream().forEach((ls3stack) -> {
+			LSTriplet ls3 = ls3stack.peek();
+			if (!isStackEnd(ls3)) {
+				String newLS = DIGIT_PATTERN.matcher(ls3.getLS()).replaceAll("\\\\d+");
+				ls3stack.push(new LSTriplet(ls3.getBLS(), newLS, ls3.getALS()));
+			}
+		});
 		return ls3list;
 	}
 
 	// replace digits with '\d+'
-	public List<LSTriplet> replaceDigitsBLSALS(List<LSTriplet> ls3list) {
-		String s;
-		for (LSTriplet x : ls3list) {
-			s = x.getBLS();
-			s = s.replaceAll("\\d+", "\\\\d+");// &^((?!\\.\\{1,20\\}).)*$
-			x.setBLS(s);
-			s = x.getALS();
-			s = s.replaceAll("\\d+", "\\\\d+");// &^((?!\\.\\{1,20\\}).)*$
-			x.setALS(s);
-		}
+	public List<Deque<LSTriplet>> replaceDigitsBLSALS(List<Deque<LSTriplet>> ls3list) {
+		ls3list.parallelStream().forEach((ls3stack) -> {
+			LSTriplet ls3 = ls3stack.peek();
+			if (!isStackEnd(ls3)) {
+				String newBLS = DIGIT_PATTERN.matcher(ls3.getBLS()).replaceAll("\\\\d+");
+				String newALS = DIGIT_PATTERN.matcher(ls3.getALS()).replaceAll("\\\\d+");
+				ls3stack.push(new LSTriplet(newBLS, ls3.getLS(), newALS));
+			}
+		});
 		return ls3list;
 	}
 
 	// replace white spaces with 's{1,10}'
-	public List<LSTriplet> replaceWhiteSpaces(List<LSTriplet> ls3list) {
-		String s;
-		for (LSTriplet x : ls3list) {
-			s = x.getBLS();
-			s = s.replaceAll("\\s+", "\\\\s{1,50}");
-			x.setBLS(s);
-			s = x.getLS();
-			s = s.replaceAll("\\s+", "\\\\s{1,50}");
-			x.setLS(s);
-			s = x.getALS();
-			s = s.replaceAll("\\s+", "\\\\s{1,50}");
-			x.setALS(s);
-		}
+	public List<Deque<LSTriplet>> replaceWhiteSpaces(List<Deque<LSTriplet>> ls3list) {
+		ls3list.parallelStream().forEach((ls3stack) -> {
+			LSTriplet ls3 = ls3stack.peek();
+			if (!isStackEnd(ls3)) {
+				String newBLS = WHITESPACE_PATTERN.matcher(ls3.getBLS()).replaceAll("\\\\s{1,50}");
+				String newLS = WHITESPACE_PATTERN.matcher(ls3.getLS()).replaceAll("\\\\s{1,50}");
+				String newALS = WHITESPACE_PATTERN.matcher(ls3.getALS()).replaceAll("\\\\s{1,50}");
+				ls3stack.push(new LSTriplet(newBLS, newLS, newALS));
+			}
+		});
 		return ls3list;
 	}
 
-	private void trimRegEx(final List<Snippet> snippets, List<LSTriplet> ls3list) {
-		List<Boolean> blsPrevTrimSuccess = new ArrayList<>(ls3list.size());
-		for (int i = 0; i < ls3list.size(); i++) {
-			blsPrevTrimSuccess.add(Boolean.TRUE);
-		}
-		List<Boolean> alsPrevTrimSuccess = new ArrayList<>(blsPrevTrimSuccess);
-		while (true) {
-			List<Integer> indexes = new CopyOnWriteArrayList<>();
-			for (int i = 0; i < ls3list.size(); i++) {
-				indexes.add(Integer.valueOf(i));
-			}
-			boolean processedBLSorALS = true;
-			for (int i = 0; i < ls3list.size(); i++) {
-				String bls = null, als = null;
-				LSTriplet triplet = ls3list.get(i);
-				if (blsPrevTrimSuccess.get(i)
-						&& ((triplet.getBLS().length() >= triplet.getALS()
-								.length()) || !alsPrevTrimSuccess.get(i))) {
-					processedBLSorALS = false;
-					bls = triplet.getBLS();
-					if (bls.equals("") || bls == null) {
-						blsPrevTrimSuccess.set(i, Boolean.FALSE);
-					} else {
-						char firstChar = bls.charAt(0);
-						String blsWithoutFirstRegex = null;
-						if (firstChar != '\\') {
-							if (bls.indexOf("\\") != -1)
-								blsWithoutFirstRegex = bls.substring(
-										bls.indexOf("\\"), bls.length());
-							else
-								blsWithoutFirstRegex = "";
-						} else {
-							int index = 1;
-							while (index < bls.length()) {
-								char temp = bls.charAt(index++);
-								if (temp == '+' || temp == '}')
-									break;
+	/**
+	 * check if we can remove the first regex from bls. Keep on repeating
+	 * the process till we can't remove any regex's from the bls's.
+	 * @param snippets
+	 * @param ls3list
+	 */
+	private void trimRegEx(final List<Snippet> snippets, List<Deque<LSTriplet>> ls3list) {
+		// trim from the front and back, repeat while progress is being made
+		while (ls3list.parallelStream().map(ls3stack -> {
+				boolean blsProgress = false;
+				boolean alsProgress = false;
+				LSTriplet ls3 = ls3stack.peek();
+				if (!isStackEnd(ls3)) {
+					LSTriplet ls3trim = new LSTriplet(ls3);
+					if (ls3trim.getBLS().length() >= ls3trim.getALS().length()) {
+						String origBls = ls3trim.getBLS();
+						if (ls3trim.getBLS() != null && !ls3trim.getBLS().equals("")) {
+							String trimmedRegex = trimFirstRegex(ls3trim.getBLS());
+							ls3trim.setBLS(trimmedRegex);
+							List<LSTriplet> newRegExList = new ArrayList<LSTriplet>();
+							newRegExList.add(ls3trim);
+							LSExtractor leEx = new LSExtractor(newRegExList);
+							if (checkForFalsePositives(snippets, leEx)) {
+								ls3trim.setBLS(origBls);
+								blsProgress = false;
+							} else {
+								blsProgress = true;
 							}
-							if (index == bls.length())
-								blsWithoutFirstRegex = "";
-							else
-								blsWithoutFirstRegex = bls.substring(index,
-										bls.length());
 						}
-
-						triplet.setBLS(blsWithoutFirstRegex);
-						List<LSTriplet> newRegExList = new ArrayList<LSTriplet>();
-						newRegExList.add(triplet);
-						leExt.setRegExpressions(newRegExList);
-						if (checkForFalsePositives(snippets, leExt)) {
-							triplet.setBLS(bls);
-							blsPrevTrimSuccess.set(i, Boolean.FALSE);
-						} else {
-							blsPrevTrimSuccess.set(i, Boolean.TRUE);
+					} else if (ls3trim.getBLS().length() <= ls3trim.getALS().length()) {
+						String origAls = ls3trim.getALS();
+						if (ls3trim.getALS() != null && !ls3trim.getALS().equals("")) {
+							String trimmedRegex = trimLastRegex(ls3trim.getALS());
+							ls3trim.setALS(trimmedRegex);
+							List<LSTriplet> newRegExList = new ArrayList<LSTriplet>();
+							newRegExList.add(ls3trim);
+							LSExtractor leExt = new LSExtractor(newRegExList);
+							boolean fps = checkForFalsePositives(snippets, leExt);
+							if (fps) {
+								ls3trim.setALS(origAls);
+								alsProgress = false;
+							} else {
+								alsProgress = true;
+							}
 						}
 					}
-				}
-				if (alsPrevTrimSuccess.get(i).booleanValue()
-						&& ((triplet.getBLS().length() <= triplet.getALS()
-								.length()) || !blsPrevTrimSuccess.get(i).booleanValue())) {
-					processedBLSorALS = false;
-					als = triplet.getALS();
-					if (als.equals("") || als == null) {
-						alsPrevTrimSuccess.set(i, Boolean.FALSE);
-					} else {
-						String alsWithoutLastRegex = null;
-						if (als.lastIndexOf("\\") == -1)
-							alsWithoutLastRegex = "";
-						else {
-							int lastIndex = als.lastIndexOf("\\");
-							int index = lastIndex;
-							index++;
-							while (index < als.length()) {
-								char temp = als.charAt(index++);
-								if (temp == '+' || temp == '}')
-									break;
-							}
-							if (index == als.length()) {
-								if (lastIndex == 0)
-									alsWithoutLastRegex = "";
-								else
-									alsWithoutLastRegex = als.substring(0,
-											lastIndex);
-							} else
-								alsWithoutLastRegex = als.substring(0, index);
-						}
-
-						triplet.setALS(alsWithoutLastRegex);
-						List<LSTriplet> newRegExList = new ArrayList<LSTriplet>();
-						newRegExList.add(triplet);
-						leExt.setRegExpressions(newRegExList);
-						if (checkForFalsePositives(snippets, leExt)) {
-							triplet.setALS(als);
-							alsPrevTrimSuccess.set(i, Boolean.FALSE);
-						} else {
-							alsPrevTrimSuccess.set(i, Boolean.TRUE);
-						}
+					if (blsProgress || alsProgress) {
+						ls3stack.push(ls3trim);
 					}
 				}
+				return (blsProgress || alsProgress);
+			}).anyMatch((progress) -> progress)) {
+		}
+	}
+
+	private class LSTripletTrim {
+		LSTriplet ls3;
+		boolean blsPrevTrimSuccess;
+		boolean alsPrevTrimSuccess;
+		public LSTripletTrim(LSTriplet ls3, boolean blsPrevTrimSuccess, boolean alsPrevTrimSuccess) {
+			this.ls3 = ls3;
+			this.blsPrevTrimSuccess = blsPrevTrimSuccess;
+			this.alsPrevTrimSuccess = alsPrevTrimSuccess;
+		}
+	}
+
+	/**
+	 * @param als
+	 * @return
+	 */
+	String trimLastRegex(String als) {
+		String alsWithoutLastRegex = null;
+		if (als.lastIndexOf("\\") == -1)
+			alsWithoutLastRegex = "";
+		else {
+			int lastIndex = als.lastIndexOf("\\");
+			if (lastIndex > 0 && als.charAt(lastIndex - 1) == '\\') {
+				if (!(lastIndex > 1 && als.charAt(lastIndex - 2) == '\\')) {
+					lastIndex = lastIndex - 1;					
+				}
 			}
-			if (processedBLSorALS) {
-				break;
+			int index = lastIndex;
+			index++;
+			while (index < als.length()) {
+				char temp = als.charAt(index++);
+				if (temp == '+' || temp == '}')
+					break;
+			}
+			if (index == als.length()) {
+				if (lastIndex == 0)
+					alsWithoutLastRegex = "";
+				else
+					alsWithoutLastRegex = als.substring(0,
+							lastIndex);
+			} else {
+				alsWithoutLastRegex = als.substring(0, index);
 			}
 		}
+		return alsWithoutLastRegex;
+	}
+
+	/**
+	 * @param bls
+	 * @return
+	 */
+	String trimFirstRegex(String bls) {
+		char firstChar = bls.charAt(0);
+		String blsWithoutFirstRegex = null;
+		if (firstChar != '\\') {
+			if (bls.indexOf("\\") != -1)
+				blsWithoutFirstRegex = bls.substring(
+						bls.indexOf("\\"), bls.length());
+			else
+				blsWithoutFirstRegex = "";
+		} else {
+			int index = 1;
+			while (index < bls.length()) {
+				char temp = bls.charAt(index++);
+				if (temp == '+' || temp == '}')
+					break;
+			}
+			if (index == bls.length())
+				blsWithoutFirstRegex = "";
+			else
+				blsWithoutFirstRegex = bls.substring(index,
+						bls.length());
+		}
+		return blsWithoutFirstRegex;
 	}
 
 	// /**
@@ -553,34 +791,34 @@ public class REDExtractor {
 	// }
 
 	/**
-	 * Creates a frequency map of terms contained inside the BLS/ALS.
+	 * Creates a map of terms contained inside the BLS/ALS.
 	 * 
 	 * @param triplet
 	 *            The triplet on which the processing is being performed.
 	 * @param processingBLS
 	 *            Specifies whether the processing is to be performed on BLS/ALS
-	 * @param freqMap
+	 * @param termToTripletMap
 	 *            a map containing a term as the key and a list of triplets
 	 *            containing that term as the value.
 	 */
-	private void updateMFTMapTrimVersion(LSTriplet triplet,
-			boolean processingBLS, Map<String, List<LSTriplet>> freqMap) {
+	private void updateTermToTripletMap(LSTriplet triplet,
+			boolean processingBLS, Map<String, List<LSTriplet>> termToTripletMap) {
 		String phrase = "";
-		if (processingBLS)
+		if (processingBLS) {
 			phrase = triplet.getBLS();
-		else
+		} else {
 			phrase = triplet.getALS();
+		}
 		String[] termArray = phrase
 				.split("\\\\s\\{1,50\\}|\\\\p\\{Punct\\}|\\\\d\\+");
-		List<LSTriplet> termContainingTriplets = null;
 		for (String term : termArray) {
 			if (!term.equals(" ") && !term.equals("")) {
-				if (freqMap.containsKey(term))
-					termContainingTriplets = freqMap.get(term);
-				else
+				List<LSTriplet> termContainingTriplets = termToTripletMap.get(term);
+				if (termContainingTriplets == null) {
 					termContainingTriplets = new ArrayList<LSTriplet>();
+					termToTripletMap.put(term, termContainingTriplets);
+				}
 				termContainingTriplets.add(triplet);
-				freqMap.put(term, termContainingTriplets);
 			}
 		}
 	}
@@ -633,28 +871,33 @@ public class REDExtractor {
 	 * @param processBLS
 	 * @param potentialList
 	 */
-	private void performPermuation(List<String> prefixList,
-			List<String> termList, List<LSTriplet> ls3List, boolean processBLS,
-			List<PotentialMatch> potentialList) {
-		if (!termList.isEmpty()) {
-			for (int i = 0; i < termList.size(); i++) {
-				List<String> tempPrefixList = new ArrayList<>();
-				if (prefixList != null)
-					tempPrefixList.addAll(prefixList);
-				String tempElement = termList.get(i);
-				tempPrefixList.add(tempElement);
-				List<String> tempTermList = new ArrayList<>();
-				tempTermList.addAll(termList);
-				tempTermList.remove(tempElement);
-				PotentialMatch match = findMatch(tempPrefixList, ls3List,
-						processBLS);
-				if (match.count > 0) {
-					potentialList.add(match);
-					performPermuation(tempPrefixList, tempTermList, ls3List,
-							processBLS, potentialList);
-				}
+	private List<PotentialMatch> performPermuation(Collection<String> termList, List<Deque<LSTriplet>> ls3List, boolean processBLS) {
+		List<PotentialMatch> potentialMatches = new ArrayList<>();
+		for (String term : termList) {
+			List<String> firstTerm = new ArrayList<>(1);
+			firstTerm.add(term);
+			PotentialMatch match = findMatch(firstTerm, ls3List, processBLS);
+			if (match.count > 0) {
+				potentialMatches.add(match);
 			}
 		}
+		List<PotentialMatch> terminalPotentialMatches = new ArrayList<>();
+		do {
+			List<PotentialMatch> newPotentialMatches = new ArrayList<>();
+			for (PotentialMatch potentialMatch : potentialMatches) {
+				for (String term : termList) {
+					List<String> newTerms = new ArrayList<String>(potentialMatch.terms);
+					newTerms.add(term);
+					PotentialMatch match = findMatch(newTerms, ls3List, processBLS);
+					if (match.count > 0) {
+						newPotentialMatches.add(match);
+					}
+				}
+			}
+			terminalPotentialMatches.addAll(potentialMatches);
+			potentialMatches = newPotentialMatches;
+		} while (potentialMatches.size() > 0);
+		return terminalPotentialMatches;
 	}
 
 	/**
@@ -667,25 +910,30 @@ public class REDExtractor {
 	 * @return
 	 */
 	private PotentialMatch findMatch(List<String> termList,
-			List<LSTriplet> ls3List, boolean processBLS) {
+			List<Deque<LSTriplet>> ls3List, boolean processBLS) {
 		StringBuilder concatString = new StringBuilder("");
 		int count = 0;
 		List<LSTriplet> triplets = new ArrayList<>();
 		for (int i = 0; i < termList.size(); i++) {
-			if (i == termList.size() - 1)
+			if (i == termList.size() - 1) {
 				concatString.append(termList.get(i));
-			else
+			} else {
 				concatString.append(termList.get(i) + "\\s{1,50}");
+			}
 		}
-		for (LSTriplet triplet : ls3List) {
-			String matchAgainst = null;
-			if (processBLS)
-				matchAgainst = triplet.getBLS();
-			else
-				matchAgainst = triplet.getALS();
-			if (matchAgainst.contains(concatString)) {
-				count++;
-				triplets.add(triplet);
+		for (Deque<LSTriplet> ls3stack : ls3List) {
+			LSTriplet ls3 = ls3stack.peek();
+			if (!isStackEnd(ls3)) {
+				String matchAgainst = null;
+				if (processBLS) {
+					matchAgainst = ls3.getBLS();
+				} else {
+					matchAgainst = ls3.getALS();
+				}
+				if (matchAgainst != null && matchAgainst.contains(concatString)) {
+					count++;
+					triplets.add(ls3);
+				}
 			}
 		}
 		PotentialMatch match = new PotentialMatch(termList, count, triplets);
@@ -704,22 +952,38 @@ public class REDExtractor {
 	 * @param potentialListALS
 	 *            records the list of potential matches for als
 	 */
-	private void treeReplacementLogic(List<LSTriplet> ls3List,
-			List<PotentialMatch> potentialListBLS,
-			List<PotentialMatch> potentialListALS) {
-		Map<String, List<LSTriplet>> freqMap = new HashMap<String, List<LSTriplet>>();
-		for (LSTriplet triplet : ls3List)
-			updateMFTMapTrimVersion(triplet, true, freqMap);
-		List<String> termList = new ArrayList<>();
-		termList.addAll(freqMap.keySet());
-		performPermuation(null, termList, ls3List, true, potentialListBLS);
+	private PotentialMatches treeReplacementLogic(List<Deque<LSTriplet>> ls3List) {
+		PotentialMatches potentialMatches = new PotentialMatches();
+		Set<String> blsTermSet = new HashSet<>();
+		for (Deque<LSTriplet> ls3stack : ls3List) {
+			LSTriplet ls3 = ls3stack.peek();
+			if (!isStackEnd(ls3)) {
+				String[] termArray = ls3.getBLS()
+						.split("\\\\s\\{1,50\\}|\\\\p\\{Punct\\}|\\\\d\\+");
+				for (String term : termArray) {
+					if (!term.equals(" ") && !term.equals("")) {
+						blsTermSet.add(term);
+					}
+				}
+			}
+		}
+		potentialMatches.potentialBLSMatches = performPermuation(/*termList*/blsTermSet, ls3List, true);
 
-		freqMap = new HashMap<String, List<LSTriplet>>();
-		for (LSTriplet triplet : ls3List)
-			updateMFTMapTrimVersion(triplet, false, freqMap);
-		termList = new ArrayList<>();
-		termList.addAll(freqMap.keySet());
-		performPermuation(null, termList, ls3List, false, potentialListALS);
+		Set<String> alsTermSet = new HashSet<>();
+		for (Deque<LSTriplet> ls3stack : ls3List) {
+			LSTriplet ls3 = ls3stack.peek();
+			if (!isStackEnd(ls3)) {
+				String[] termArray = ls3.getALS()
+						.split("\\\\s\\{1,50\\}|\\\\p\\{Punct\\}|\\\\d\\+");
+				for (String term : termArray) {
+					if (!term.equals(" ") && !term.equals("")) {
+						alsTermSet.add(term);
+					}
+				}
+			}
+		}
+		potentialMatches.potentialALSMatches = performPermuation(alsTermSet, ls3List, false);
+		return potentialMatches;
 	}
 
 	/**
@@ -738,39 +1002,37 @@ public class REDExtractor {
 		}
 		CVScore score = new CVScore();
 		for (Snippet snippet : testing) {
-			List<MatchedElement> candidates = ex.extract(snippet.getText());
-			String predicted = REDExtractor.chooseBestCandidate(candidates);
+//			List<MatchedElement> candidates = ex.extract(snippet.getText());
+//			String predicted = REDExtractor.chooseBestCandidate(candidates);
+			MatchedElement me = ex.extractFirst(snippet.getText());
+			String predicted = (me == null ? null : me.getMatch());
 			List<String> actual = snippet.getLabeledStrings();
-			if (localPW != null) {
-				localPW.println("--- Test Snippet:");
-				localPW.println(snippet.getText());
-				localPW.println(">>> Predicted: " + predicted + ", Actual: " + actual);
-			}
 			// Score
 			if (predicted == null) {
 				if (actual == null || actual.size() == 0) {
 					score.setTn(score.getTn() + 1);
 				} else {
 					score.setFn(score.getFn() + 1);
-					localPW.println("<##### ERROR - FN: Regexes");
-					StringJoiner joiner = new StringJoiner("\n");
-					if (ex != null && ex.getRegExpressions() != null) {
-						for (LSTriplet trip : ex.getRegExpressions()) {
-							joiner.add(trip.toStringRegEx());
-						}
-						localPW.println(joiner.toString());
-					} else {
-						localPW.println("null");
-					}
-					localPW.println("#####>");
+					localPW.println("##### FALSE NEGATIVE #####");
+					localPW.println("--- Test Snippet:");
+					localPW.println(snippet.getText());
+					localPW.println(">>> Predicted: " + predicted + ", Actual: " + actual);
 				}
 			} else if (actual == null || actual.size() == 0) {
 				score.setFp(score.getFp() + 1);
+				localPW.println("##### FALSE POSITIVE #####");
+				localPW.println("--- Test Snippet:");
+				localPW.println(snippet.getText());
+				localPW.println(">>> Predicted: " + predicted + ", Actual: " + actual);
 			} else {
 				if (snippet.getLabeledStrings().contains(predicted.trim())) {
 					score.setTp(score.getTp() + 1);
 				} else {
 					score.setFp(score.getFp() + 1);
+					localPW.println("##### FALSE POSITIVE #####");
+					localPW.println("--- Test Snippet:");
+					localPW.println(snippet.getText());
+					localPW.println(">>> Predicted: " + predicted + ", Actual: " + actual);
 				}
 			}
 		}
@@ -787,23 +1049,12 @@ public class REDExtractor {
 		return score;
 	}
 
-	/**
-	 * Method is used when trimming regex's. It is used to see if any false
-	 * positives are genereated by the new regex.
-	 * 
-	 * @param testing
-	 * @param ex
-	 * @param pw
-	 * @return
-	 */
-	private CVScore testExtractor(List<Snippet> testing, LSExtractor ex) {
-		return testExtractor(testing, ex, null);
-	}
-
 	public boolean checkForFalsePositives(List<Snippet> testing, LSExtractor ex) {
-		for (Snippet snippet : testing) {
-			List<MatchedElement> candidates = ex.extract(snippet.getText());
-			String predicted = chooseBestCandidate(candidates);
+		return testing.parallelStream().map((snippet) -> {
+//			List<MatchedElement> candidates = ex.extract(snippet.getText());
+//			String predicted = chooseBestCandidate(candidates);
+			MatchedElement me = ex.extractFirst(snippet.getText());
+			String predicted = (me == null ? null : me.getMatch());
 
 			// Score
 			if (predicted != null) {
@@ -816,51 +1067,62 @@ public class REDExtractor {
 					}
 				}
 			}
-		}
-		return false;
+			return false;
+		}).anyMatch((fp) -> fp);
 	}
 
 	public static Map<LSTriplet, TripletMatches> findTripletsWithFalsePositives(
-			final List<LSTriplet> ls3list, final List<Snippet> snippets,
+			final List<Deque<LSTriplet>> ls3list, final List<Snippet> snippets,
 			final String label) {
+		Collection<String> labels = new ArrayList<>(1);
+		labels.add(label);
+		return findTripletsWithFalsePositives(ls3list, snippets, labels);
+	}
+
+	public static Map<LSTriplet, TripletMatches> findTripletsWithFalsePositives(
+			final List<Deque<LSTriplet>> ls3list, final List<Snippet> snippets,
+			final Collection<String> labels) {
 		Map<LSTriplet, TripletMatches> tripsWithFP = new HashMap<>();
-		for (LSTriplet ls3 : ls3list) {
-			List<Snippet> correct = new ArrayList<>();
-			List<Snippet> falsePositive = new ArrayList<>();
-			Pattern ls3pattern = Pattern.compile(ls3.toStringRegEx(), Pattern.CASE_INSENSITIVE);
-			for (Snippet snippet : snippets) {
-				List<Snippet> lsCorrectMatch = new ArrayList<>();
-				List<Snippet> lsFalseMatch = new ArrayList<>();
-				for (LabeledSegment ls : snippet.getLabeledSegments()) {
-					if (label.equals(ls.getLabel())) {
-						Matcher m = ls3pattern.matcher(snippet.getText());
-						if (m.find()) {
-							String actual = ls.getLabeledString();
-							String predicted = m.group(1);
-							if ((predicted != null && actual == null)
-									|| (predicted != null && !snippet
-											.getLabeledStrings().contains(
-													predicted.trim()))) {
-								lsFalseMatch.add(snippet);
-							} else {
-								// The regex matched at least one of the
-								// snippets labeled segments correctly
-								lsCorrectMatch.add(snippet);
-								break;
+		for (Deque<LSTriplet> ls3stack : ls3list) {
+			LSTriplet ls3 = ls3stack.peek();
+			if (!isStackEnd(ls3)) {
+				List<Snippet> correct = new ArrayList<>();
+				List<Snippet> falsePositive = new ArrayList<>();
+				Pattern ls3pattern = Pattern.compile(ls3.toStringRegEx(), Pattern.CASE_INSENSITIVE);
+				for (Snippet snippet : snippets) {
+					List<Snippet> lsCorrectMatch = new ArrayList<>();
+					List<Snippet> lsFalseMatch = new ArrayList<>();
+					for (LabeledSegment ls : snippet.getLabeledSegments()) {
+						if (CVUtils.containsCI(labels, ls.getLabel())) {
+							Matcher m = ls3pattern.matcher(snippet.getText());
+							if (m.find()) {
+								String actual = ls.getLabeledString();
+								String predicted = m.group(1);
+								if ((predicted != null && actual == null)
+										|| (predicted != null && !snippet
+												.getLabeledStrings().contains(
+														predicted.trim()))) {
+									lsFalseMatch.add(snippet);
+								} else {
+									// The regex matched at least one of the
+									// snippets labeled segments correctly
+									lsCorrectMatch.add(snippet);
+									break;
+								}
 							}
 						}
 					}
+					if (lsCorrectMatch.size() == 0) {
+						// The regex did not match any labeled segments correctly
+						// count as a false positive.
+						correct.addAll(lsCorrectMatch);
+						falsePositive.addAll(lsFalseMatch);
+					}
 				}
-				if (lsCorrectMatch.size() == 0) {
-					// The regex did not match any labeled segments correctly
-					// count as a false positive.
-					correct.addAll(lsCorrectMatch);
-					falsePositive.addAll(lsFalseMatch);
+				if (falsePositive.size() > 0) {
+					tripsWithFP
+							.put(ls3, new TripletMatches(correct, falsePositive));
 				}
-			}
-			if (falsePositive.size() > 0) {
-				tripsWithFP
-						.put(ls3, new TripletMatches(correct, falsePositive));
 			}
 		}
 		return tripsWithFP;
@@ -960,30 +1222,32 @@ public class REDExtractor {
 			this.falsePositive = falsePositive;
 		}
 	}
-}
+	
+	class PotentialMatch {
+		List<String> terms;
+		int count;
+		List<LSTriplet> matches;
 
-class PotentialMatch {
-	List<String> terms;
-	int count;
-	List<LSTriplet> matches;
-
-	public PotentialMatch(List<String> terms, int count, List<LSTriplet> matches) {
-		this.terms = terms;
-		this.count = count;
-		this.matches = matches;
-	}
-
-	@Override
-	public String toString() {
-		if (terms == null || terms.isEmpty())
-			return " The match is empty";
-		StringBuilder temp = new StringBuilder();
-		for (int i = 0; i < terms.size(); i++) {
-			if (i == terms.size() - 1)
-				temp.append(terms.get(i));
-			else
-				temp.append(terms.get(i) + "\\s{1,50}");
+		public PotentialMatch(List<String> terms, int count, List<LSTriplet> matches) {
+			this.terms = terms;
+			this.count = count;
+			this.matches = matches;
 		}
-		return temp.toString();
+
+		public String getTermsRegex() {
+			if (terms == null || terms.isEmpty()) {
+				return " The match is empty";
+			}
+			StringBuilder temp = new StringBuilder();
+			for (int i = 0; i < terms.size(); i++) {
+				if (i == terms.size() - 1)
+					temp.append(terms.get(i));
+				else
+					temp.append(terms.get(i) + "\\s{1,50}");
+			}
+			return temp.toString();
+		}
 	}
 }
+
+

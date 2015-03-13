@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ForkJoinPool;
@@ -60,6 +61,38 @@ public class LSExtractor implements Extractor {
 		List<MatchedElement> returnedList = new ArrayList<>();
 		returnedList.addAll(returnSet);
 		return returnedList;
+	}
+	
+	public MatchedElement extractFirst(String target) {
+		if(target == null || target.equals("")) {
+			return null;
+		}
+		List<LSTriplet> regExpressions = getRegExpressions();
+		if(regExpressions != null && !regExpressions.isEmpty()){
+			Optional<MatchedElement> matchedElement = regExpressions.parallelStream().map((triplet) -> {
+				Set<MatchedElement> matchedElements = new HashSet<>();
+				Pattern pattern = null;
+				try {
+					pattern = Pattern.compile(triplet.toStringRegEx(), Pattern.CASE_INSENSITIVE);
+				} catch (Exception e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				Matcher matcher = pattern.matcher(target);
+				boolean test = matcher.find();
+				if(test) {
+					String candidateLS = matcher.group(1);
+					if(candidateLS != null && !candidateLS.equals("")){
+						int startPos = target.indexOf(candidateLS);
+						int endPos = startPos + candidateLS.length();
+						matchedElements.add(new MatchedElement(startPos, endPos, candidateLS));
+					}
+				}
+				return matchedElements;
+			}).filter((me) -> !me.isEmpty()).map((me) -> { return me.iterator().next(); }).findFirst();
+			return matchedElement.orElse(null);
+		}
+		return null;
 	}
 	
 	//getter  setter

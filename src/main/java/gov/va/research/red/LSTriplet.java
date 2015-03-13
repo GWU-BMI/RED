@@ -47,6 +47,12 @@ public class LSTriplet {
 			this.ALS = elem[2];
 	}
 
+	public LSTriplet(LSTriplet ls3) {
+		this.BLS = ls3.BLS;
+		this.LS = ls3.LS;
+		this.ALS = ls3.ALS;
+	}
+
 	/* (non-Javadoc)
 	 * @see java.lang.Object#toString()
 	 */
