@@ -85,8 +85,7 @@ public class REDExtractor {
 			}
 		}
 		if (ls3list != null && !ls3list.isEmpty()) {
-			// replace all the punctuation marks with their regular expressions.
-			//replacePunct(ls3list);
+			// escape all regular expression special characters.
 			escapeRegexSpecialChars(ls3list);
 			// replace all the digits in the LS with their regular expressions.
 			replaceDigitsLS(ls3list);
@@ -95,6 +94,7 @@ public class REDExtractor {
 			// replace the white spaces with regular expressions.
 			replaceWhiteSpaces(ls3list);
 
+			// Check for false positives
 			Map<LSTriplet, TripletMatches> tripsWithFP = findTripletsWithFalsePositives(
 					ls3list, snippets, labels);
 			if (tripsWithFP != null && tripsWithFP.size() > 0) {
@@ -134,48 +134,6 @@ public class REDExtractor {
 			
 			ls3list = generalizeLFtoMF(snippets, ls3list);
 			ls3list = removeDuplicates(ls3list);
-
-//			leExt.setRegExpressions(ls3list);
-//			CVScore scoreAfterTrimming = testExtractor(snippets, leExt);
-
-			// remove reduntant expressions
-//			List<LSTriplet> testList = new ArrayList<LSTriplet>(ls3list);
-//			int fnToTestAgainst = scoreAfterTrimming.getFn();
-//			CVScore tempScore = null;
-//			for (LSTriplet triplet : ls3list) {
-//				testList.remove(triplet);
-//				leExt.setRegExpressions(testList);
-//				tempScore = testExtractor(snippets, leExt);
-//				if (tempScore.getFn() < fnToTestAgainst)
-//					fnToTestAgainst = tempScore.getFn();
-//				else
-//					testList.add(triplet);
-//			}
-//			ls3list = testList;
-
-			// the tree replacement algorithm
-//			LOG.info("performing tree replacement logic ...");
-//			PotentialMatches potentialMatches = treeReplacementLogic(ls3list);
-//			LOG.info("... done performing tree replacement logic");
-//			
-//			LOG.info("replacing potential matches ...");
-//			Comparator<PotentialMatch> comp = new Comparator<PotentialMatch>() {
-//
-//				@Override
-//				public int compare(PotentialMatch o1, PotentialMatch o2) {
-//					if (o1.terms.size() < o2.terms.size())
-//						return 1;
-//					if (o1.terms.size() > o2.terms.size())
-//						return -1;
-//					return 0;
-//				}
-//
-//			};
-//			Collections.sort(potentialMatches.potentialBLSMatches, comp);
-//			Collections.sort(potentialMatches.potentialALSMatches, comp);
-//			replacePotentialMatches(potentialMatches.potentialBLSMatches, ls3list, true, snippets);
-//			replacePotentialMatches(potentialMatches.potentialALSMatches, ls3list, false, snippets);
-//			LOG.info("... done replacing potential matches");			
 
 			outputRegexHistory(ls3list);
 
@@ -1002,10 +960,10 @@ public class REDExtractor {
 		}
 		CVScore score = new CVScore();
 		for (Snippet snippet : testing) {
-//			List<MatchedElement> candidates = ex.extract(snippet.getText());
-//			String predicted = REDExtractor.chooseBestCandidate(candidates);
-			MatchedElement me = ex.extractFirst(snippet.getText());
-			String predicted = (me == null ? null : me.getMatch());
+			List<MatchedElement> candidates = ex.extract(snippet.getText());
+			String predicted = REDExtractor.chooseBestCandidate(candidates);
+//			MatchedElement me = ex.extractFirst(snippet.getText());
+//			String predicted = (me == null ? null : me.getMatch());
 			List<String> actual = snippet.getLabeledStrings();
 			// Score
 			if (predicted == null) {
