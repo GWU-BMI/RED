@@ -23,21 +23,23 @@ import org.slf4j.LoggerFactory;
 public class LSExtractor implements Extractor {
 	private static final Logger LOG = LoggerFactory.getLogger(LSExtractor.class);
 	
-	private List<LSTriplet> regExpressions;
+	private List<LSTriplet> ls3list;
 	private Map<String, Pattern> patternCache = new ConcurrentHashMap<>();
 	
-	public LSExtractor(List<LSTriplet> regExpressions){
-		this.setRegExpressions(regExpressions);
+	public LSExtractor(List<LSTriplet> ls3list){
+		this.setLSTriplets(ls3list);
 	}
 
 	@Override
 	public List<MatchedElement> extract(String target) {
-		if(target == null || target.equals(""))
+		if(target == null || target.length() == 0) {
 			return null;
+		}
 		Set<MatchedElement> returnSet = null;
-		List<LSTriplet> regExpressions = getRegExpressions();
+		List<LSTriplet> regExpressions = getLSTriplets();
 		if(regExpressions != null && !regExpressions.isEmpty()){
 			returnSet = regExpressions.parallelStream().map((triplet) -> {
+				String localTarget = target;
 				Set<MatchedElement> matchedElements = new HashSet<>();
 				Pattern pattern = Pattern.compile(triplet.toStringRegEx(), Pattern.CASE_INSENSITIVE);
 				Matcher matcher = pattern.matcher(target);
@@ -67,7 +69,7 @@ public class LSExtractor implements Extractor {
 		if(target == null || target.equals("")) {
 			return null;
 		}
-		List<LSTriplet> regExpressions = getRegExpressions();
+		List<LSTriplet> regExpressions = getLSTriplets();
 		if(regExpressions != null && !regExpressions.isEmpty()){
 			Optional<MatchedElement> matchedElement = regExpressions.parallelStream().map((triplet) -> {
 				Set<MatchedElement> matchedElements = new HashSet<>();
@@ -95,14 +97,12 @@ public class LSExtractor implements Extractor {
 		return null;
 	}
 	
-	//getter  setter
-	
-	public List<LSTriplet> getRegExpressions() {
-		return regExpressions;
+	public List<LSTriplet> getLSTriplets() {
+		return ls3list;
 	}
 
-	public void setRegExpressions(List<LSTriplet> regExpressions) {
-		this.regExpressions = regExpressions;
+	public void setLSTriplets(List<LSTriplet> regExpressions) {
+		this.ls3list = regExpressions;
 	}
 
 }

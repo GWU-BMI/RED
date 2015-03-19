@@ -5,10 +5,8 @@ import gov.va.research.red.CVUtils;
 import gov.va.research.red.CrossValidatable;
 import gov.va.research.red.LSTriplet;
 import gov.va.research.red.LabeledSegment;
-import gov.va.research.red.RegEx;
 import gov.va.research.red.Snippet;
 import gov.va.research.red.VTTReader;
-import gov.va.research.red.cat.REDCategorizer;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -18,14 +16,8 @@ import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Collectors;
 
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.ConfigurationException;

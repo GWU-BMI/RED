@@ -103,14 +103,6 @@ public class REDExtractorTest {
 	}
 
 	/**
-	 * Test method for {@link gov.va.research.red.ex.REDExtractor#replacePunct(java.util.List)}.
-	 */
-	@Test
-	public void testReplacePunct() {
-		fail("Not yet implemented");
-	}
-
-	/**
 	 * Test method for {@link gov.va.research.red.ex.REDExtractor#replaceDigitsLS(java.util.List)}.
 	 */
 	@Test
