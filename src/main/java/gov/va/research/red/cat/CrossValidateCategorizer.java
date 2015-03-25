@@ -45,20 +45,20 @@ public class CrossValidateCategorizer {
 		List<Snippet> snippetsYes = new ArrayList<>();
 		for (File vttFile : vttFiles) {
 			for (String label : yesLabels) {
-				snippetsYes.addAll(vttr.extractSnippets(vttFile, label));
+				snippetsYes.addAll(vttr.extractSnippets(vttFile, label, true));
 			}
 		}
 		
 		List<Snippet> snippetsNo = new ArrayList<>();
 		for (File vttFile : vttFiles) {
 			for (String label : noLabels) {
-				snippetsNo.addAll(vttr.extractSnippets(vttFile, label));
+				snippetsNo.addAll(vttr.extractSnippets(vttFile, label, true));
 			}
 		}
 		
 		List<Snippet> snippetsNoLabel = new ArrayList<>();
 		for (File vttFile : vttFiles) {
-			snippetsNoLabel.addAll(vttr.extractSnippets(vttFile));
+			snippetsNoLabel.addAll(vttr.extractSnippets(vttFile, true));
 		}
 		return crossValidateClassifier(snippetsYes, snippetsNo, snippetsNoLabel, yesLabels, noLabels, folds);
 	}

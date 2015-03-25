@@ -24,25 +24,19 @@ import java.util.Comparator;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
 import java.util.Set;
-import java.util.StringJoiner;
 import java.util.TreeMap;
-import java.util.TreeSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class REDExtractor {
 
-	private static final LSTriplet LS3_DUPLICATE = new LSTriplet(null,"DUPLICATE",null);
-	private static final List<LSTriplet> STACK_ENDS = Arrays.asList(new LSTriplet[] { LS3_DUPLICATE });
 	private static final Logger LOG = LoggerFactory
 			.getLogger(REDExtractor.class);
 	private static final Pattern PUNCT_PATTERN = Pattern.compile("\\p{Punct}");
@@ -51,27 +45,27 @@ public class REDExtractor {
 	private Map<String, Pattern> patternCache = new HashMap<String, Pattern>();
 
 	public List<LSTriplet> discoverRegexes(List<File> vttFiles, String label,
-			String outputFileName) throws IOException {
+			boolean allowOverMatches, String outputFileName) throws IOException {
 		// get snippets
 		VTTReader vttr = new VTTReader();
 		List<Snippet> snippets = new ArrayList<>();
 		for (File vttFile : vttFiles) {
-			snippets.addAll(vttr.extractSnippets(vttFile, label));
+			snippets.addAll(vttr.extractSnippets(vttFile, label, true));
 		}
-		return discoverRegularExpressions(snippets, label, outputFileName);
+		return discoverRegularExpressions(snippets, label, allowOverMatches, outputFileName);
 	}
 
 	public List<LSTriplet> discoverRegularExpressions(
-			final List<Snippet> snippets, final String label,
+			final List<Snippet> snippets, final String label, final boolean allowOverMatches,
 			final String outputFileName) throws IOException {
 		Collection<String> labels = new ArrayList<>(1);
 		labels.add(label);
-		return discoverRegularExpressions(snippets, labels, outputFileName);
+		return discoverRegularExpressions(snippets, labels, allowOverMatches, outputFileName);
 	}
 
 	public List<LSTriplet> discoverRegularExpressions(
 			final List<Snippet> snippets, final Collection<String> labels,
-			final String outputFileName) throws IOException {
+			final boolean allowOverMatches, final String outputFileName) throws IOException {
 		List<Deque<LSTriplet>> ls3list = new ArrayList<>(snippets.size());
 		for (Snippet snippet : snippets) {
 			if (snippet.getLabeledSegments() != null) {
@@ -85,6 +79,12 @@ public class REDExtractor {
 			}
 		}
 		if (ls3list != null && !ls3list.isEmpty()) {
+			// Check for false positives. Each ls3 should have at least one true positive, matching the snippet it originated from.
+			for (Deque<LSTriplet> ls3stack : ls3list) {
+				LSTriplet ls3 = ls3stack.peek();
+				checkForFalsePositives(snippets, ls3, allowOverMatches);
+			}
+			
 			// replace all the digits in the LS with their regular expressions.
 			replaceDigitsLS(ls3list);
 			// replace the digits in BLS and ALS with their regular expressions.
@@ -94,7 +94,7 @@ public class REDExtractor {
 
 			// Check for false positives
 			Map<LSTriplet, TripletMatches> tripsWithFP = findTripletsWithFalsePositives(
-					ls3list, snippets, labels);
+					ls3list, snippets, labels, allowOverMatches);
 			if (tripsWithFP != null && tripsWithFP.size() > 0) {
 				LOG.warn("False positive regexes found before trimming");
 				for (Map.Entry<LSTriplet, TripletMatches> twfp : tripsWithFP
@@ -122,15 +122,15 @@ public class REDExtractor {
 			ls3list = removeDuplicates(ls3list);
 
 			LOG.info("trimming regexes ...");
-			trimRegEx(snippets, ls3list);
+			trimRegEx(snippets, ls3list, allowOverMatches);
 			LOG.info("... done trimming regexes");
 			ls3list = removeDuplicates(ls3list);
 			
 			LOG.info("generalizing LSs ...");
-			ls3list = generalizeLS(snippets, ls3list);
+			ls3list = generalizeLS(snippets, ls3list, allowOverMatches);
 			LOG.info("... done generalizing LSs");
 			
-			ls3list = generalizeLFtoMF(snippets, ls3list);
+			ls3list = generalizeLFtoMF(snippets, ls3list, allowOverMatches);
 			ls3list = removeDuplicates(ls3list);
 
 			outputRegexHistory(ls3list);
@@ -138,20 +138,17 @@ public class REDExtractor {
 			List<LSTriplet> returnList = new ArrayList<LSTriplet>(ls3list.size());
 			for (Deque<LSTriplet> ls3stack : ls3list) {
 				LSTriplet ls3 = ls3stack.peek();
-				if (!isStackEnd(ls3)) {
-					boolean add = true;
-					for (LSTriplet tripletAdded : returnList) {
-						if (tripletAdded.toStringRegEx().equals(ls3.toStringRegEx())) {
-							add = false;
-							break;
-						}
-					}
-					if (add) {
-						returnList.add(ls3);
+				boolean add = true;
+				for (LSTriplet tripletAdded : returnList) {
+					if (tripletAdded.toStringRegEx().equals(ls3.toStringRegEx())) {
+						add = false;
+						break;
 					}
 				}
+				if (add) {
+					returnList.add(ls3);
+				}
 			}
-
 
 			LOG.info("measuring sensitivity ...");
 			measureSensitivity(snippets, returnList);
@@ -189,27 +186,25 @@ public class REDExtractor {
 	 * @return
 	 */
 	private List<Deque<LSTriplet>> generalizeLFtoMF(List<Snippet> snippets,
-			List<Deque<LSTriplet>> ls3list) {
+			List<Deque<LSTriplet>> ls3list, boolean allowOverMatches) {
 		// build term frequency list
 		Map<Token,TokenFreq> tokenFreqs = new HashMap<>();
 		for (Deque<LSTriplet> ls3stack : ls3list) {
 			LSTriplet ls3 = ls3stack.peek();
-			if (!isStackEnd(ls3)) {
-				List<List<Token>> tokenLists = new ArrayList<>();
-				tokenLists.add(ls3.getBLS());
-				tokenLists.add(ls3.getLS());
-				tokenLists.add(ls3.getALS());
+			List<List<Token>> tokenLists = new ArrayList<>();
+			tokenLists.add(ls3.getBLS());
+			tokenLists.add(ls3.getLS());
+			tokenLists.add(ls3.getALS());
 
-				for (List<Token> tokenList : tokenLists) {
-					for (Token t : tokenList) {
-						if (TokenType.WORD.equals(t.getType()) || TokenType.PUNCTUATION.equals(t.getType())) {
-							TokenFreq tf = tokenFreqs.get(t);
-							if (tf == null) {
-								tf = new TokenFreq(t, Integer.valueOf(1));
-								tokenFreqs.put(t, tf);
-							} else {
-								tf.setFreq(Integer.valueOf(tf.getFreq().intValue() + 1));
-							}
+			for (List<Token> tokenList : tokenLists) {
+				for (Token t : tokenList) {
+					if (TokenType.WORD.equals(t.getType()) || TokenType.PUNCTUATION.equals(t.getType())) {
+						TokenFreq tf = tokenFreqs.get(t);
+						if (tf == null) {
+							tf = new TokenFreq(t, Integer.valueOf(1));
+							tokenFreqs.put(t, tf);
+						} else {
+							tf.setFreq(Integer.valueOf(tf.getFreq().intValue() + 1));
 						}
 					}
 				}
@@ -220,7 +215,7 @@ public class REDExtractor {
 		// Attempt to generalize each term, starting with the least frequent
 		for (TokenFreq tf : tokenFreqList) {
 			Token token = tf.getToken();
-			ls3list.parallelStream().filter((ls3stack) -> !isStackEnd(ls3stack.peek())).forEach((ls3stack) -> {
+			ls3list.parallelStream().forEach((ls3stack) -> {
 				boolean replaced = false;
 				LSTriplet newLS3 = new LSTriplet(ls3stack.peek());
 				ListIterator<Token> newBlsIt = newLS3.getBLS().listIterator();
@@ -237,7 +232,7 @@ public class REDExtractor {
 							changed = true;
 						}
 						if (changed) {
-							boolean fp = checkForFalsePositives(snippets, newLS3);
+							boolean fp = checkForFalsePositives(snippets, newLS3, allowOverMatches);
 							if (fp) {
 								// revert
 								newLS3 = saveLS3;
@@ -261,7 +256,7 @@ public class REDExtractor {
 							changed = true;
 						}
 						if (changed) {
-							boolean fp = checkForFalsePositives(snippets, newLS3);
+							boolean fp = checkForFalsePositives(snippets, newLS3, allowOverMatches);
 							if (fp) {
 								// revert
 								newLS3 = saveLS3;
@@ -332,23 +327,16 @@ public class REDExtractor {
 		}
 	}
 
-	private class PotentialMatches {
-		public List<PotentialMatch> potentialBLSMatches;
-		public List<PotentialMatch> potentialALSMatches;
-	}
-	
 	/**
 	 * Generalize the LS element of each triplet to work for all LSs in the list that won't cause false positives.
 	 * @param ls3list
 	 * @return A new LSTriplet list, with each LS segment replaced by a combination of all LSs in the list that won't cause false positives.
 	 */
-	private List<Deque<LSTriplet>> generalizeLS(final List<Snippet> snippets, final List<Deque<LSTriplet>> ls3list) {
+	private List<Deque<LSTriplet>> generalizeLS(final List<Snippet> snippets, final List<Deque<LSTriplet>> ls3list, final boolean allowOverMatches) {
 		Set<List<Token>> lsSet = new HashSet<>();
 		for (Deque<LSTriplet> ls3stack : ls3list) {
 			LSTriplet ls3 = ls3stack.peek();
-			if (!isStackEnd(ls3)) {
-				lsSet.add(ls3.getLS());
-			}
+			lsSet.add(ls3.getLS());
 		}
 		boolean first = true;
 		List<Token> genLS = new ArrayList<>();
@@ -363,40 +351,30 @@ public class REDExtractor {
 		}
 		for (Deque<LSTriplet> ls3stack : ls3list) {
 			LSTriplet ls3 = ls3stack.peek();
-			if (!isStackEnd(ls3)) {
-				LSTriplet ls3copy = new LSTriplet(ls3);
-				ls3copy.setLS(genLS);
-				if (!checkForFalsePositives(snippets, ls3copy)) {
-					ls3stack.push(ls3copy);
-				}
+			LSTriplet ls3copy = new LSTriplet(ls3);
+			ls3copy.setLS(genLS);
+			if (!checkForFalsePositives(snippets, ls3copy, allowOverMatches)) {
+				ls3stack.push(ls3copy);
 			}
 		}
 		return ls3list;
 	}
 
 	/**
-	 * @param ls3list
-	 * @return
+	 * @param ls3list A list of LSTriplet Deques
+	 * @return A new list of LSTriplet Deques with no duplicates (ls3list is not modified).
 	 */
 	private List<Deque<LSTriplet>> removeDuplicates(final List<Deque<LSTriplet>> ls3list) {
 		List<LSTriplet> headList = new ArrayList<>(ls3list.size());
+		List<Deque<LSTriplet>> nodups = new ArrayList<>(ls3list.size());
 		for (Deque<LSTriplet> ls3stack : ls3list) {
 			LSTriplet head = ls3stack.peek();
-			if (isStackEnd(head)) {
-				continue;
-			}
-			if (headList.contains(head)) {
-				ls3stack.push(LS3_DUPLICATE);
-			} else {
+			if (!headList.contains(head)) {
 				headList.add(head);
-				ls3stack.push(head);
+				nodups.add(ls3stack);
 			}
 		}
-		return ls3list;
-	}
-
-	private static boolean isStackEnd(final LSTriplet ls3) {
-		return STACK_ENDS.contains(ls3);
+		return nodups;
 	}
 
 	private void measureSensitivity(List<Snippet> snippets, List<LSTriplet> regExList) {
@@ -426,20 +404,18 @@ public class REDExtractor {
 	public List<Deque<LSTriplet>> replaceDigitsLS(List<Deque<LSTriplet>> ls3list) {
 		ls3list.parallelStream().forEach((ls3stack) -> {
 			LSTriplet ls3 = ls3stack.peek();
-			if (!isStackEnd(ls3)) {
-				LSTriplet newLS3 = new LSTriplet(ls3);
-				boolean changed = false;
-				ListIterator<Token> lsIt = newLS3.getLS().listIterator();
-				while (lsIt.hasNext()) {
-					Token t = lsIt.next();
-					if (TokenType.INTEGER.equals(t.getType())) {
-						lsIt.set(new Token("\\d+", TokenType.REGEX));
-						changed = true;
-					}
+			LSTriplet newLS3 = new LSTriplet(ls3);
+			boolean changed = false;
+			ListIterator<Token> lsIt = newLS3.getLS().listIterator();
+			while (lsIt.hasNext()) {
+				Token t = lsIt.next();
+				if (TokenType.INTEGER.equals(t.getType())) {
+					lsIt.set(new Token("\\d+", TokenType.REGEX));
+					changed = true;
 				}
-				if (changed) {
-					ls3stack.push(newLS3);
-				}
+			}
+			if (changed) {
+				ls3stack.push(newLS3);
 			}
 		});
 		return ls3list;
@@ -448,28 +424,26 @@ public class REDExtractor {
 	public List<Deque<LSTriplet>> replaceDigitsBLSALS(List<Deque<LSTriplet>> ls3list) {
 		ls3list.parallelStream().forEach((ls3stack) -> {
 			LSTriplet ls3 = ls3stack.peek();
-			if (!isStackEnd(ls3)) {
-				LSTriplet newLS3 = new LSTriplet(ls3);
-				boolean changed = false;
-				ListIterator<Token> blsIt = newLS3.getBLS().listIterator();
-				while (blsIt.hasNext()) {
-					Token t = blsIt.next();
-					if (TokenType.INTEGER.equals(t.getType())) {
-						blsIt.set(new Token("\\d+", TokenType.REGEX));
-						changed = true;
-					}
+			LSTriplet newLS3 = new LSTriplet(ls3);
+			boolean changed = false;
+			ListIterator<Token> blsIt = newLS3.getBLS().listIterator();
+			while (blsIt.hasNext()) {
+				Token t = blsIt.next();
+				if (TokenType.INTEGER.equals(t.getType())) {
+					blsIt.set(new Token("\\d+", TokenType.REGEX));
+					changed = true;
 				}
-				ListIterator<Token> alsIt = newLS3.getALS().listIterator();
-				while (alsIt.hasNext()) {
-					Token t = alsIt.next();
-					if (TokenType.INTEGER.equals(t.getType())) {
-						alsIt.set(new Token("\\d+", TokenType.REGEX));
-						changed = true;
-					}
+			}
+			ListIterator<Token> alsIt = newLS3.getALS().listIterator();
+			while (alsIt.hasNext()) {
+				Token t = alsIt.next();
+				if (TokenType.INTEGER.equals(t.getType())) {
+					alsIt.set(new Token("\\d+", TokenType.REGEX));
+					changed = true;
 				}
-				if (changed) {
-					ls3stack.push(newLS3);
-				}
+			}
+			if (changed) {
+				ls3stack.push(newLS3);
 			}
 		});
 		return ls3list;
@@ -478,26 +452,24 @@ public class REDExtractor {
 	public List<Deque<LSTriplet>> replaceWhiteSpaces(List<Deque<LSTriplet>> ls3list) {
 		ls3list.parallelStream().forEach((ls3stack) -> {
 			LSTriplet ls3 = ls3stack.peek();
-			if (!isStackEnd(ls3)) {
-				LSTriplet newLS3 = new LSTriplet(ls3);
-				boolean changed = false;
-				List<List<Token>> tokenLists = new ArrayList<>(3);
-				tokenLists.add(newLS3.getBLS());
-				tokenLists.add(newLS3.getLS());
-				tokenLists.add(newLS3.getALS());
-				for (List<Token> tokenList : tokenLists) {
-					ListIterator<Token> tIt = tokenList.listIterator();
-					while (tIt.hasNext()) {
-						Token t = tIt.next();
-						if (TokenType.WHITESPACE.equals(t.getType())) {
-							tIt.set(new Token("\\s{1," + Math.round(t.getString().length() * 1.2) + "}", TokenType.REGEX));
-							changed = true;
-						}
+			LSTriplet newLS3 = new LSTriplet(ls3);
+			boolean changed = false;
+			List<List<Token>> tokenLists = new ArrayList<>(3);
+			tokenLists.add(newLS3.getBLS());
+			tokenLists.add(newLS3.getLS());
+			tokenLists.add(newLS3.getALS());
+			for (List<Token> tokenList : tokenLists) {
+				ListIterator<Token> tIt = tokenList.listIterator();
+				while (tIt.hasNext()) {
+					Token t = tIt.next();
+					if (TokenType.WHITESPACE.equals(t.getType())) {
+						tIt.set(new Token("\\s{1," + Math.round(t.getString().length() * 1.2) + "}", TokenType.REGEX));
+						changed = true;
 					}
 				}
-				if (changed) {
-					ls3stack.push(newLS3);
-				}
+			}
+			if (changed) {
+				ls3stack.push(newLS3);
 			}
 		});
 		return ls3list;
@@ -509,7 +481,7 @@ public class REDExtractor {
 	 * @param snippets
 	 * @param ls3list
 	 */
-	private void trimRegEx(final List<Snippet> snippets, List<Deque<LSTriplet>> ls3list) {
+	private void trimRegEx(final List<Snippet> snippets, List<Deque<LSTriplet>> ls3list, boolean allowOverMatches) {
 		// trim from the front and back, repeat while progress is being made
 		ls3list.parallelStream().forEach(ls3stack -> {
 			boolean blsProgress = false;
@@ -518,46 +490,53 @@ public class REDExtractor {
 				blsProgress = false;
 				alsProgress = false;
 				LSTriplet ls3 = ls3stack.peek();
-				if (!isStackEnd(ls3)) {
-					LSTriplet ls3trim = new LSTriplet(ls3);
-					if (ls3trim.getBLS().size() >= ls3trim.getALS().size()) {
-						List<Token> origBls = new ArrayList<>(ls3trim.getBLS());
-						if (ls3trim.getBLS() != null && !ls3trim.getBLS().isEmpty()) {
-							ls3trim.getBLS().remove(0);
-							if (checkForFalsePositives(snippets, ls3trim)) {
-								ls3trim.setBLS(origBls);
-								blsProgress = false;
-							} else {
-								blsProgress = true;
-							}
-						}
-					} else if (ls3trim.getBLS().size() <= ls3trim.getALS().size()) {
-						List<Token> origAls = new ArrayList<>(ls3trim.getALS());
-						if (ls3trim.getALS() != null && !ls3trim.getALS().isEmpty()) {
-							ls3trim.getALS().remove(ls3trim.getALS().size() - 1);
-							if (checkForFalsePositives(snippets, ls3trim)) {
-								ls3trim.setALS(origAls);
-								alsProgress = false;
-							} else {
-								alsProgress = true;
-							}
+				LSTriplet ls3trim = new LSTriplet(ls3);
+				if (ls3trim.getBLS().size() >= ls3trim.getALS().size()) {
+					List<Token> origBls = new ArrayList<>(ls3trim.getBLS());
+					if (ls3trim.getBLS() != null && !ls3trim.getBLS().isEmpty()) {
+						ls3trim.getBLS().remove(0);
+						if (checkForFalsePositives(snippets, ls3trim, allowOverMatches)) {
+							ls3trim.setBLS(origBls);
+							blsProgress = false;
+						} else {
+							blsProgress = true;
 						}
 					}
-					if (blsProgress || alsProgress) {
-						ls3stack.push(ls3trim);
+				} else if (ls3trim.getBLS().size() <= ls3trim.getALS().size()) {
+					List<Token> origAls = new ArrayList<>(ls3trim.getALS());
+					if (ls3trim.getALS() != null && !ls3trim.getALS().isEmpty()) {
+						ls3trim.getALS().remove(ls3trim.getALS().size() - 1);
+						if (checkForFalsePositives(snippets, ls3trim, allowOverMatches)) {
+							ls3trim.setALS(origAls);
+							alsProgress = false;
+						} else {
+							alsProgress = true;
+						}
 					}
+				}
+				if (blsProgress || alsProgress) {
+					ls3stack.push(ls3trim);
 				}
 			} while (blsProgress || alsProgress);
 		});
 	}
 
 	/**
-	 * @param testing A list of snippets to use for testing.
-	 * @param ex The extractor to be tested.
-	 * @param pw A PrintWriter for recording output. May be <code>null</code>.
+	 * @param testing
+	 *            A list of snippets to use for testing.
+	 * @param ex
+	 *            The extractor to be tested.
+	 * @param allowOverMatches
+	 *            If <code>false</code> then predicated and actual values must
+	 *            match exactly to be counted as a true positive. If
+	 *            <code>true</code> then if the predicted and actual values
+	 *            overlap but do not match exactly, it is still counted as a
+	 *            true positive.
+	 * @param pw
+	 *            A PrintWriter for recording output. May be <code>null</code>.
 	 * @return The cross-validation score.
 	 */
-	public CVScore testExtractor(List<Snippet> testing, LSExtractor ex,
+	public CVScore testExtractor(List<Snippet> testing, LSExtractor ex, boolean allowOverMatches,
 			PrintWriter pw) {
 		PrintWriter localPW = null;
 		StringWriter sw = null;
@@ -590,7 +569,22 @@ public class REDExtractor {
 				localPW.println(snippet.getText());
 				localPW.println(">>> Predicted: " + predicted + ", Actual: " + actual);
 			} else {
-				if (snippet.getLabeledStrings().contains(predicted.trim())) {
+				predicted = predicted.trim().toLowerCase();
+				boolean match = false;
+				if (allowOverMatches) {
+					for (String ls : snippet.getLabeledStrings()) {
+						ls = ls.toLowerCase();
+						if (ls.contains(predicted) || predicted.contains(ls)) {
+							match = true;
+							break;
+						}
+					}
+				} else {
+					if (CVUtils.containsCI(snippet.getLabeledStrings(), predicted)) {
+						match = true;
+					}
+				}
+				if (match) {
 					score.setTp(score.getTp() + 1);
 				} else {
 					score.setFp(score.getFp() + 1);
@@ -614,8 +608,8 @@ public class REDExtractor {
 		return score;
 	}
 
-	public boolean checkForFalsePositives(List<Snippet> testing, LSExtractor ex) {
-		List<Boolean> fpList = testing.parallelStream().map((snippet) -> {
+	public boolean checkForFalsePositives(List<Snippet> testing, LSExtractor ex, boolean allowOverMatches) {
+		return testing.parallelStream().map((snippet) -> {
 			List<MatchedElement> candidates = ex.extract(snippet.getText());
 			String predicted = chooseBestCandidate(candidates);
 //			MatchedElement me = ex.extractFirst(snippet.getText());
@@ -627,36 +621,45 @@ public class REDExtractor {
 				if (actual == null || actual.size() == 0) {
 					return Boolean.TRUE;
 				} else {
-					if (!actual.contains(predicted.trim())) {
-						return Boolean.TRUE;
+					predicted = predicted.trim().toLowerCase();
+					if (allowOverMatches) {
+						for (String ls : snippet.getLabeledStrings()) {
+							ls = ls.toLowerCase();
+							if (ls.contains(predicted) || predicted.contains(ls)) {
+								return Boolean.TRUE;
+							}
+						}
+					} else {
+						if (CVUtils.containsCI(snippet.getLabeledStrings(), predicted)) {
+							return Boolean.TRUE;
+						}
 					}
+					return Boolean.FALSE;
 				}
 			}
 			return Boolean.FALSE;
-		}).collect(Collectors.toList());
-		return (fpList.contains(Boolean.TRUE));
-		//.anyMatch((fp) -> {return fp;});
+		}).anyMatch((fp) -> {return fp;});
 	}
 
-	public boolean checkForFalsePositives(List<Snippet> testing, LSTriplet ls3) {
+	public boolean checkForFalsePositives(List<Snippet> testing, LSTriplet ls3, boolean allowOverMatches) {
 		LSExtractor lsEx = new LSExtractor(Arrays.asList(new LSTriplet[] { ls3 }));
-		return checkForFalsePositives(testing, lsEx);
+		return checkForFalsePositives(testing, lsEx, allowOverMatches);
 	}
 
 	public static Map<LSTriplet, TripletMatches> findTripletsWithFalsePositives(
 			final List<Deque<LSTriplet>> ls3list, final List<Snippet> snippets,
-			final Collection<String> labels) {
+			final Collection<String> labels, final boolean allowOverMatches) {
 		Map<LSTriplet, TripletMatches> tripsWithFP = new HashMap<>();
 		for (Deque<LSTriplet> ls3stack : ls3list) {
 			LSTriplet ls3 = ls3stack.peek();
-			if (!isStackEnd(ls3)) {
-				List<Snippet> correct = new ArrayList<>();
-				List<Snippet> falsePositive = new ArrayList<>();
-				Pattern ls3pattern = Pattern.compile(ls3.toStringRegEx(), Pattern.CASE_INSENSITIVE);
-				for (Snippet snippet : snippets) {
-					List<Snippet> lsCorrectMatch = new ArrayList<>();
-					List<Snippet> lsFalseMatch = new ArrayList<>();
-					for (LabeledSegment ls : snippet.getLabeledSegments()) {
+			List<Snippet> correct = new ArrayList<>();
+			List<Snippet> falsePositive = new ArrayList<>();
+			Pattern ls3pattern = Pattern.compile(ls3.toStringRegEx(), Pattern.CASE_INSENSITIVE);
+			for (Snippet snippet : snippets) {
+				List<Snippet> lsCorrectMatch = new ArrayList<>();
+				List<Snippet> lsFalseMatch = new ArrayList<>();
+				for (LabeledSegment ls : snippet.getLabeledSegments()) {
+					if (!allowOverMatches) {
 						if (CVUtils.containsCI(labels, ls.getLabel())) {
 							Matcher m = ls3pattern.matcher(snippet.getText());
 							if (m.find()) {
@@ -676,17 +679,17 @@ public class REDExtractor {
 							}
 						}
 					}
-					if (lsCorrectMatch.size() == 0) {
-						// The regex did not match any labeled segments correctly
-						// count as a false positive.
-						correct.addAll(lsCorrectMatch);
-						falsePositive.addAll(lsFalseMatch);
-					}
 				}
-				if (falsePositive.size() > 0) {
-					tripsWithFP
-							.put(ls3, new TripletMatches(correct, falsePositive));
+				if (lsCorrectMatch.size() == 0) {
+					// The regex did not match any labeled segments correctly
+					// count as a false positive.
+					correct.addAll(lsCorrectMatch);
+					falsePositive.addAll(lsFalseMatch);
 				}
+			}
+			if (falsePositive.size() > 0) {
+				tripsWithFP
+						.put(ls3, new TripletMatches(correct, falsePositive));
 			}
 		}
 		return tripsWithFP;

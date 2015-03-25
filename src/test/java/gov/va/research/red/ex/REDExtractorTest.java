@@ -95,8 +95,8 @@ public class REDExtractorTest {
 		List<LSTriplet> regExpList = null;
 		REDExtractor regExt = new REDExtractor();
 		try {
-			List<Snippet> snippets = vttr.extractSnippets(new File(TEST_VTT_URI), "weight");
-			regExpList = regExt.discoverRegularExpressions(snippets, "weight", "test-snippets.txt");
+			List<Snippet> snippets = vttr.extractSnippets(new File(TEST_VTT_URI), "weight", true);
+			regExpList = regExt.discoverRegularExpressions(snippets, "weight", true, "test-snippets.txt");
 		} catch (IOException e) {
 			throw new AssertionError("Failed extract 'weight' labeled regular expressions from VTT file: " + TEST_VTT_URI, e);
 		}
@@ -136,9 +136,9 @@ public class REDExtractorTest {
 		List<Snippet> snippets = new ArrayList<Snippet>();
 		VTTReader vttr = new VTTReader();
 		File vttFile = new File(TEST_VTT_URI);
-		snippets.addAll(vttr.extractSnippets(vttFile, "weight"));
+		snippets.addAll(vttr.extractSnippets(vttFile, "weight", true));
 		REDExtractor regExt = new REDExtractor();
-		List<LSTriplet> regExLSTriplets = regExt.discoverRegularExpressions(snippets, "weight", null);
+		List<LSTriplet> regExLSTriplets = regExt.discoverRegularExpressions(snippets, "weight", true, null);
 		List<RegEx> yesRegExs = null;
 		if(regExLSTriplets != null) {
 			yesRegExs = new ArrayList<RegEx>();
