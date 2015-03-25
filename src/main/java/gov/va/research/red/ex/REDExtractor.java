@@ -79,12 +79,7 @@ public class REDExtractor {
 			}
 		}
 		if (ls3list != null && !ls3list.isEmpty()) {
-			// Check for false positives. Each ls3 should have at least one true positive, matching the snippet it originated from.
-			for (Deque<LSTriplet> ls3stack : ls3list) {
-				LSTriplet ls3 = ls3stack.peek();
-				checkForFalsePositives(snippets, ls3, allowOverMatches);
-			}
-			
+	
 			// replace all the digits in the LS with their regular expressions.
 			replaceDigitsLS(ls3list);
 			// replace the digits in BLS and ALS with their regular expressions.
@@ -92,6 +87,19 @@ public class REDExtractor {
 			// replace the white spaces with regular expressions.
 			replaceWhiteSpaces(ls3list);
 
+			// Check for false positives. Each ls3 should have at least one true positive, matching the snippet it originated from.
+			for (Deque<LSTriplet> ls3stack : ls3list) {
+				LSTriplet ls3 = ls3stack.peek();
+				boolean tps = checkForTruePositives(snippets, ls3, allowOverMatches);
+				if (!tps) {
+					throw new RuntimeException("No tps for regex, should be at least one: " + ls3.toStringRegEx());
+				}
+				boolean fps = checkForFalsePositives(snippets, ls3, allowOverMatches);
+				if (fps) {
+					throw new RuntimeException("fps for regex: " + ls3.toStringRegEx());
+				}
+			}
+			
 			// Check for false positives
 			Map<LSTriplet, TripletMatches> tripsWithFP = findTripletsWithFalsePositives(
 					ls3list, snippets, labels, allowOverMatches);
@@ -548,8 +556,6 @@ public class REDExtractor {
 		for (Snippet snippet : testing) {
 			List<MatchedElement> candidates = ex.extract(snippet.getText());
 			String predicted = REDExtractor.chooseBestCandidate(candidates);
-//			MatchedElement me = ex.extractFirst(snippet.getText());
-//			String predicted = (me == null ? null : me.getMatch());
 			List<String> actual = snippet.getLabeledStrings();
 			// Score
 			if (predicted == null) {
@@ -612,9 +618,7 @@ public class REDExtractor {
 		return testing.parallelStream().map((snippet) -> {
 			List<MatchedElement> candidates = ex.extract(snippet.getText());
 			String predicted = chooseBestCandidate(candidates);
-//			MatchedElement me = ex.extractFirst(snippet.getText());
-//			String predicted = (me == null ? null : me.getMatch());
-
+			
 			// Score
 			if (predicted != null) {
 				List<String> actual = snippet.getLabeledStrings();
@@ -622,19 +626,22 @@ public class REDExtractor {
 					return Boolean.TRUE;
 				} else {
 					predicted = predicted.trim().toLowerCase();
+					boolean match = false;
 					if (allowOverMatches) {
 						for (String ls : snippet.getLabeledStrings()) {
 							ls = ls.toLowerCase();
 							if (ls.contains(predicted) || predicted.contains(ls)) {
-								return Boolean.TRUE;
+								match = true;
+								break;
 							}
 						}
 					} else {
-						if (CVUtils.containsCI(snippet.getLabeledStrings(), predicted)) {
-							return Boolean.TRUE;
-						}
+						match = CVUtils.containsCI(snippet.getLabeledStrings(), predicted);
 					}
-					return Boolean.FALSE;
+					if (!match) {
+						return Boolean.TRUE;
+					}
+
 				}
 			}
 			return Boolean.FALSE;
@@ -644,6 +651,46 @@ public class REDExtractor {
 	public boolean checkForFalsePositives(List<Snippet> testing, LSTriplet ls3, boolean allowOverMatches) {
 		LSExtractor lsEx = new LSExtractor(Arrays.asList(new LSTriplet[] { ls3 }));
 		return checkForFalsePositives(testing, lsEx, allowOverMatches);
+	}
+
+	public boolean checkForTruePositives(List<Snippet> testing, LSExtractor ex, boolean allowOverMatches) {
+		return testing.parallelStream().map((snippet) -> {
+			List<MatchedElement> candidates = ex.extract(snippet.getText());
+			String predicted = REDExtractor.chooseBestCandidate(candidates);
+			List<String> actual = snippet.getLabeledStrings();
+
+			if (predicted == null) {
+				return Boolean.FALSE;
+			} else if (actual == null || actual.size() == 0) {
+				return Boolean.FALSE;
+			} else {
+				predicted = predicted.trim().toLowerCase();
+				boolean match = false;
+				if (allowOverMatches) {
+					for (String ls : snippet.getLabeledStrings()) {
+						ls = ls.toLowerCase();
+						if (ls.contains(predicted) || predicted.contains(ls)) {
+							match = true;
+							break;
+						}
+					}
+				} else {
+					if (CVUtils.containsCI(snippet.getLabeledStrings(), predicted)) {
+						match = true;
+					}
+				}
+				if (match) {
+					return Boolean.TRUE;
+				} else {
+					return Boolean.FALSE;
+				}
+			}
+		}).anyMatch((tp) -> {return tp;});
+	}
+	
+	public boolean checkForTruePositives(List<Snippet> testing, LSTriplet ls3, boolean allowOverMatches) {
+		LSExtractor lsEx = new LSExtractor(Arrays.asList(new LSTriplet[] { ls3 }));
+		return checkForTruePositives(testing, lsEx, allowOverMatches);
 	}
 
 	public static Map<LSTriplet, TripletMatches> findTripletsWithFalsePositives(

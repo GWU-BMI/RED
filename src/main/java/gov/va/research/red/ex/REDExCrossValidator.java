@@ -152,7 +152,7 @@ public class REDExCrossValidator implements CrossValidatable {
 						REDExtractor rexe = new REDExtractor();
 						score = rexe.testExtractor(testing, ex, allowOverMatches, pw);
 					}
-					LOG.info(score.getEvaluation());
+					LOG.info("\n" + score.getEvaluation());
 					testingPW.println();
 					testingPW.println(sw.toString());
 					testingPW.println();
