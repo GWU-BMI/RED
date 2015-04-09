@@ -130,10 +130,18 @@ public class SnippetRegEx {
 	 */
 	private String getRegEx() {
 		StringBuilder regex = new StringBuilder();
+		boolean isLabeled = false;
 		for (List<Token> segment : segments) {
+			if (isLabeled) {
+				regex.append("(");
+			}
 			for (Token token : segment) {
 				regex.append(token.toRegEx());
 			}
+			if (isLabeled) {
+				regex.append(")");
+			}
+			isLabeled = !isLabeled;
 		}
 		return regex.toString();
 	}
@@ -273,9 +281,11 @@ public class SnippetRegEx {
 		if (segments != null) {
 			if (segments.size() > 0) {
 				int lastSegIdx = segments.size() - 1;
-				if (segments.get(lastSegIdx) != null) {
-					if (segments.get(lastSegIdx).size() > 0) {
-						return segments.get(lastSegIdx).remove(lastSegIdx);
+				List<Token> lastSeg = segments.get(lastSegIdx);
+				if (lastSeg != null) {
+					int lastSegSize = lastSeg.size();
+					if (lastSegSize > 0) {
+						return lastSeg.remove(lastSegSize - 1);
 					}
 				}
 			}

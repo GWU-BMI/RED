@@ -75,6 +75,7 @@ public class REDExtractor {
 						Deque<SnippetRegEx> snipStack = new ArrayDeque<>();
 						snipStack.push(new SnippetRegEx(snippet));
 						sreStacks.add(snipStack);
+						break;
 					}
 				}
 			}
@@ -216,7 +217,7 @@ public class REDExtractor {
 				if (TokenType.WORD.equals(stf.getToken().getType()) || TokenType.PUNCTUATION.equals(stf.getToken().getType())) {
 					TokenFreq tf = tokenFreqs.get(stf.getToken());
 					if (tf == null) {
-						tokenFreqs.put(tf.getToken(), tf);
+						tokenFreqs.put(stf.getToken(), stf);
 					} else {
 						tf.setFreq(Integer.valueOf(tf.getFreq().intValue() + stf.getFreq().intValue()));
 					}
