@@ -76,19 +76,19 @@ public class LSTriplet {
 		StringBuilder regex = new StringBuilder();
 		if (BLS != null) {
 			for (Token t : BLS) {
-				regex.append(t.toRegex());
+				regex.append(t.toRegEx());
 			}
 		}
 		if (LS != null) {
 			regex.append("(");
 			for (Token t : LS) {
-				regex.append(t.toRegex());
+				regex.append(t.toRegEx());
 			}
 			regex.append(")");
 		}
 		if (ALS != null) {
 			for (Token t : ALS) {
-				regex.append(t.toRegex());
+				regex.append(t.toRegEx());
 			}
 		}
 		return regex.toString();

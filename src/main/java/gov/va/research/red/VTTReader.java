@@ -68,7 +68,7 @@ public class VTTReader {
 	 * @throws IOException when a problem occurs reading <code>vttFile</code>.
 	 */
 	public List<LSTriplet> extractLSTriplets(final File vttFile, final String label, final boolean convertToLowercase) throws IOException {
-		List<Snippet> snippets = extractSnippets(vttFile, label, convertToLowercase);
+		Collection<Snippet> snippets = extractSnippets(vttFile, label, convertToLowercase);
 		List<LSTriplet> ls3list = new ArrayList<>(snippets.size());
 		for (Snippet snippet : snippets) {
 			for (LabeledSegment ls : snippet.getLabeledSegments()) {
@@ -88,7 +88,7 @@ public class VTTReader {
 	 * @return Snippets containing labeled segments for the specified label.
 	 * @throws IOException when a problem occurs reading <code>vttFile</code>.
 	 */
-	public List<Snippet> extractSnippets(final File vttFile, final String includeLabel, final boolean convertToLowercase) throws IOException {
+	public Collection<Snippet> extractSnippets(final File vttFile, final String includeLabel, final boolean convertToLowercase) throws IOException {
 		Collection<String> includeLabels = new ArrayList<>(1);
 		includeLabels.add(includeLabel);
 		return extractSnippets(vttFile, includeLabels, convertToLowercase);
@@ -102,12 +102,12 @@ public class VTTReader {
 	 * @return Snippets containing labeled segments for the specified label.
 	 * @throws IOException when a problem occurs reading <code>vttFile</code>.
 	 */
-	public List<Snippet> extractSnippets(final File vttFile, final Collection<String> includeLabels, final boolean convertToLowercase)
+	public Collection<Snippet> extractSnippets(final File vttFile, final Collection<String> includeLabels, final boolean convertToLowercase)
 			throws IOException {
 		VttDocument vttDoc = read(vttFile);
 		String docText = vttDoc.GetText();
 		TreeMap<SnippetPosition, Snippet> pos2snips = findSnippetPositions(vttDoc, convertToLowercase);
-		List<Snippet> snippets = new ArrayList<>();
+		Set<Snippet> snippets = new HashSet<>();
 
 		for (Markup markup : vttDoc.GetMarkups().GetMarkups()) {
 			// Check if the markup has the requested label

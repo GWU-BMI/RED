@@ -33,6 +33,15 @@ public class Token {
 		this.type = type;
 	}
 
+	/**
+	 * Copy constructor
+	 * @param token The Token to be copied
+	 */
+	public Token(Token token) {
+		this.string = token.getString();
+		this.type = token.getType();
+	}
+
 	public String getString() {
 		return string;
 	}
@@ -67,7 +76,7 @@ public class Token {
 		return "" + (string == null ? "null" : string) + "<" + (type == null ? "null" : type.toString()) + ">";
 	}
 	
-	public String toRegex() {
+	public String toRegEx() {
 		switch (type) {
 		case REGEX: return string;
 		default: return REGEX_SPECIAL_CHARACTERS_PATTERN.matcher(string).replaceAll("\\\\$0");

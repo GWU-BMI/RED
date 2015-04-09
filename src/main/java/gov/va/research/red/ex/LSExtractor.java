@@ -4,6 +4,8 @@ import gov.va.research.red.LSTriplet;
 import gov.va.research.red.MatchedElement;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -23,11 +25,15 @@ import org.slf4j.LoggerFactory;
 public class LSExtractor implements Extractor {
 	private static final Logger LOG = LoggerFactory.getLogger(LSExtractor.class);
 	
-	private List<LSTriplet> ls3list;
+	private Collection<SnippetRegEx> snippetRegExs;
 	private Map<String, Pattern> patternCache = new ConcurrentHashMap<>();
 	
-	public LSExtractor(List<LSTriplet> ls3list){
-		this.setLSTriplets(ls3list);
+	public LSExtractor(Collection<SnippetRegEx> sreList) {
+		this.setSnippetRegExs(sreList);
+	}
+
+	public LSExtractor(SnippetRegEx snippetRegEx) {
+		this.setSnippetRegExs(Arrays.asList(new SnippetRegEx[] { snippetRegEx }));
 	}
 
 	@Override
@@ -36,13 +42,11 @@ public class LSExtractor implements Extractor {
 			return null;
 		}
 		Set<MatchedElement> returnSet = null;
-		List<LSTriplet> regExpressions = getLSTriplets();
-		if(regExpressions != null && !regExpressions.isEmpty()){
-			returnSet = regExpressions.parallelStream().map((triplet) -> {
-				String localTarget = target;
+		Collection<SnippetRegEx> snippetREs = getSnippetRegExs();
+		if(snippetREs != null && !snippetREs.isEmpty()){
+			returnSet = snippetREs.parallelStream().map((sre) -> {
 				Set<MatchedElement> matchedElements = new HashSet<>();
-				Pattern pattern = Pattern.compile(triplet.toStringRegEx(), Pattern.CASE_INSENSITIVE);
-				Matcher matcher = pattern.matcher(target);
+				Matcher matcher = sre.getPattern().matcher(target);
 				boolean test = matcher.find();
 				if(test){
 					String candidateLS = matcher.group(1);
@@ -69,18 +73,11 @@ public class LSExtractor implements Extractor {
 		if(target == null || target.equals("")) {
 			return null;
 		}
-		List<LSTriplet> regExpressions = getLSTriplets();
-		if(regExpressions != null && !regExpressions.isEmpty()){
-			Optional<MatchedElement> matchedElement = regExpressions.parallelStream().map((triplet) -> {
+		Collection<SnippetRegEx> snippetREs = getSnippetRegExs();
+		if(snippetREs != null && !snippetREs.isEmpty()){
+			Optional<MatchedElement> matchedElement = snippetREs.parallelStream().map((sre) -> {
 				Set<MatchedElement> matchedElements = new HashSet<>();
-				Pattern pattern = null;
-				try {
-					pattern = Pattern.compile(triplet.toStringRegEx(), Pattern.CASE_INSENSITIVE);
-				} catch (Exception e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-				Matcher matcher = pattern.matcher(target);
+				Matcher matcher = sre.getPattern().matcher(target);
 				boolean test = matcher.find();
 				if(test) {
 					String candidateLS = matcher.group(1);
@@ -97,12 +94,12 @@ public class LSExtractor implements Extractor {
 		return null;
 	}
 	
-	public List<LSTriplet> getLSTriplets() {
-		return ls3list;
+	public Collection<SnippetRegEx> getSnippetRegExs() {
+		return snippetRegExs;
 	}
 
-	public void setLSTriplets(List<LSTriplet> regExpressions) {
-		this.ls3list = regExpressions;
+	public void setSnippetRegExs(Collection<SnippetRegEx> snippetRegExs) {
+		this.snippetRegExs = snippetRegExs;
 	}
 
 }

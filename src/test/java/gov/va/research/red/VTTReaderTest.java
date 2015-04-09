@@ -101,7 +101,7 @@ public class VTTReaderTest {
 		VTTReader vttr = new VTTReader();
 		File vttFile = new File(TEST_VTT_URI);
 
-		List<Snippet> snippets = null;
+		Collection<Snippet> snippets = null;
 		try {
 			snippets = vttr.extractSnippets(vttFile, "weight", true);
 		} catch (IOException e) {

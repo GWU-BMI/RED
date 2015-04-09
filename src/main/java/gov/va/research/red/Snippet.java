@@ -2,6 +2,7 @@ package gov.va.research.red;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 public class Snippet {
@@ -12,6 +13,18 @@ public class Snippet {
 	public Snippet(final String text, final Collection<LabeledSegment> labeledSegments) {
 		this.text = text;
 		this.labeledSegments = labeledSegments;
+	}
+
+	/**
+	 * Copy constructor.
+	 * @param snippet The Snippet to copy.
+	 */
+	public Snippet(Snippet snippet) {
+		this.text = snippet.getText();
+		this.labeledSegments = new ArrayList<LabeledSegment>(snippet.getLabeledSegments().size());
+		for (LabeledSegment ls : snippet.getLabeledSegments()) {
+			this.labeledSegments.add(new LabeledSegment(ls));
+		}
 	}
 
 	public String getText() {

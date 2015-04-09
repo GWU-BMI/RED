@@ -3,7 +3,6 @@ package gov.va.research.red.ex;
 import gov.va.research.red.CVScore;
 import gov.va.research.red.CVUtils;
 import gov.va.research.red.CrossValidatable;
-import gov.va.research.red.LSTriplet;
 import gov.va.research.red.LabeledSegment;
 import gov.va.research.red.Snippet;
 import gov.va.research.red.VTTReader;
@@ -188,7 +187,7 @@ public class REDExCrossValidator implements CrossValidatable {
 	 */
 	private LSExtractor trainExtractor(Collection<String> labels, List<Snippet> training, boolean allowOverMatches, PrintWriter pw) throws IOException {
 		REDExtractor rexe = new REDExtractor();
-		List<LSTriplet> trained = rexe.discoverRegularExpressions(training, labels, allowOverMatches, null);
+		List<SnippetRegEx> trained = rexe.discoverRegularExpressions(training, labels, allowOverMatches, null);
 		if (pw != null) {
 			List<Snippet> labelled = new ArrayList<>();
 			List<Snippet> unlabelled = new ArrayList<>();
@@ -219,8 +218,8 @@ public class REDExCrossValidator implements CrossValidatable {
 			}
 			pw.println();
 			pw.println("--- Trained Regexes:");
-			for (LSTriplet trainedTriplet : trained) {
-				pw.println(trainedTriplet.toStringRegEx());
+			for (SnippetRegEx trainedSre : trained) {
+				pw.println(trainedSre.toString());
 				pw.println("----------");
 			}
 		}

@@ -31,6 +31,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 import org.junit.After;
@@ -92,11 +93,10 @@ public class REDExtractorTest {
 	@Test
 	public void testExtractRegexExpressions() {
 		VTTReader vttr = new VTTReader();
-		List<LSTriplet> regExpList = null;
 		REDExtractor regExt = new REDExtractor();
 		try {
-			List<Snippet> snippets = vttr.extractSnippets(new File(TEST_VTT_URI), "weight", true);
-			regExpList = regExt.discoverRegularExpressions(snippets, "weight", true, "test-snippets.txt");
+			Collection<Snippet> snippets = vttr.extractSnippets(new File(TEST_VTT_URI), "weight", true);
+			regExt.discoverRegularExpressions(snippets, "weight", true, "test-snippets.txt");
 		} catch (IOException e) {
 			throw new AssertionError("Failed extract 'weight' labeled regular expressions from VTT file: " + TEST_VTT_URI, e);
 		}
@@ -119,7 +119,7 @@ public class REDExtractorTest {
 	}
 
 	/**
-	 * Test method for {@link gov.va.research.red.ex.REDExtractor#replaceWhiteSpaces(java.util.List)}.
+	 * Test method for {@link gov.va.research.red.ex.REDExtractor#replaceWhiteSpace(java.util.List)}.
 	 */
 	@Test
 	public void testReplaceWhiteSpaces() {
@@ -138,12 +138,12 @@ public class REDExtractorTest {
 		File vttFile = new File(TEST_VTT_URI);
 		snippets.addAll(vttr.extractSnippets(vttFile, "weight", true));
 		REDExtractor regExt = new REDExtractor();
-		List<LSTriplet> regExLSTriplets = regExt.discoverRegularExpressions(snippets, "weight", true, null);
+		List<SnippetRegEx> snippetRegExs = regExt.discoverRegularExpressions(snippets, "weight", true, null);
 		List<RegEx> yesRegExs = null;
-		if(regExLSTriplets != null) {
+		if(snippetRegExs != null) {
 			yesRegExs = new ArrayList<RegEx>();
-			for(LSTriplet triplet : regExLSTriplets) {
-				yesRegExs.add(new RegEx(triplet.toStringRegEx()));
+			for(SnippetRegEx snippetRegEx : snippetRegExs) {
+				yesRegExs.add(new RegEx(snippetRegEx.toString()));
 			}
 		}
 		List<RegEx> noRegExs = null;
