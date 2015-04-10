@@ -1,5 +1,6 @@
 package gov.va.research.red.ex;
 
+import gov.va.research.red.CVResult;
 import gov.va.research.red.CVScore;
 import gov.va.research.red.ex.REDExCrossValidator;
 
@@ -57,17 +58,17 @@ public class REDExCrossValidatorTest {
 			Assert.assertNotNull(vttFile);
 			Assert.assertTrue(vttFile.exists());
 			REDExCrossValidator rexcv = new REDExCrossValidator();
-			List<CVScore> results = rexcv.crossValidate(Arrays.asList(new File[] { vttFile }), "weight", 10);
+			List<CVResult> results = rexcv.crossValidate(Arrays.asList(new File[] { vttFile }), "weight", 10);
 			int i = 0;
-			for (CVScore score : results) {
+			for (CVResult result : results) {
 				LOG.info("--- Run " + (i++) + " ---");
-				LOG.info(score.getEvaluation());
+				LOG.info(result.getScore().getEvaluation());
 			}
 			LOG.info("--- Aggregate ---");
-			CVScore aggregate = CVScore.aggregate(results);
-			LOG.info(aggregate.getEvaluation());
+			CVResult aggregate = CVResult.aggregate(results);
+			LOG.info(aggregate.getScore().getEvaluation());
 			
-			Assert.assertTrue("Accuracy is very bad", aggregate.calcAccuracy() > 0.25f);
+			Assert.assertTrue("Accuracy is very bad", aggregate.getScore().calcAccuracy() > 0.25f);
 
 		} catch (IOException e) {
 			throw new AssertionError("Cross validation failed.", e);
