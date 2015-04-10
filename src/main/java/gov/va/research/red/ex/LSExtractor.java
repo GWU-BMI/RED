@@ -1,23 +1,17 @@
 package gov.va.research.red.ex;
 
-import gov.va.research.red.LSTriplet;
 import gov.va.research.red.MatchedElement;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ForkJoinPool;
 import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,7 +20,6 @@ public class LSExtractor implements Extractor {
 	private static final Logger LOG = LoggerFactory.getLogger(LSExtractor.class);
 	
 	private Collection<SnippetRegEx> snippetRegExs;
-	private Map<String, Pattern> patternCache = new ConcurrentHashMap<>();
 	
 	public LSExtractor(Collection<SnippetRegEx> sreList) {
 		this.setSnippetRegExs(sreList);
@@ -100,6 +93,14 @@ public class LSExtractor implements Extractor {
 
 	public void setSnippetRegExs(Collection<SnippetRegEx> snippetRegExs) {
 		this.snippetRegExs = snippetRegExs;
+	}
+	
+	public List<String> getRegularExpressions() {
+		List<String> regexs = new ArrayList<>(snippetRegExs.size());
+		for (SnippetRegEx sre : this.snippetRegExs) {
+			regexs.add(sre.toString());
+		}
+		return regexs;
 	}
 
 }

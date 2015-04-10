@@ -1,5 +1,6 @@
 package gov.va.research.red.ex;
 
+import gov.va.research.red.CVResult;
 import gov.va.research.red.CVScore;
 import gov.va.research.red.CVUtils;
 import gov.va.research.red.CrossValidatable;
@@ -9,6 +10,7 @@ import gov.va.research.red.VTTReader;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -49,19 +51,30 @@ public class REDExCrossValidator implements CrossValidatable {
 			Boolean stopAfterFirstFold = conf.getBoolean("stopAfterFirstFold", Boolean.FALSE);
 			
 			REDExCrossValidator rexcv = new REDExCrossValidator();
-			List<CVScore> results = rexcv.crossValidate(vttfiles, labels, folds, allowOvermatches, convertToLowercase, stopAfterFirstFold.booleanValue());
+			List<CVResult> results = rexcv.crossValidate(vttfiles, labels, folds, allowOvermatches, convertToLowercase, stopAfterFirstFold.booleanValue());
 			
 			// Display results
 			int i = 0;
-			for (CVScore s : results) {
+			for (CVResult s : results) {
 				if (s != null) {
 					LOG.info("--- Run " + (i++) + " ---");
-					LOG.info(s.getEvaluation());
+					LOG.info(s.getScore().getEvaluation());
 				}
 			}
 			LOG.info("--- Aggregate ---");
-			LOG.info(CVScore.aggregate(results).getEvaluation());
-
+			CVResult aggregate = CVResult.aggregate(results);
+			LOG.info(aggregate.getScore().getEvaluation());
+			
+			String regexOutputFile = conf.getString("regex.output.file");
+			if (regexOutputFile != null) {
+				try (FileWriter fw = new FileWriter(regexOutputFile)) {
+					try (PrintWriter pw = new PrintWriter(fw)) {
+						for (String regex : aggregate.getRegExes()) {
+							pw.println(regex);
+						}
+					}
+				}
+			}
 		}
 	}
 
@@ -70,12 +83,12 @@ public class REDExCrossValidator implements CrossValidatable {
 	 * @see gov.va.research.red.CrossValidatable#crossValidate(java.util.List, java.lang.String, int)
 	 */
 	@Override
-	public List<CVScore> crossValidate(List<File> vttFiles, String label, int folds)
+	public List<CVResult> crossValidate(List<File> vttFiles, String label, int folds)
 			throws IOException {
 		return crossValidate(vttFiles, label, folds, true, true, false);
 	}
 	
-	List<CVScore> crossValidate(List<File> vttFiles, String label, int folds, boolean allowOvermatches, boolean convertToLowercase, boolean stopAfterFirstFold)
+	List<CVResult> crossValidate(List<File> vttFiles, String label, int folds, boolean allowOvermatches, boolean convertToLowercase, boolean stopAfterFirstFold)
 				throws IOException {
 		Collection<String> labels = new ArrayList<>(1);
 		labels.add(label);
@@ -98,7 +111,7 @@ public class REDExCrossValidator implements CrossValidatable {
 	 * @throws IOException
 	 * @throws FileNotFoundException
 	 */
-	List<CVScore> crossValidate(List<File> vttFiles, Collection<String> labels, int folds,
+	List<CVResult> crossValidate(List<File> vttFiles, Collection<String> labels, int folds,
 			boolean allowOverMatches, boolean convertToLowercase, boolean stopAfterFirstFold) throws IOException,
 			FileNotFoundException {
 		VTTReader vttr = new VTTReader();
@@ -116,12 +129,13 @@ public class REDExCrossValidator implements CrossValidatable {
 		List<List<Snippet>> partitions = CVUtils.partitionSnippets(folds, snippets);
 
 		// Run evaluations, "folds" number of times, alternating which partition is being used for testing.
-		List<CVScore> results = new ArrayList<>(folds);
+		List<CVResult> results = new ArrayList<>(folds);
 		try (PrintWriter testingPW = new PrintWriter(new File("testing.txt"));
 			 PrintWriter trainingPW = new PrintWriter(new File("training.txt"))	) {
 			AtomicInteger fold = new AtomicInteger(0);
 			for (List<Snippet> partition : partitions) {
 				CVScore score = null;
+				List<String> regExes = null;
 				try (StringWriter sw = new StringWriter()) {
 					try (PrintWriter pw = new PrintWriter(sw)) {
 						int newFold = fold.addAndGet(1);
@@ -140,7 +154,7 @@ public class REDExCrossValidator implements CrossValidatable {
 						}
 			
 						// Train
-						LSExtractor ex;
+						LSExtractor ex = null;
 						try {
 							ex = trainExtractor(labels, training, allowOverMatches, trainingPW);
 						} catch (Exception e) {
@@ -150,6 +164,7 @@ public class REDExCrossValidator implements CrossValidatable {
 						// Test
 						REDExtractor rexe = new REDExtractor();
 						score = rexe.testExtractor(testing, ex, allowOverMatches, pw);
+						regExes = ex.getRegularExpressions();
 					}
 					LOG.info("\n" + score.getEvaluation());
 					testingPW.println();
@@ -160,7 +175,7 @@ public class REDExCrossValidator implements CrossValidatable {
 				} catch (IOException e) {
 					throw new RuntimeException(e);
 				}
-				results.add(score);
+				results.add(new CVResult(score, regExes));
 			};
 		}
 		return results;
