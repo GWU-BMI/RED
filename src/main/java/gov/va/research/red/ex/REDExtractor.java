@@ -240,10 +240,10 @@ public class REDExtractor {
 						if (newUlsToken.equals(token)) {
 							boolean changed = false;
 							if (TokenType.WORD.equals(newUlsToken.getType())) {
-								newUlsIt.set(new Token("\\S{1," + Math.round(newUlsToken.getString().length() * 1.2) + "}", TokenType.REGEX));
+								newUlsIt.set(new Token("\\S{1," + (Math.round(newUlsToken.getString().length() * 1.2) + 1) + "}", TokenType.REGEX));
 								changed = true;
 							} else if (TokenType.PUNCTUATION.equals(newUlsToken.getType())) {
-								newUlsIt.set(new Token("\\p{Punct}{1," + Math.round(newUlsToken.getString().length() * 1.2) + "}", TokenType.REGEX));
+								newUlsIt.set(new Token("\\p{Punct}{1," + (Math.round(newUlsToken.getString().length() * 1.2) + 1) + "}", TokenType.REGEX));
 								changed = true;
 							}
 							if (changed) {
@@ -271,8 +271,8 @@ public class REDExtractor {
 	 * @throws IOException 
 	 */
 	private void outputRegexHistory(List<Deque<SnippetRegEx>> snippetRegExStacks) throws IOException {
-		try (FileWriter fw = new FileWriter("regex-history-" + System.currentTimeMillis() + ".txt")) {
-			try (PrintWriter pw = new PrintWriter(fw)) {
+		try (StringWriter sw = new StringWriter()) {
+			try (PrintWriter pw = new PrintWriter(sw)) {
 				pw.println();
 				for (Deque<SnippetRegEx> snippetRegExStack : snippetRegExStacks) {
 					pw.println("---------- GS ----------");
@@ -282,6 +282,7 @@ public class REDExtractor {
 					}
 				}
 			}
+			LOG.debug("Regex History:\n" + sw.toString());
 		}
 	}
 
