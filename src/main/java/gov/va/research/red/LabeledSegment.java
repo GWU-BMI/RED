@@ -13,6 +13,17 @@ public class LabeledSegment {
 		this.length = length;
 	}
 	
+	/**
+	 * Copy constructor
+	 * @param ls The LabeledSegment to copy.
+	 */
+	public LabeledSegment(LabeledSegment ls) {
+		this.label = ls.getLabel();
+		this.labeledString = ls.getLabeledString();
+		this.start = ls.getStart();
+		this.length = ls.getLength();
+	}
+
 	public String getLabel() {
 		return label;
 	}

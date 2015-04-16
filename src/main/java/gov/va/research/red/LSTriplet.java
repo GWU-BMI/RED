@@ -16,8 +16,12 @@
  */
 package gov.va.research.red;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
-
+import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Value Class for storing Labeled Segments and the surrounding textual context
@@ -25,85 +29,106 @@ import java.util.Comparator;
 public class LSTriplet {
 
 	// labeled segment
-	private String LS;
+	private List<Token> LS;
 	// before labeled segment
-	private String BLS;
+	private List<Token> BLS;
 	// after labeled segment
-	private String ALS;
-	
+	private List<Token> ALS;
+
 	private double sensitivity = 0.0;
-	
-	public LSTriplet(String BLS, String LS, String ALS) {
-		this.BLS = BLS;
-		this.LS = LS;
-		this.ALS = ALS;
-	}
-	
-	public LSTriplet(String triplet) {
-		String[] elem = triplet.split(" ");
-		this.BLS = elem[0];
-		this.LS = elem[1];
-		if(elem.length == 3)
-			this.ALS = elem[2];
+
+	public LSTriplet(List<Token> BLS, List<Token> LS, List<Token> ALS) {
+		this.BLS = new ArrayList<>(BLS);
+		this.LS = new ArrayList<>(LS);
+		this.ALS = new ArrayList<>(ALS);
 	}
 
-	/* (non-Javadoc)
+	public LSTriplet(LSTriplet ls3) {
+		this.BLS = new ArrayList<>(ls3.BLS);
+		this.LS = new ArrayList<>(ls3.LS);
+		this.ALS = new ArrayList<>(ls3.ALS);
+	}
+
+	public LSTriplet(String BLS, String LS, String ALS) {
+		this.BLS = BLS == null ? null : Tokenizer.tokenize(BLS);
+		this.LS = LS == null ? null : Tokenizer.tokenize(LS);
+		this.ALS = ALS == null ? null : Tokenizer.tokenize(ALS);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see java.lang.Object#toString()
 	 */
 	@Override
 	public String toString() {
-		return toStringRegEx();//"" + BLS + " " + LS  + " " + ALS;
+		return String.join(",", (BLS == null ? "null" : BLS.toString()), (LS == null ? "null" : LS.toString()), (ALS == null ? "null" : ALS.toString()));
 	}
-	
+
 	/**
-	 * to be used only when the triplets contain regular expressions
-	 * instead of snippets. Joins the regular expressions contained
-	 * in the BLS, LS and ALS into a single string.
+	 * to be used only when the triplets contain regular expressions instead of
+	 * snippets. Joins the regular expressions contained in the BLS, LS and ALS
+	 * into a single string.
+	 * 
 	 * @return A regex representation of the LSTriplet
 	 */
-	public String toStringRegEx(){
-		return "" + BLS + "(" + LS  + ")" + ALS;
+	public String toStringRegEx() {
+		StringBuilder regex = new StringBuilder();
+		if (BLS != null) {
+			for (Token t : BLS) {
+				regex.append(t.toRegEx());
+			}
+		}
+		if (LS != null) {
+			regex.append("(");
+			for (Token t : LS) {
+				regex.append(t.toRegEx());
+			}
+			regex.append(")");
+		}
+		if (ALS != null) {
+			for (Token t : ALS) {
+				regex.append(t.toRegEx());
+			}
+		}
+		return regex.toString();
 	}
 
-	/////
+	// ///
 	// Getters and Setters
 
-	public String getBLS() {
+	public List<Token> getBLS() {
 		return BLS;
 	}
 
-	public void setBLS(String BLS) {
-		this.BLS = BLS;
+	public void setBLS(List<Token> BLS) {
+		this.BLS = new ArrayList<>(BLS);
 	}
 
-	public String getLS() {
+	public List<Token> getLS() {
 		return LS;
 	}
 
-	public void setLS(String LS) {
-		this.LS = LS;
+	public void setLS(List<Token> LS) {
+		this.LS = new ArrayList<>(LS);
 	}
 
-	public String getALS() {
+	public List<Token> getALS() {
 		return ALS;
 	}
 
-	public void setALS(String ALS) {
-		this.ALS = ALS;
+	public void setALS(List<Token> ALS) {
+		this.ALS = new ArrayList<>(ALS);
 	}
-	
-	public static LSTriplet valueOf(final String snippetText, final LabeledSegment labeledSegment) {
-		String bls = null;
-		try {
-			bls = snippetText.substring(0, labeledSegment.getStart());
-		} catch (Exception e) {
-			// probably java.lang.StringIndexOutOfBoundsException from a bad annotation
-			e.printStackTrace();
-		}
-		String ls = labeledSegment.getLabeledString();
-		String als = snippetText.substring(labeledSegment.getStart() + labeledSegment.getLength());
 
-		LSTriplet ls3 = new LSTriplet((bls == null ? null : bls), ls, (als == null ? null : als));
+	public static LSTriplet valueOf(final String snippetText,
+			final LabeledSegment labeledSegment) {
+		String bls = snippetText.substring(0, labeledSegment.getStart());
+		String ls = labeledSegment.getLabeledString();
+		String als = snippetText.substring(labeledSegment.getStart()
+				+ labeledSegment.getLength());
+
+		LSTriplet ls3 = new LSTriplet(bls, ls, als);
 		return ls3;
 	}
 
@@ -132,14 +157,12 @@ public class LSTriplet {
 		if (!(obj instanceof LSTriplet)) {
 			return false;
 		}
-		LSTriplet t = (LSTriplet)obj;
+		LSTriplet t = (LSTriplet) obj;
 		return (BLS == t.BLS || (BLS != null && BLS.equals(t.BLS)))
-				&&
-				(LS == t.LS || (LS != null && LS.equals(t.LS)))
-				&&
-				(ALS == t.ALS || (ALS != null && ALS.equals(t.ALS)));
+				&& (LS == t.LS || (LS != null && LS.equals(t.LS)))
+				&& (ALS == t.ALS || (ALS != null && ALS.equals(t.ALS)));
 	}
-	
+
 	public static class IgnoreCaseComparator implements Comparator<LSTriplet> {
 		/*
 		 * (non-Javadoc)

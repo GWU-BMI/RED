@@ -16,16 +16,10 @@
  */
 package gov.va.research.red;
 
-import gov.va.research.red.LSTriplet;
-import gov.va.research.red.LabeledSegment;
-import gov.va.research.red.Snippet;
-import gov.va.research.red.VTTReader;
-
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
@@ -91,7 +85,7 @@ public class VTTReaderTest {
 		VTTReader vttr = new VTTReader();
 		List<LSTriplet> ls3List = null;
 		try {
-			ls3List = vttr.extractLSTriplets(new File(TEST_VTT_URI), "weight");
+			ls3List = vttr.extractLSTriplets(new File(TEST_VTT_URI), "weight", true);
 		} catch (IOException e) {
 			throw new AssertionError("Failed extract 'weight' labeled segment triplets from VTT file: " + TEST_VTT_URI, e);
 		}
@@ -107,9 +101,9 @@ public class VTTReaderTest {
 		VTTReader vttr = new VTTReader();
 		File vttFile = new File(TEST_VTT_URI);
 
-		List<Snippet> snippets = null;
+		Collection<Snippet> snippets = null;
 		try {
-			snippets = vttr.extractSnippets(vttFile, "weight");
+			snippets = vttr.extractSnippets(vttFile, "weight", true);
 		} catch (IOException e) {
 			throw new AssertionError("Failed extract 'weight' labeled segment snippets from VTT file: " + vttFile, e);
 		}
@@ -174,7 +168,7 @@ public class VTTReaderTest {
 
 		Collection<Snippet> snippets = null;
 		try {
-			snippets = vttr.extractSnippets(vttFile);
+			snippets = vttr.extractSnippets(vttFile, true);
 		} catch (IOException e) {
 			throw new AssertionError("Failed extract snippets from VTT file: " + vttFile, e);
 		}

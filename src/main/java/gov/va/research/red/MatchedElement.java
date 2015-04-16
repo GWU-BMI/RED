@@ -64,4 +64,11 @@ public class MatchedElement {
 	public void setMatch(String match) {
 		this.match = match;
 	}
+
+	@Override
+	public String toString() {
+		return "" + startPos + "|" + (match == null ? "null" : match) + "|" + endPos;
+	}
+	
+	
 }

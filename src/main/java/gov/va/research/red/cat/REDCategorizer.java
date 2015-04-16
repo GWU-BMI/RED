@@ -55,7 +55,7 @@ public class REDCategorizer {
 		VTTReader vttr = new VTTReader();
 		List<Snippet> snippetsYes = new ArrayList<>();
 		for (String yesLabel : yesLabels) {
-			snippetsYes.addAll(vttr.extractSnippets(vttFile, yesLabel));
+			snippetsYes.addAll(vttr.extractSnippets(vttFile, yesLabel, true));
 		}
 		//check if there is a labeled segment starting with "MPRESSION" (missing "I" from "IMPRESSION")
 		/*for (Snippet s: snippetsYes) {
@@ -67,10 +67,10 @@ public class REDCategorizer {
 		}*/
 		List<Snippet> snippetsNo = new ArrayList<>();
 		for (String noLabel : noLabels) {
-			snippetsNo.addAll(vttr.extractSnippets(vttFile, noLabel));
+			snippetsNo.addAll(vttr.extractSnippets(vttFile, noLabel, true));
 		}
 		List<Snippet> snippetsNoLabel = new ArrayList<Snippet>();
-		snippetsNoLabel.addAll(vttr.extractSnippets(vttFile));
+		snippetsNoLabel.addAll(vttr.extractSnippets(vttFile, true));
 		System.out.println("snippetsYes.size = "+snippetsYes.size());
 		System.out.println("snippetsNo.size = "+snippetsNo.size());
 		System.out.println("snippetsNoLabel.size = "+snippetsNoLabel.size());

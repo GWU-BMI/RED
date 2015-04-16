@@ -21,7 +21,6 @@ import gov.va.research.red.RegEx;
 import gov.va.research.red.Snippet;
 import gov.va.research.red.VTTReader;
 import gov.va.research.red.VTTReaderTest;
-import gov.va.research.red.ex.REDExCrossValidator;
 
 import java.io.File;
 import java.io.IOException;
@@ -143,7 +142,7 @@ public class RegExCategorizerTest {
 		List<Snippet> snippets = new ArrayList<Snippet>();
 		VTTReader vttr = new VTTReader();
 		File vttFile = new File(CLASSIFIER_TEST_URI);
-		snippets.addAll(vttr.extractSnippets(vttFile, ""));
+		snippets.addAll(vttr.extractSnippets(vttFile, "", true));
 		REDCategorizer regExCategorizer = new REDCategorizer();
 		regExCategorizer.findRegexesAndOutputResults(vttFile, yesLabels, noLabels);
 	}
