@@ -57,13 +57,11 @@ public class REDExCrossValidator implements CrossValidatable {
 			int i = 0;
 			for (CVResult s : results) {
 				if (s != null) {
-					LOG.info("--- Run " + (i++) + " ---");
-					LOG.info(s.getScore().getEvaluation());
+					LOG.info("\n--- Run " + (i++) + " ---\n" + s.getScore().getEvaluation());
 				}
 			}
-			LOG.info("--- Aggregate ---");
 			CVResult aggregate = CVResult.aggregate(results);
-			LOG.info(aggregate.getScore().getEvaluation());
+			LOG.info("\n--- Aggregate ---\n" + aggregate.getScore().getEvaluation());
 			
 			String regexOutputFile = conf.getString("regex.output.file");
 			if (regexOutputFile != null) {
