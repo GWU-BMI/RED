@@ -53,16 +53,18 @@ public class SnippetRegEx {
 	 * Snippet constructor
 	 * @param snippet The Snippet to use for the construction.
 	 */
-	public SnippetRegEx(Snippet snippet) {
+	public SnippetRegEx(Snippet snippet, String label) {
 		segments = new ArrayList<List<Token>>(snippet.getLabeledSegments().size() + 1);
 		int prevEnd = 0;
 		for (LabeledSegment ls : snippet.getLabeledSegments()) {
-			String segmentStr = snippet.getText().substring(prevEnd, ls.getStart());
-			List<Token> segment = Tokenizer.tokenize(segmentStr);
-			segments.add(segment);
-			List<Token> labeledSegment = Tokenizer.tokenize(ls.getLabeledString());
-			segments.add(labeledSegment);
-			prevEnd = ls.getStart() + ls.getLength();
+			if (label.equalsIgnoreCase(ls.getLabel())) {
+				String segmentStr = snippet.getText().substring(prevEnd, ls.getStart());
+				List<Token> segment = Tokenizer.tokenize(segmentStr);
+				segments.add(segment);
+				List<Token> labeledSegment = Tokenizer.tokenize(ls.getLabeledString());
+				segments.add(labeledSegment);
+				prevEnd = ls.getStart() + ls.getLength();
+			}
 		}
 		String segmentStr = snippet.getText().substring(prevEnd);
 		List<Token> segment = Tokenizer.tokenize(segmentStr);

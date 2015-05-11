@@ -67,15 +67,35 @@ public class REDExtractor {
 	public List<SnippetRegEx> discoverRegularExpressions(
 			final Collection<Snippet> snippets, final Collection<String> labels,
 			final boolean allowOverMatches, final String outputFileName) throws IOException {
+		List<Snippet> snippetList = null;
+		if (snippets instanceof List) {
+			snippetList = (List<Snippet>)snippets;
+		} else {
+			snippetList = new ArrayList<>(snippets);
+		}
+		ListIterator<Snippet> snipIt = snippetList.listIterator();
+		while(snipIt.hasNext()) {
+			Snippet snippet = snipIt.next();
+			for (LabeledSegment ls : snippet.getLabeledSegments()) {
+				if (CVUtils.containsCI(labels, ls.getLabel())) {
+					for (LabeledSegment ols : snippet.getLabeledSegments()) {
+						if (ls != ols && ls.overlaps(ols)) {
+							System.out.print("overlapping labeled segments: '" + ls.getLabeledString() + "' and '" + ols.getLabeledString() + "'");
+							System.out.println();
+						}
+					}
+				}
+			}
+		}
 		List<Deque<SnippetRegEx>> sreStacks = new ArrayList<>(snippets.size());
 		for (Snippet snippet : snippets) {
 			if (snippet.getLabeledSegments() != null) {
+				Collection<String> processedLabels = new ArrayList<>();
 				for (LabeledSegment ls : snippet.getLabeledSegments()) {
-					if (CVUtils.containsCI(labels, ls.getLabel())) {
+					if (CVUtils.containsCI(labels, ls.getLabel()) && !processedLabels.contains(ls.getLabel())) {
 						Deque<SnippetRegEx> snipStack = new ArrayDeque<>();
-						snipStack.push(new SnippetRegEx(snippet));
+						snipStack.push(new SnippetRegEx(snippet, ls.getLabel()));
 						sreStacks.add(snipStack);
-						break;
 					}
 				}
 			}

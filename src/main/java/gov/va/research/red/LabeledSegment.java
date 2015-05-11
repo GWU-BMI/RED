@@ -78,5 +78,19 @@ public class LabeledSegment {
 				&&
 				(length == ls.length);
 	}
+
+	/**
+	 * Determines if a labeled segment overlaps with this one.
+	 * @param ls A labeled segment.
+	 * @return <code>true</code> if the labeled segments overlap, <code>false</code> otherwise.
+	 */
+	public boolean overlaps(LabeledSegment ls) {
+		if (ls == null) {
+			return false;
+		}
+		int thisEnd = this.start + this.length;
+		int lsEnd = ls.start + ls.length;
+		return (this.start >= ls.start && this.start <= lsEnd) || (thisEnd >= ls.start && thisEnd <= lsEnd);
+	}
 	
 }
