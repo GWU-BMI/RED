@@ -2,23 +2,18 @@ package gov.va.research.red.ex;
 
 import gov.va.research.red.CVScore;
 import gov.va.research.red.CVUtils;
-import gov.va.research.red.LSTriplet;
 import gov.va.research.red.LabeledSegment;
 import gov.va.research.red.MatchedElement;
 import gov.va.research.red.Snippet;
 import gov.va.research.red.Token;
 import gov.va.research.red.TokenType;
-import gov.va.research.red.VTTReader;
 import gov.va.research.red.ex.SnippetRegEx.TokenFreq;
 
-import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
@@ -31,7 +26,6 @@ import java.util.ListIterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
-import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
