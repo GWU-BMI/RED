@@ -20,17 +20,16 @@ import static org.junit.Assert.fail;
 import gov.va.research.red.Confidence;
 import gov.va.research.red.ConfidenceMeasurer;
 import gov.va.research.red.ConfidenceSnippet;
-import gov.va.research.red.LSTriplet;
 import gov.va.research.red.RegEx;
 import gov.va.research.red.Snippet;
 import gov.va.research.red.VTTReader;
-import gov.va.research.red.VTTReaderTest;
 
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
@@ -53,7 +52,7 @@ public class REDExtractorTest {
 	private static final String NO = "no";
 	static {
 		try {
-			TEST_VTT_URI = VTTReaderTest.class.getResource("/" + TEST_VTT_FILENAME).toURI();
+			TEST_VTT_URI = REDExtractorTest.class.getResource("/" + TEST_VTT_FILENAME).toURI();
 		} catch (URISyntaxException e) {
 			throw new RuntimeException(e);
 		}
@@ -96,7 +95,7 @@ public class REDExtractorTest {
 		REDExtractor regExt = new REDExtractor();
 		try {
 			Collection<Snippet> snippets = vttr.extractSnippets(new File(TEST_VTT_URI), "weight", true);
-			regExt.discoverRegularExpressions(snippets, "weight", true, "test-snippets.txt");
+			regExt.train(snippets, Arrays.asList(new String[] { "weight" }), true, "test");
 		} catch (IOException e) {
 			throw new AssertionError("Failed extract 'weight' labeled regular expressions from VTT file: " + TEST_VTT_URI, e);
 		}
@@ -138,7 +137,7 @@ public class REDExtractorTest {
 		File vttFile = new File(TEST_VTT_URI);
 		snippets.addAll(vttr.extractSnippets(vttFile, "weight", true));
 		REDExtractor regExt = new REDExtractor();
-		List<SnippetRegEx> snippetRegExs = regExt.discoverRegularExpressions(snippets, "weight", true, null);
+		List<SnippetRegEx> snippetRegExs = regExt.train(snippets, Arrays.asList(new String[] { "weight" }), true, "test");
 		List<RegEx> yesRegExs = null;
 		if(snippetRegExs != null) {
 			yesRegExs = new ArrayList<RegEx>();

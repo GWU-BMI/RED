@@ -3,11 +3,13 @@ package gov.va.research.red;
 public class MatchedElement {
 	private int startPos, endPos;
 	private String match;
+	private String matchingRegex;
 	
-	public MatchedElement(int startPos, int endPos, String match) {
+	public MatchedElement(int startPos, int endPos, String match, String matchingRegex) {
 		this.startPos = startPos;
 		this.endPos = endPos;
 		this.match = match;
+		this.matchingRegex = matchingRegex;
 	}
 
 	@Override
@@ -17,27 +19,42 @@ public class MatchedElement {
 		result = prime * result + endPos;
 		result = prime * result + ((match == null) ? 0 : match.hashCode());
 		result = prime * result + startPos;
+		result = prime * result  + ((matchingRegex == null) ? 0 : matchingRegex.hashCode());
 		return result;
 	}
 
 	@Override
 	public boolean equals(Object obj) {
-		if (this == obj)
+		if (this == obj) {
 			return true;
-		if (obj == null)
+		}
+		if (obj == null) {
 			return false;
-		if (getClass() != obj.getClass())
+		}
+		if (getClass() != obj.getClass()) {
 			return false;
+		}
 		MatchedElement other = (MatchedElement) obj;
-		if (endPos != other.endPos)
+		if (endPos != other.endPos) {
 			return false;
+		}
 		if (match == null) {
-			if (other.match != null)
+			if (other.match != null) {
 				return false;
-		} else if (!match.equals(other.match))
+			}
+		} else if (!match.equals(other.match)) {
+			return false;			
+		}
+		if (startPos != other.startPos) {
 			return false;
-		if (startPos != other.startPos)
+		}
+		if (matchingRegex == null) {
+			if (other.matchingRegex != null) {
+				return false;
+			}
+		} else if (!matchingRegex.equals(other.matchingRegex)) {
 			return false;
+		}
 		return true;
 	}
 	
@@ -65,9 +82,17 @@ public class MatchedElement {
 		this.match = match;
 	}
 
+	public String getMatchingRegex() {
+		return matchingRegex;
+	}
+
+	public void setMatchingRegex(String matchingRegex) {
+		this.matchingRegex = matchingRegex;
+	}
+
 	@Override
 	public String toString() {
-		return "" + startPos + "|" + (match == null ? "null" : match) + "|" + endPos;
+		return "" + startPos + "|" + (match == null ? "null" : match) + "|" + endPos + "|" + (matchingRegex == null ? "null" : matchingRegex);
 	}
 	
 	

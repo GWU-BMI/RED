@@ -47,12 +47,14 @@ public class REDExCrossValidator implements CrossValidatable {
 			}
 			int folds = conf.getInt("folds");
 			Boolean allowOvermatches = conf.getBoolean("allowOvermatches", Boolean.TRUE);
-			Boolean convertToLowercase = conf.getBoolean("convertToLowercase", Boolean.TRUE);
+			Boolean caseInsensitive = conf.getBoolean("caseInsensitive", Boolean.TRUE);
 			Boolean stopAfterFirstFold = conf.getBoolean("stopAfterFirstFold", Boolean.FALSE);
+			float fpThreshold = conf.getFloat("falsePositiveThreshold", 1f);
+			Boolean shuffle = conf.getBoolean("shuffle", Boolean.TRUE);
 			
 			REDExCrossValidator rexcv = new REDExCrossValidator();
-			List<CVResult> results = rexcv.crossValidate(vttfiles, labels, folds, allowOvermatches, convertToLowercase, stopAfterFirstFold.booleanValue());
-			
+			List<CVResult> results = rexcv.crossValidate(vttfiles, labels, folds, allowOvermatches, caseInsensitive, stopAfterFirstFold.booleanValue(), fpThreshold, shuffle);
+
 			// Display results
 			int i = 0;
 			for (CVResult s : results) {
@@ -81,47 +83,55 @@ public class REDExCrossValidator implements CrossValidatable {
 	 * @see gov.va.research.red.CrossValidatable#crossValidate(java.util.List, java.lang.String, int)
 	 */
 	@Override
-	public List<CVResult> crossValidate(List<File> vttFiles, String label, int folds)
+	public List<CVResult> crossValidate(List<File> vttFiles, String label, int folds, float fpThreshold, boolean shuffle)
 			throws IOException {
-		return crossValidate(vttFiles, label, folds, true, true, false);
+		return crossValidate(vttFiles, label, folds, true, true, false, fpThreshold, shuffle);
 	}
 	
-	List<CVResult> crossValidate(List<File> vttFiles, String label, int folds, boolean allowOvermatches, boolean convertToLowercase, boolean stopAfterFirstFold)
+	List<CVResult> crossValidate(List<File> vttFiles, String label, int folds, boolean allowOvermatches, boolean caseInsensitive, boolean stopAfterFirstFold, float fpThreshold, boolean shuffle)
 				throws IOException {
 		Collection<String> labels = new ArrayList<>(1);
 		labels.add(label);
-		return crossValidate(vttFiles, labels, folds, allowOvermatches, convertToLowercase, stopAfterFirstFold);
+		return crossValidate(vttFiles, labels, folds, allowOvermatches, caseInsensitive, stopAfterFirstFold, fpThreshold, shuffle);
 	}
 
 	/**
-	 * @param vttFiles
-	 * @param label
-	 * @param folds
+	 * @param vttFiles List of vtt files for training/testing.
+	 * @param labels The labels to train on. All labels in this list are treated as equivalent. Labels not in this list are ignored.
+	 * @param folds Number of folds in the cross validation.
 	 * @param allowOverMatches
 	 *            If <code>false</code> then predicated and actual values must
 	 *            match exactly to be counted as a true positive. If
 	 *            <code>true</code> then if the predicted and actual values
 	 *            overlap but do not match exactly, it is still counted as a
 	 *            true positive.
-	 * @param convertToLowercase If <code>true</code> then all text is converted to lowercase (in order, for example, to make case-insensitive comparisons easier)
-	 * @param stopAfterFirstFold
-	 * @return
+	 * @param caseInsensitive If <code>true</code> then all text is converted to lowercase (in order, for example, to make case-insensitive comparisons easier)
+	 * @param stopAfterFirstFold If <code>true</code> then the cross validation quits after the first fold.
+	 * @return The aggregated results of the cross validation, including scores and regular expressions.
 	 * @throws IOException
 	 * @throws FileNotFoundException
 	 */
 	List<CVResult> crossValidate(List<File> vttFiles, Collection<String> labels, int folds,
-			boolean allowOverMatches, boolean convertToLowercase, boolean stopAfterFirstFold) throws IOException,
+			boolean allowOverMatches, boolean caseInsensitive, boolean stopAfterFirstFold, float fpThreshold, boolean shuffle) throws IOException,
 			FileNotFoundException {
 		VTTReader vttr = new VTTReader();
 		// get snippets
 		List<Snippet> snippets = new ArrayList<>();
 		for (File vttFile : vttFiles) {
-			snippets.addAll(vttr.findSnippets(vttFile, labels, convertToLowercase));
+			snippets.addAll(vttr.findSnippets(vttFile, labels, caseInsensitive));
 		}
-		LOG.info("Cross validating " + snippets.size() + " snippets from " + vttFiles +  " files.");
+		LOG.info("Cross validating " + snippets.size() + " snippets from " + vttFiles +  " files.\n"
+				+ "Folds: " + folds
+				+ "\nallowOverMatches: " + allowOverMatches
+				+ "\nconvertToLowercase: " + caseInsensitive
+				+ "\nstopAfterFirstFold: " + stopAfterFirstFold
+				+ "\nfalsePositiveThreshold: " + fpThreshold
+				+ "\nshuffle: " + shuffle);
 		
 		// randomize the order of the snippets
-		Collections.shuffle(snippets);
+		if (shuffle) {
+			Collections.shuffle(snippets);
+		}
 		
 		// partition snippets into one partition per fold
 		List<List<Snippet>> partitions = CVUtils.partitionSnippets(folds, snippets);
@@ -154,14 +164,14 @@ public class REDExCrossValidator implements CrossValidatable {
 						// Train
 						LSExtractor ex = null;
 						try {
-							ex = trainExtractor(labels, training, allowOverMatches, trainingPW);
+							ex = trainExtractor(labels, training, allowOverMatches, trainingPW, "" + newFold);
 						} catch (Exception e) {
 							throw new RuntimeException(e);
 						}
 			
 						// Test
 						REDExtractor rexe = new REDExtractor();
-						score = rexe.testExtractor(testing, ex, allowOverMatches, pw);
+						score = rexe.test(testing, ex, allowOverMatches, pw);
 						regExes = ex.getRegularExpressions();
 					}
 					LOG.info("\n" + score.getEvaluation());
@@ -185,10 +195,10 @@ public class REDExCrossValidator implements CrossValidatable {
 	 * @return an extractor containing regexes discovered during training.
 	 * @throws IOException
 	 */
-	private LSExtractor trainExtractor(String label, List<Snippet> training, boolean allowOverMatches) throws IOException {
+	private LSExtractor trainExtractor(String label, List<Snippet> training, boolean allowOverMatches, float fpThreshold, String outputTag) throws IOException {
 		Collection<String> labels = new ArrayList<>(1);
 		labels.add(label);
-		return trainExtractor(labels, training, allowOverMatches, null);
+		return trainExtractor(labels, training, allowOverMatches, null, outputTag);
 	}
 
 	/**
@@ -198,9 +208,9 @@ public class REDExCrossValidator implements CrossValidatable {
 	 * @return an extractor containing regexes discovered during training.
 	 * @throws IOException
 	 */
-	private LSExtractor trainExtractor(Collection<String> labels, List<Snippet> training, boolean allowOverMatches, PrintWriter pw) throws IOException {
+	private LSExtractor trainExtractor(Collection<String> labels, List<Snippet> training, boolean allowOverMatches, PrintWriter pw, String outputTag) throws IOException {
 		REDExtractor rexe = new REDExtractor();
-		List<SnippetRegEx> trained = rexe.discoverRegularExpressions(training, labels, allowOverMatches, null);
+		List<SnippetRegEx> trained = rexe.train(training, labels, allowOverMatches, outputTag);
 		if (pw != null) {
 			List<Snippet> labelled = new ArrayList<>();
 			List<Snippet> unlabelled = new ArrayList<>();

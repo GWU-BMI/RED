@@ -45,6 +45,8 @@ public class SnippetRegEx {
 	// In this manner, all segments with an odd index will be labeled segments, and those with an even index will not be labeled segments.
 	// If there are no labeled segments, then there will be a single segment at index 0
 
+	private static final String DIGIT_TEXT = "zero|one|two|three|four|five|six|seven|eight|nine";
+	private static final Pattern DIGIT_TEXT_PATTERN = Pattern.compile(DIGIT_TEXT, Pattern.CASE_INSENSITIVE);
 	private List<List<Token>> segments;
 	private Pattern pattern;
 	private double sensitivity;
@@ -228,9 +230,63 @@ public class SnippetRegEx {
 			ListIterator<Token> lsIt = segment.listIterator();
 			while (lsIt.hasNext()) {
 				Token t = lsIt.next();
-				if (TokenType.INTEGER.equals(t.getType())) {
-					lsIt.set(new Token("\\d+", TokenType.REGEX));
+				if (TokenType.INTEGER.equals(t.getType())/* || DIGIT_TEXT_PATTERN.matcher(t.getString()).matches()*/) {
+					lsIt.set(new Token("(?:\\d+?|" + DIGIT_TEXT + ")", TokenType.REGEX));
 					changed = true;
+				}
+			}
+		}
+		return changed;
+	}
+
+	/**
+	 * Replaces all punctuation marks in the SnippetRegEx with corresponding generalized regex patterns.
+	 * @return <code>true</code> if any changes were made, <code>false</code> otherwise.
+	 */
+	public boolean replacePunct() {
+		boolean changed = false;
+		for (List<Token> segment : segments) {
+			ListIterator<Token> lsIt = segment.listIterator();
+			while (lsIt.hasNext()) {
+				Token t = lsIt.next();
+				if (TokenType.PUNCTUATION.equals(t.getType())) {
+					Token newToken = null;
+					switch (t.getString()) {
+					case "(":
+					case "[":
+					case "{":
+						newToken = new Token("[\\(\\[\\{]", TokenType.REGEX);
+						break;
+					case ")":
+					case "]":
+					case "}":
+						newToken = new Token("[\\)\\]\\}]", TokenType.REGEX);
+						break;
+					case ".":
+					case ",":
+					case ";":
+						newToken = new Token("[\\.,;]", TokenType.REGEX);
+						break;
+					case ":":
+					case "=":
+						newToken = new Token("[=:]", TokenType.REGEX);
+						break;
+					case "<":
+					case ">":
+						newToken = new Token("[<>]", TokenType.REGEX);
+						break;
+					case "\"":
+					case "'":
+					case "`":
+						newToken = new Token("[\"'`]", TokenType.REGEX);
+						break;
+					default:
+						newToken = null;
+					}
+					if (newToken != null) {
+						lsIt.set(newToken);
+						changed = true;
+					}
 				}
 			}
 		}
@@ -248,7 +304,7 @@ public class SnippetRegEx {
 			while (lsIt.hasNext()) {
 				Token t = lsIt.next();
 				if (TokenType.WHITESPACE.equals(t.getType())) {
-					lsIt.set(new Token("\\s{1," + Math.round(t.getString().length() * 1.2) + "}", TokenType.REGEX));
+					lsIt.set(new Token("\\s{1," + ((int)Math.ceil(t.getString().length() * 1.2)) + "}?", TokenType.REGEX));
 					changed = true;
 				}
 			}

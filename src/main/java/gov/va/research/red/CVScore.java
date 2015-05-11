@@ -80,12 +80,20 @@ public class CVScore {
 		this.tp = tp;
 	}
 
+	public synchronized void incrementTp() {
+		this.tp++;
+	}
+
 	public int getTn() {
 		return tn;
 	}
 
 	public void setTn(int tn) {
 		this.tn = tn;
+	}
+
+	public synchronized void incrementTn() {
+		this.tn++;
 	}
 
 	public int getFp() {
@@ -96,6 +104,10 @@ public class CVScore {
 		this.fp = fp;
 	}
 
+	public synchronized void incrementFp() {
+		this.fp++;
+	}
+
 	public int getFn() {
 		return fn;
 	}
@@ -104,14 +116,20 @@ public class CVScore {
 		this.fn = fn;
 	}
 
+	public synchronized void incrementFn() {
+		this.fn++;
+	}
+
 	public static CVScore aggregate(List<CVScore> scores) {
 		CVScore aggregate = new CVScore();
-		for (CVScore score : scores) {
-			if (score != null) {
-				aggregate.tp += score.tp;
-				aggregate.tn += score.tn;
-				aggregate.fp += score.fp;
-				aggregate.fn += score.fn;
+		synchronized(scores) {
+			for (CVScore score : scores) {
+				if (score != null) {
+					aggregate.tp += score.tp;
+					aggregate.tn += score.tn;
+					aggregate.fp += score.fp;
+					aggregate.fn += score.fn;
+				}
 			}
 		}
 		return aggregate;

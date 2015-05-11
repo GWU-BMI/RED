@@ -10,7 +10,14 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.ForkJoinTask;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 
 import org.slf4j.Logger;
@@ -29,6 +36,40 @@ public class LSExtractor implements Extractor {
 		this.setSnippetRegExs(Arrays.asList(new SnippetRegEx[] { snippetRegEx }));
 	}
 
+	class MatchFinder implements Callable<Set<MatchedElement>> {
+		SnippetRegEx sre;
+		String target;
+		
+		public MatchFinder(SnippetRegEx sre, String target) {
+			this.sre = sre;
+			this.target = target;
+		}
+		
+		public void setSnippetRegEx(SnippetRegEx sre) {
+			this.sre = sre;
+		}
+		
+		public void setTarget(String target) {
+			this.target = target;
+		}
+
+		@Override
+		public Set<MatchedElement> call() {
+			Set<MatchedElement> matchedElements = new HashSet<>();
+			//LOG.debug("Pattern: " + sre.toString());
+			Matcher matcher = sre.getPattern().matcher(target);
+			boolean test = matcher.find();
+			if(test){
+				String candidateLS = matcher.group(1);
+				if(candidateLS != null && !candidateLS.equals("")){
+					int startPos = target.indexOf(candidateLS);
+					int endPos = startPos + candidateLS.length();
+					matchedElements.add(new MatchedElement(startPos, endPos, candidateLS, sre.toString()));
+				}
+			}
+			return matchedElements;
+		}
+	}
 	@Override
 	public List<MatchedElement> extract(String target) {
 		if(target == null || target.length() == 0) {
@@ -38,18 +79,9 @@ public class LSExtractor implements Extractor {
 		Collection<SnippetRegEx> snippetREs = getSnippetRegExs();
 		if(snippetREs != null && !snippetREs.isEmpty()){
 			returnSet = snippetREs.parallelStream().map((sre) -> {
-				Set<MatchedElement> matchedElements = new HashSet<>();
-				Matcher matcher = sre.getPattern().matcher(target);
-				boolean test = matcher.find();
-				if(test){
-					String candidateLS = matcher.group(1);
-					if(candidateLS != null && !candidateLS.equals("")){
-						int startPos = target.indexOf(candidateLS);
-						int endPos = startPos + candidateLS.length();
-						matchedElements.add(new MatchedElement(startPos, endPos, candidateLS));
-					}
-				}
-				return matchedElements;
+				MatchFinder mf = new MatchFinder(sre, target);
+				Set<MatchedElement> mes = mf.call();
+				return mes;
 			}).reduce(Collections.newSetFromMap(new ConcurrentHashMap<>()), (s1, s2) -> {
 				s1.addAll(s2);
 				return s1;
@@ -77,7 +109,7 @@ public class LSExtractor implements Extractor {
 					if(candidateLS != null && !candidateLS.equals("")){
 						int startPos = target.indexOf(candidateLS);
 						int endPos = startPos + candidateLS.length();
-						matchedElements.add(new MatchedElement(startPos, endPos, candidateLS));
+						matchedElements.add(new MatchedElement(startPos, endPos, candidateLS, sre.toString()));
 					}
 				}
 				return matchedElements;
