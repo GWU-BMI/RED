@@ -87,12 +87,12 @@ public class REDExtractorTest {
 	}
 
 	/**
-	 * Test method for {@link gov.va.research.red.ex.REDExtractor#discoverRegularExpressions(java.util.List, java.lang.String, java.lang.String)}.
+	 * Test method for {@link gov.va.research.red.ex.REDExFactory#discoverRegularExpressions(java.util.List, java.lang.String, java.lang.String)}.
 	 */
 	@Test
 	public void testExtractRegexExpressions() {
 		VTTReader vttr = new VTTReader();
-		REDExtractor regExt = new REDExtractor();
+		REDExFactory regExt = new REDExFactory();
 		try {
 			Collection<Snippet> snippets = vttr.extractSnippets(new File(TEST_VTT_URI), "weight", true);
 			regExt.train(snippets, Arrays.asList(new String[] { "weight" }), true, "test");
@@ -102,7 +102,7 @@ public class REDExtractorTest {
 	}
 
 	/**
-	 * Test method for {@link gov.va.research.red.ex.REDExtractor#replaceDigitsLS(java.util.List)}.
+	 * Test method for {@link gov.va.research.red.ex.REDExFactory#replaceDigitsLS(java.util.List)}.
 	 */
 	@Test
 	public void testReplaceDigitsLS() {
@@ -110,7 +110,7 @@ public class REDExtractorTest {
 	}
 
 	/**
-	 * Test method for {@link gov.va.research.red.ex.REDExtractor#replaceDigitsBLSALS(java.util.List)}.
+	 * Test method for {@link gov.va.research.red.ex.REDExFactory#replaceDigitsBLSALS(java.util.List)}.
 	 */
 	@Test
 	public void testReplaceDigitsBLSALS() {
@@ -118,7 +118,7 @@ public class REDExtractorTest {
 	}
 
 	/**
-	 * Test method for {@link gov.va.research.red.ex.REDExtractor#replaceWhiteSpace(java.util.List)}.
+	 * Test method for {@link gov.va.research.red.ex.REDExFactory#replaceWhiteSpace(java.util.List)}.
 	 */
 	@Test
 	public void testReplaceWhiteSpaces() {
@@ -136,13 +136,16 @@ public class REDExtractorTest {
 		VTTReader vttr = new VTTReader();
 		File vttFile = new File(TEST_VTT_URI);
 		snippets.addAll(vttr.extractSnippets(vttFile, "weight", true));
-		REDExtractor regExt = new REDExtractor();
-		List<SnippetRegEx> snippetRegExs = regExt.train(snippets, Arrays.asList(new String[] { "weight" }), true, "test");
+		REDExFactory regExt = new REDExFactory();
+		REDExtractor ex = regExt.train(snippets, Arrays.asList(new String[] { "weight" }), true, "test");
+		List<Collection<SnippetRegEx>> snippetRegExs = ex.getRankedSnippetRegExs();
 		List<RegEx> yesRegExs = null;
 		if(snippetRegExs != null) {
 			yesRegExs = new ArrayList<RegEx>();
-			for(SnippetRegEx snippetRegEx : snippetRegExs) {
-				yesRegExs.add(new RegEx(snippetRegEx.toString()));
+			for (Collection<SnippetRegEx> sres : ex.getRankedSnippetRegExs()) {
+				for(SnippetRegEx snippetRegEx : sres) {
+					yesRegExs.add(new RegEx(snippetRegEx.toString()));
+				}
 			}
 		}
 		List<RegEx> noRegExs = null;

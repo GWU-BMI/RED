@@ -49,11 +49,10 @@ public class REDExCrossValidator implements CrossValidatable {
 			Boolean allowOvermatches = conf.getBoolean("allowOvermatches", Boolean.TRUE);
 			Boolean caseInsensitive = conf.getBoolean("caseInsensitive", Boolean.TRUE);
 			Boolean stopAfterFirstFold = conf.getBoolean("stopAfterFirstFold", Boolean.FALSE);
-			float fpThreshold = conf.getFloat("falsePositiveThreshold", 1f);
 			Boolean shuffle = conf.getBoolean("shuffle", Boolean.TRUE);
 			
 			REDExCrossValidator rexcv = new REDExCrossValidator();
-			List<CVResult> results = rexcv.crossValidate(vttfiles, labels, folds, allowOvermatches, caseInsensitive, stopAfterFirstFold.booleanValue(), fpThreshold, shuffle);
+			List<CVResult> results = rexcv.crossValidate(vttfiles, labels, folds, allowOvermatches, caseInsensitive, stopAfterFirstFold.booleanValue(), shuffle);
 
 			// Display results
 			int i = 0;
@@ -83,16 +82,16 @@ public class REDExCrossValidator implements CrossValidatable {
 	 * @see gov.va.research.red.CrossValidatable#crossValidate(java.util.List, java.lang.String, int)
 	 */
 	@Override
-	public List<CVResult> crossValidate(List<File> vttFiles, String label, int folds, float fpThreshold, boolean shuffle)
+	public List<CVResult> crossValidate(List<File> vttFiles, String label, int folds, boolean shuffle)
 			throws IOException {
-		return crossValidate(vttFiles, label, folds, true, true, false, fpThreshold, shuffle);
+		return crossValidate(vttFiles, label, folds, true, true, false,shuffle);
 	}
 	
-	List<CVResult> crossValidate(List<File> vttFiles, String label, int folds, boolean allowOvermatches, boolean caseInsensitive, boolean stopAfterFirstFold, float fpThreshold, boolean shuffle)
+	List<CVResult> crossValidate(List<File> vttFiles, String label, int folds, boolean allowOvermatches, boolean caseInsensitive, boolean stopAfterFirstFold, boolean shuffle)
 				throws IOException {
 		Collection<String> labels = new ArrayList<>(1);
 		labels.add(label);
-		return crossValidate(vttFiles, labels, folds, allowOvermatches, caseInsensitive, stopAfterFirstFold, fpThreshold, shuffle);
+		return crossValidate(vttFiles, labels, folds, allowOvermatches, caseInsensitive, stopAfterFirstFold, shuffle);
 	}
 
 	/**
@@ -112,7 +111,7 @@ public class REDExCrossValidator implements CrossValidatable {
 	 * @throws FileNotFoundException
 	 */
 	List<CVResult> crossValidate(List<File> vttFiles, Collection<String> labels, int folds,
-			boolean allowOverMatches, boolean caseInsensitive, boolean stopAfterFirstFold, float fpThreshold, boolean shuffle) throws IOException,
+			boolean allowOverMatches, boolean caseInsensitive, boolean stopAfterFirstFold, boolean shuffle) throws IOException,
 			FileNotFoundException {
 		VTTReader vttr = new VTTReader();
 		// get snippets
@@ -125,7 +124,6 @@ public class REDExCrossValidator implements CrossValidatable {
 				+ "\nallowOverMatches: " + allowOverMatches
 				+ "\nconvertToLowercase: " + caseInsensitive
 				+ "\nstopAfterFirstFold: " + stopAfterFirstFold
-				+ "\nfalsePositiveThreshold: " + fpThreshold
 				+ "\nshuffle: " + shuffle);
 		
 		// randomize the order of the snippets
@@ -162,7 +160,7 @@ public class REDExCrossValidator implements CrossValidatable {
 						}
 			
 						// Train
-						LSExtractor ex = null;
+						REDExtractor ex = null;
 						try {
 							ex = trainExtractor(labels, training, allowOverMatches, trainingPW, "" + newFold);
 						} catch (Exception e) {
@@ -170,7 +168,7 @@ public class REDExCrossValidator implements CrossValidatable {
 						}
 			
 						// Test
-						REDExtractor rexe = new REDExtractor();
+						REDExFactory rexe = new REDExFactory();
 						score = rexe.test(testing, ex, allowOverMatches, pw);
 						regExes = ex.getRegularExpressions();
 					}
@@ -195,7 +193,7 @@ public class REDExCrossValidator implements CrossValidatable {
 	 * @return an extractor containing regexes discovered during training.
 	 * @throws IOException
 	 */
-	private LSExtractor trainExtractor(String label, List<Snippet> training, boolean allowOverMatches, float fpThreshold, String outputTag) throws IOException {
+	private REDExtractor trainExtractor(String label, List<Snippet> training, boolean allowOverMatches, float fpThreshold, String outputTag) throws IOException {
 		Collection<String> labels = new ArrayList<>(1);
 		labels.add(label);
 		return trainExtractor(labels, training, allowOverMatches, null, outputTag);
@@ -208,9 +206,9 @@ public class REDExCrossValidator implements CrossValidatable {
 	 * @return an extractor containing regexes discovered during training.
 	 * @throws IOException
 	 */
-	private LSExtractor trainExtractor(Collection<String> labels, List<Snippet> training, boolean allowOverMatches, PrintWriter pw, String outputTag) throws IOException {
-		REDExtractor rexe = new REDExtractor();
-		List<SnippetRegEx> trained = rexe.train(training, labels, allowOverMatches, outputTag);
+	private REDExtractor trainExtractor(Collection<String> labels, List<Snippet> training, boolean allowOverMatches, PrintWriter pw, String outputTag) throws IOException {
+		REDExFactory rexe = new REDExFactory();
+		REDExtractor ex = rexe.train(training, labels, allowOverMatches, outputTag);
 		if (pw != null) {
 			List<Snippet> labelled = new ArrayList<>();
 			List<Snippet> unlabelled = new ArrayList<>();
@@ -241,12 +239,16 @@ public class REDExCrossValidator implements CrossValidatable {
 			}
 			pw.println();
 			pw.println("--- Trained Regexes:");
-			for (SnippetRegEx trainedSre : trained) {
-				pw.println(trainedSre.toString());
-				pw.println("----------");
+			int rank = 1;
+			for (Collection<SnippetRegEx> sres : ex.getRankedSnippetRegExs()) {
+				pw.println("--- Rank " + rank);
+				for (SnippetRegEx trainedSre : sres) {
+					pw.println(trainedSre.toString());
+					pw.println("----------");
+				}
+				rank++;
 			}
 		}
-		LSExtractor ex = new LSExtractor(trained);
 		return ex;
 	}
 	

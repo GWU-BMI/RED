@@ -26,6 +26,6 @@ import java.util.List;
  */
 public interface CrossValidatable {
 
-	public List<CVResult> crossValidate(List<File> vttFiles, String label, int folds, float falsePositiveThreshold, boolean shuffle) throws IOException;
+	public List<CVResult> crossValidate(List<File> vttFiles, String label, int folds, boolean shuffle) throws IOException;
 
 }
