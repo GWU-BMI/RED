@@ -2,6 +2,10 @@ package gov.va.research.red.ex;
 
 import gov.va.research.red.MatchedElement;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -17,8 +21,10 @@ import java.util.regex.Matcher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.gson.Gson;
+
 public class REDExtractor implements Extractor {
-	private static final Logger LOG = LoggerFactory.getLogger(REDExtractor.class);
+	private static transient final Logger LOG = LoggerFactory.getLogger(REDExtractor.class);
 	
 	private List<Collection<SnippetRegEx>> rankedSnippetRegExs;
 	
@@ -135,5 +141,31 @@ public class REDExtractor implements Extractor {
 			return matchedElements;
 		}
 	}
+
+	/**
+	 * Dumps (serializes) the REDExtractor to a file.
+	 * @param rex The REDExtractor to dump.
+	 * @param path The path of the file to receive the dumped REDExtractor.
+	 * @throws IOException
+	 */
+	public static void dump(REDExtractor rex, Path path) throws IOException {
+		Gson gson = new Gson();
+		String json = gson.toJson(rex);
+		Files.write(path, json.getBytes(), StandardOpenOption.WRITE, StandardOpenOption.CREATE);
+	}
+	
+	/**
+	 * Loads (deserializes) a REDExtractor from a file.
+	 * @param path The path of the file containing the dumped REDExtractor.
+	 * @return a REDExtractor represented in the file.
+	 * @throws IOException
+	 */
+	public static REDExtractor load(Path path) throws IOException {
+		Gson gson = new Gson();
+		String json = new String(Files.readAllBytes(path));
+		REDExtractor rex = gson.fromJson(json, REDExtractor.class);
+		return rex;
+	}
+
 }
 

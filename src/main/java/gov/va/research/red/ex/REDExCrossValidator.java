@@ -17,6 +17,7 @@ import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -50,9 +51,10 @@ public class REDExCrossValidator implements CrossValidatable {
 			Boolean caseInsensitive = conf.getBoolean("caseInsensitive", Boolean.TRUE);
 			Boolean stopAfterFirstFold = conf.getBoolean("stopAfterFirstFold", Boolean.FALSE);
 			Boolean shuffle = conf.getBoolean("shuffle", Boolean.TRUE);
+			int limit = conf.getInt("snippetLimit", -1);
 			
 			REDExCrossValidator rexcv = new REDExCrossValidator();
-			List<CVResult> results = rexcv.crossValidate(vttfiles, labels, folds, allowOvermatches, caseInsensitive, stopAfterFirstFold.booleanValue(), shuffle);
+			List<CVResult> results = rexcv.crossValidate(vttfiles, labels, folds, allowOvermatches, caseInsensitive, stopAfterFirstFold.booleanValue(), shuffle, limit);
 
 			// Display results
 			int i = 0;
@@ -82,16 +84,16 @@ public class REDExCrossValidator implements CrossValidatable {
 	 * @see gov.va.research.red.CrossValidatable#crossValidate(java.util.List, java.lang.String, int)
 	 */
 	@Override
-	public List<CVResult> crossValidate(List<File> vttFiles, String label, int folds, boolean shuffle)
+	public List<CVResult> crossValidate(List<File> vttFiles, String label, int folds, boolean shuffle, int limit)
 			throws IOException {
-		return crossValidate(vttFiles, label, folds, true, true, false,shuffle);
+		return crossValidate(vttFiles, label, folds, true, true, false,shuffle, limit);
 	}
 	
-	List<CVResult> crossValidate(List<File> vttFiles, String label, int folds, boolean allowOvermatches, boolean caseInsensitive, boolean stopAfterFirstFold, boolean shuffle)
+	List<CVResult> crossValidate(List<File> vttFiles, String label, int folds, boolean allowOvermatches, boolean caseInsensitive, boolean stopAfterFirstFold, boolean shuffle, int limit)
 				throws IOException {
 		Collection<String> labels = new ArrayList<>(1);
 		labels.add(label);
-		return crossValidate(vttFiles, labels, folds, allowOvermatches, caseInsensitive, stopAfterFirstFold, shuffle);
+		return crossValidate(vttFiles, labels, folds, allowOvermatches, caseInsensitive, stopAfterFirstFold, shuffle, limit);
 	}
 
 	/**
@@ -106,29 +108,42 @@ public class REDExCrossValidator implements CrossValidatable {
 	 *            true positive.
 	 * @param caseInsensitive If <code>true</code> then all text is converted to lowercase (in order, for example, to make case-insensitive comparisons easier)
 	 * @param stopAfterFirstFold If <code>true</code> then the cross validation quits after the first fold.
+	 * @param shuffle If <code>true</code> then the snippets will be shuffled before cross validation. This will make the cross-validation non-deterministic, having a different result each time.
+	 * @param limit Limit the number of snippets this value. A value <= 0 means no limit.
 	 * @return The aggregated results of the cross validation, including scores and regular expressions.
 	 * @throws IOException
 	 * @throws FileNotFoundException
 	 */
 	List<CVResult> crossValidate(List<File> vttFiles, Collection<String> labels, int folds,
-			boolean allowOverMatches, boolean caseInsensitive, boolean stopAfterFirstFold, boolean shuffle) throws IOException,
+			boolean allowOverMatches, boolean caseInsensitive, boolean stopAfterFirstFold, boolean shuffle, int limit) throws IOException,
 			FileNotFoundException {
 		VTTReader vttr = new VTTReader();
 		// get snippets
 		List<Snippet> snippets = new ArrayList<>();
 		for (File vttFile : vttFiles) {
-			snippets.addAll(vttr.findSnippets(vttFile, labels, caseInsensitive));
+			Collection<Snippet> fileSnippets = vttr.findSnippets(vttFile, labels, caseInsensitive);
+			snippets.addAll(fileSnippets);
 		}
 		LOG.info("Cross validating " + snippets.size() + " snippets from " + vttFiles +  " files.\n"
 				+ "Folds: " + folds
 				+ "\nallowOverMatches: " + allowOverMatches
 				+ "\nconvertToLowercase: " + caseInsensitive
 				+ "\nstopAfterFirstFold: " + stopAfterFirstFold
-				+ "\nshuffle: " + shuffle);
+				+ "\nshuffle: " + shuffle
+				+ "\nlimit" + limit);
 		
 		// randomize the order of the snippets
 		if (shuffle) {
 			Collections.shuffle(snippets);
+		}
+		
+		// limit the number of snippets
+		if (limit > 0) {
+			List<Snippet> limited = new ArrayList<>(limit);
+			for (int i = 0; i < limit; i++) {
+				limited.add(snippets.get(i));
+			}
+			snippets = limited;
 		}
 		
 		// partition snippets into one partition per fold

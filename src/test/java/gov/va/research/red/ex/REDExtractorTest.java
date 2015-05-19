@@ -28,10 +28,14 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+
+import junit.framework.Assert;
 
 import org.junit.After;
 import org.junit.AfterClass;
@@ -157,6 +161,16 @@ public class REDExtractorTest {
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
+		}
+		
+		// test dump and load
+		Path tempFile = Files.createTempFile(null, null);
+		REDExtractor.dump(ex, tempFile);
+		Assert.assertTrue(Files.exists(tempFile));
+		REDExtractor ex2 = REDExtractor.load(tempFile);
+		Assert.assertEquals(ex.getRankedSnippetRegExs().size(), ex2.getRankedSnippetRegExs().size());
+		for (int i = 0; i < ex.getRankedSnippetRegExs().size(); i++) {
+			Assert.assertEquals(ex.getRankedSnippetRegExs().get(i).size(), ex2.getRankedSnippetRegExs().get(i).size());
 		}
 	}
 
