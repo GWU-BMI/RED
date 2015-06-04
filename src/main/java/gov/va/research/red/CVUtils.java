@@ -65,4 +65,23 @@ public class CVUtils {
 		}
 		return false;
 	}
+	
+	public static boolean containsAnyCI(final Collection<String> strings1, final Collection<String> strings2, boolean allowOverMatches) {
+		for (String s1 : strings1) {
+			String lcs1 = s1.toLowerCase();
+			for (String s2 : strings2) {
+				String lcs2 = s2.toLowerCase();
+				if (allowOverMatches) {
+					if (lcs1.contains(lcs2) || lcs2.contains(lcs1)) {
+						return true;
+					}
+				} else {
+					if (lcs1.equals(s2)) {
+						return true;
+					}
+				}
+			}
+		}
+		return false;
+	}
 }

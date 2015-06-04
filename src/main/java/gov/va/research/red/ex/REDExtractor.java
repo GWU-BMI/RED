@@ -9,13 +9,15 @@ import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.regex.Matcher;
 
 import org.slf4j.Logger;
@@ -27,14 +29,16 @@ public class REDExtractor implements Extractor {
 	private static transient final Logger LOG = LoggerFactory.getLogger(REDExtractor.class);
 	
 	private List<Collection<SnippetRegEx>> rankedSnippetRegExs;
+	private String metadata;
 	
 	public REDExtractor(Collection<SnippetRegEx> sres) {
 		this.rankedSnippetRegExs = new ArrayList<>(1);
 		this.rankedSnippetRegExs.add(sres);
 	}
 	
-	public REDExtractor(List<Collection<SnippetRegEx>> rankedSres) {
+	public REDExtractor(List<Collection<SnippetRegEx>> rankedSres, String metadata) {
 		this.rankedSnippetRegExs = rankedSres;
+		this.metadata = metadata;
 	}
 
 	public REDExtractor(SnippetRegEx snippetRegEx) {
@@ -43,30 +47,61 @@ public class REDExtractor implements Extractor {
 	}
 
 	@Override
-	public Collection<MatchedElement> extract(String target) {
+	public List<MatchedElement> extract(String target) {
 		if(target == null || target.length() == 0) {
 			return null;
 		}
-		Set<MatchedElement> returnSet = null;
+		ConcurrentHashMap<MatchedElement, Double> returnMap = null;
 		for (Collection<SnippetRegEx> snippetREs : this.rankedSnippetRegExs) {
 			if(snippetREs != null && !snippetREs.isEmpty()) {
-				returnSet = snippetREs.parallelStream().map((sre) -> {
+				returnMap = snippetREs.parallelStream().map((sre) -> {
 					MatchFinder mf = new MatchFinder(sre, target);
 					Set<MatchedElement> mes = mf.call();
 					return mes;
-				}).reduce(Collections.newSetFromMap(new ConcurrentHashMap<>()), (s1, s2) -> {
-					s1.addAll(s2);
+				}).reduce(new ConcurrentHashMap<MatchedElement, Double>(), (s1, s2) -> {
+					for (MatchedElement me : s2) {
+						Double confidence = Double.valueOf(me.getConfidence());
+						me.setConfidence(0d);
+						Double conf = s1.get(me);
+						if (conf == null) {
+							s1.put(me,  confidence);
+						} else {
+							s1.put(me, conf + confidence);
+						}
+					}
+					return s1;
+				}, (s1, s2) -> {
+					for (Map.Entry<MatchedElement, Double> mee : s2.entrySet()) {
+						MatchedElement me = mee.getKey();
+						Double confidence = mee.getValue();
+						Double conf = s1.get(me);
+						if (conf == null) {
+							s1.put(me,  confidence);
+						} else {
+							s1.put(me, conf + confidence);
+						}
+					}
 					return s1;
 				});
 			}
-			if (returnSet != null && !returnSet.isEmpty()) {
+			if (returnMap != null && !returnMap.isEmpty()) {
 				break;
 			}
 		}
-		if(returnSet == null || returnSet.isEmpty()) {
+		if(returnMap == null || returnMap.isEmpty()) {
 			return null;
 		}
-		return returnSet;
+		ConcurrentLinkedQueue<MatchedElement> returnList = returnMap.entrySet().parallelStream().reduce(new ConcurrentLinkedQueue<>(), (l, e) -> {
+			e.getKey().setConfidence(e.getValue());
+			l.add(e.getKey());
+			return l;
+		}, (l1, l2) -> {
+			if (l1 != l2) {
+				l1.addAll(l2);
+			}
+			return l1;
+		});
+		return new ArrayList<>(returnList);
 	}
 	
 	public MatchedElement extractFirst(String target) {
@@ -84,7 +119,7 @@ public class REDExtractor implements Extractor {
 						if(candidateLS != null && !candidateLS.equals("")){
 							int startPos = target.indexOf(candidateLS);
 							int endPos = startPos + candidateLS.length();
-							matchedElements.add(new MatchedElement(startPos, endPos, candidateLS, sre.toString()));
+							matchedElements.add(new MatchedElement(startPos, endPos, candidateLS, sre.getPattern().toString(), sre.getSensitivity()));
 						}
 					}
 					return matchedElements;
@@ -105,6 +140,14 @@ public class REDExtractor implements Extractor {
 		this.rankedSnippetRegExs = rankedSnippetRegExs;
 	}
 	
+	public String getMetadata() {
+		return metadata;
+	}
+
+	public void setMetadata(String metadata) {
+		this.metadata = metadata;
+	}
+
 	public List<String> getRegularExpressions() {
 		List<String> regexs = new ArrayList<>(this.rankedSnippetRegExs.size());
 		for (Collection<SnippetRegEx> sres : this.rankedSnippetRegExs) {
@@ -135,7 +178,7 @@ public class REDExtractor implements Extractor {
 				if(candidateLS != null && !candidateLS.equals("")){
 					int startPos = target.indexOf(candidateLS);
 					int endPos = startPos + candidateLS.length();
-					matchedElements.add(new MatchedElement(startPos, endPos, candidateLS, sre.toString()));
+					matchedElements.add(new MatchedElement(startPos, endPos, candidateLS, sre.toString(), sre.getSensitivity()));
 				}
 			}
 			return matchedElements;

@@ -120,18 +120,27 @@ public class CVScore {
 		this.fn++;
 	}
 
+	public void add(CVScore cvs) {
+		if (cvs != null) {
+			this.tp += cvs.tp;
+			this.tn += cvs.tn;
+			this.fp += cvs.fp;
+			this.fn += cvs.fn;
+		}
+	}
+
 	public static CVScore aggregate(List<CVScore> scores) {
-		CVScore aggregate = new CVScore();
+		CVScore aggregate = new CVScore(0,0,0,0);
 		synchronized(scores) {
 			for (CVScore score : scores) {
-				if (score != null) {
-					aggregate.tp += score.tp;
-					aggregate.tn += score.tn;
-					aggregate.fp += score.fp;
-					aggregate.fn += score.fn;
-				}
+				aggregate.add(score);
 			}
 		}
 		return aggregate;
+	}
+
+	@Override
+	public String toString() {
+		return "tp:" + tp + ",fp:" + fp + ",fn:" + fn + "tn:" + tn;
 	}
 }

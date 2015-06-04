@@ -165,7 +165,7 @@ public class REDExFactory {
 		LOG.info(outputTag + ": measuring sensitivity ...");
 		measureSensitivity(snippets, returnList);
 		LOG.info(outputTag + ": ... done measuring sensitivity");
-		return new REDExtractor(returnList);
+		return new REDExtractor(returnList, "# snippets = " + snippets.size() + "\nlabels = " + labels + "\nallowOverMatches = " + allowOverMatches);
 	}
 
 	private List<Deque<SnippetRegEx>> abstractIteratively (
@@ -226,8 +226,8 @@ public class REDExFactory {
 			snippetRegExStacks.parallelStream().forEach((sreStack) -> {
 				boolean replaced = false;
 				SnippetRegEx newSre = new SnippetRegEx(sreStack.peek());
-				for (List<Token> newUnlabeledSegment : newSre.getUnlabeledSegments()) {
-					ListIterator<Token> newUlsIt = newUnlabeledSegment.listIterator();
+				for (Segment newUnlabeledSegment : newSre.getUnlabeledSegments()) {
+					ListIterator<Token> newUlsIt = newUnlabeledSegment.getTokens().listIterator();
 					while (newUlsIt.hasNext()) {
 						SnippetRegEx saveSre = new SnippetRegEx(newSre);
 						Token newUlsToken = newUlsIt.next();
@@ -254,7 +254,7 @@ public class REDExFactory {
 					}
 				}
 				if (replaced) {
-					sreStack.add(newSre);
+					sreStack.push(newSre);
 				}
 			});
 		}
@@ -316,7 +316,7 @@ public class REDExFactory {
 			final boolean allowOverMatches,
 			ScoreFunction beforeChangeScoreFunction,
 			ScoreFunction afterChangeScoreFunction) {
-		Set<List<Token>> lsSet = new HashSet<>();
+		Set<Segment> lsSet = new HashSet<>();
 		for (Deque<SnippetRegEx> sreStack : snippetRegExStacks) {
 			SnippetRegEx sre = sreStack.peek();
 			lsSet.addAll(sre.getLabeledSegments());
@@ -324,18 +324,18 @@ public class REDExFactory {
 		boolean first = true;
 		List<Token> genLS = new ArrayList<>();
 		Token orToken = new Token("|", TokenType.REGEX);
-		for (List<Token> tokenList : lsSet) {
+		for (Segment ls : lsSet) {
 			if (first) {
 				first = false;
 			} else {
 				genLS.add(orToken);
 			}
-			genLS.addAll(tokenList);
+			genLS.addAll(ls.getTokens());
 		}
 		for (Deque<SnippetRegEx> ls3stack : snippetRegExStacks) {
 			SnippetRegEx beforeSre = ls3stack.peek();
 			SnippetRegEx sreCopy = new SnippetRegEx(beforeSre);
-			sreCopy.setLabeledSegments(genLS);
+			sreCopy.setLabeledSegments(new Segment(genLS, true));
 			int beforeScore = (beforeChangeScoreFunction == null ? 1 : beforeChangeScoreFunction.score(snippets, new REDExtractor(beforeSre), allowOverMatches));
 			int afterScore = (afterChangeScoreFunction == null ? 0 : afterChangeScoreFunction.score(snippets, new REDExtractor(sreCopy), allowOverMatches));
 			if (beforeScore <= afterScore){
@@ -495,9 +495,8 @@ public class REDExFactory {
 		}
 		final PrintWriter localPW = tempLocalPW;
 		CVScore score = testing.parallelStream().map((snippet) -> {
-			Collection<MatchedElement> candidates = ex.extract(snippet.getText());
-			Collection<MatchedElement> bestCandidates = REDExFactory.chooseBestCandidates(candidates);
-			String predicted = (bestCandidates == null || bestCandidates.size() == 0) ? null : bestCandidates.iterator().next().getMatch();
+			List<MatchedElement> candidates = ex.extract(snippet.getText());
+			String predicted = REDExFactory.chooseBestCandidates(candidates);
 			List<String> actual = snippet.getLabeledStrings();
 			// Score
 			if (predicted == null) {
@@ -515,7 +514,7 @@ public class REDExFactory {
 			} else if (actual == null || actual.size() == 0) {
 				if (localPW != null) {
 					StringBuilder sb = new StringBuilder();
-					for (MatchedElement me : bestCandidates) {
+					for (MatchedElement me : candidates) {
 						sb.append(me.getMatchingRegex()).append("\n");
 					}
 					localPW.println("##### FALSE POSITIVE #####"
@@ -547,7 +546,7 @@ public class REDExFactory {
 				} else {
 					if (localPW != null) {
 						StringBuilder sb = new StringBuilder();
-						for (MatchedElement me : bestCandidates) {
+						for (MatchedElement me : candidates) {
 							sb.append(me.getMatchingRegex()).append("\n");
 						}
 						localPW.println("##### FALSE POSITIVE #####"
@@ -568,9 +567,13 @@ public class REDExFactory {
 			case FN: s.incrementFn(); break;
 			default: throw new RuntimeException("Unknown RESULT: " + r);
 			}
-			return s;}, (r1, r2) -> {
-				return r1;
+			return s;
+			}, (r1, r2) -> {
+				if (r1 != r2) {
+					r1.add(r2);
 				}
+				return r1;
+			}
 		);
 		if (pw != null && localPW != null && sw != null) {
 			localPW.close();
@@ -587,9 +590,8 @@ public class REDExFactory {
 
 	private boolean checkForTruePositives(Collection<Snippet> testing, REDExtractor ex, boolean allowOverMatches) {
 		return testing.parallelStream().map((snippet) -> {
-			Collection<MatchedElement> candidates = ex.extract(snippet.getText());
-			Collection<MatchedElement> bestCandidates = REDExFactory.chooseBestCandidates(candidates);
-			String predicted = (bestCandidates == null || bestCandidates.size() == 0) ? null : bestCandidates.iterator().next().getMatch();
+			List<MatchedElement> candidates = ex.extract(snippet.getText());
+			String predicted = REDExFactory.chooseBestCandidates(candidates);
 			List<String> actual = snippet.getLabeledStrings();
 
 			if (predicted == null) {
@@ -622,56 +624,59 @@ public class REDExFactory {
 	}
 
 	/**
-	 * @param candidates The possible candidates to choose from.
-	 * @return A list of candidates that all produce the best result.
+	 * @param candidates The candidate matches choose from.
+	 * @return The best match string.
 	 */
-	private static Collection<MatchedElement> chooseBestCandidates(Collection<MatchedElement> candidates) {
-		List<MatchedElement> catCandidates = null;
+	private static String chooseBestCandidates(List<MatchedElement> candidates) {
+		String bestMatch = null;
 		if (candidates != null && candidates.size() > 0) {
 			if (candidates.size() == 1) {
-				return candidates;
+				bestMatch = candidates.get(0).getMatch();
 			} else {
-				// Multiple candidates, count their frequencies.
-				Map<String, List<MatchedElement>> category2candidates = new HashMap<>();
-				Map<String, Integer> category2freq = new HashMap<String, Integer>();
-				for (MatchedElement c : candidates) {
-					String category = c.getMatch();
-					Integer freq = category2freq.get(category);
-					List<MatchedElement> catCands = category2candidates.get(category);
-					if (freq == null) {
-						freq = Integer.valueOf(1);
-						catCands = new ArrayList<>();
-						category2candidates.put(category, catCands);
+				// Multiple candidates, sort by confidence.
+				Map<String, Double> match2Confidence = new HashMap<>();
+				for (MatchedElement candidate : candidates) {
+					Double confidence = match2Confidence.get(candidate.getMatch());
+					if (confidence == null) {
+						match2Confidence.put(candidate.getMatch(), candidate.getConfidence());
 					} else {
-						freq = Integer.valueOf(freq.intValue() + 1);
+						match2Confidence.put(candidate.getMatch(), confidence + candidate.getConfidence());
 					}
-					category2freq.put(c.getMatch(), freq);
-					catCands.add(c);
 				}
-				// Sort by frequency
-				TreeMap<Integer, List<String>> freq2candidates = new TreeMap<>();
-				for (Map.Entry<String, Integer> c2f : category2freq.entrySet()) {
-					List<String> freqCandidates = freq2candidates.get(c2f
-							.getValue());
-					if (freqCandidates == null) {
-						freqCandidates = new ArrayList<>();
-						freq2candidates.put(c2f.getValue(), freqCandidates);
+				List<Map.Entry<String,Double>> matchConfidences = new ArrayList<>(match2Confidence.entrySet());
+				// Reverse sort
+				Collections.sort(matchConfidences, new Comparator<Map.Entry<String,Double>>() {
+					@Override
+					public int compare(Map.Entry<String,Double> o1, Map.Entry<String,Double> o2) {
+						if (o1 == null) {
+							if (o2 == null) {
+								return 0;
+							}
+							return 1;
+						}
+						if (o2 == null) {
+							return -1;
+						}
+						return Double.compare(o2.getValue(), o1.getValue());
 					}
-					freqCandidates.add(c2f.getKey());
+				});
+				double maxConfidence = matchConfidences.get(0).getValue();
+				List<String> bestMatches = new ArrayList<>();
+				int i = 0;
+				Map.Entry<String,Double> entry = matchConfidences.get(i);
+				while (i < matchConfidences.size() && maxConfidence == entry.getValue()) {
+					bestMatches.add(entry.getKey());
+					i++;
 				}
-				List<String> mostFrequentCandidates = freq2candidates
-						.lastEntry().getValue();
-				// If there is only one candidate in the group with the highest
-				// frequency then use it.
-				String category = null;
-				if (mostFrequentCandidates.size() == 1) {
-					category = mostFrequentCandidates.get(0);
-					catCandidates = category2candidates.get(category);
+
+				// If there is only one best match then use it.
+				if (bestMatches.size() == 1) {
+					bestMatch = bestMatches.get(0);
 				} else {
-					// Multiple candidates with the highest frequency.
+					// Multiple best matches.
 					// Choose the longest one, and if there is a tie then choose
 					// the largest one lexicographically.
-					Collections.sort(mostFrequentCandidates,
+					Collections.sort(bestMatches,
 							new Comparator<String>() {
 								@Override
 								public int compare(String o1, String o2) {
@@ -690,12 +695,11 @@ public class REDExFactory {
 									return o2.length() - o1.length();
 								}
 							});
-					category = mostFrequentCandidates.get(0);
-					catCandidates = category2candidates.get(category);
+					bestMatch = bestMatches.get(0);
 				}
 			}
 		}
-		return catCandidates;
+		return bestMatch;
 	}
 	
 	private interface ScoreFunction {
@@ -708,32 +712,23 @@ public class REDExFactory {
 				boolean allowOverMatches) {
 			boolean anyFalsePositives =  testing.parallelStream().map((snippet) -> {
 				Collection<MatchedElement> candidates = ex.extract(snippet.getText());
-				Collection<MatchedElement> bestCandidates = chooseBestCandidates(candidates);
-				String predicted = (bestCandidates == null || bestCandidates.size() == 0) ? null : bestCandidates.iterator().next().getMatch();
+				Set<String> predicted = new HashSet<>();
+				if (candidates != null) {
+					for (MatchedElement me : candidates) {
+						predicted.add(me.getMatch().trim());
+					}
+				}
 				
 				// Score
-				if (predicted != null) {
+				if (predicted != null && predicted.size() != 0) {
 					List<String> actual = snippet.getLabeledStrings();
 					if (actual == null || actual.size() == 0) {
 						return Boolean.TRUE;
 					} else {
-						predicted = predicted.trim().toLowerCase();
-						boolean match = false;
-						if (allowOverMatches) {
-							for (String ls : snippet.getLabeledStrings()) {
-								ls = ls.toLowerCase();
-								if (ls.contains(predicted) || predicted.contains(ls)) {
-									match = true;
-									break;
-								}
-							}
-						} else {
-							match = CVUtils.containsCI(snippet.getLabeledStrings(), predicted);
+						if (CVUtils.containsAnyCI(snippet.getLabeledStrings(), predicted, allowOverMatches)) {
+							return Boolean.FALSE;
 						}
-						if (!match) {
-							return Boolean.TRUE;
-						}
-
+						return Boolean.TRUE;
 					}
 				}
 				return Boolean.FALSE;
@@ -751,5 +746,3 @@ public class REDExFactory {
 		}
 	}
 }
-
-

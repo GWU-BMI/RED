@@ -39,7 +39,12 @@ public class REDExCrossValidator implements CrossValidatable {
 			List<Object> vttfileObjs = conf.getList("vtt.file");
 			List<File> vttfiles = new ArrayList<>(vttfileObjs.size());
 			for (Object vf : vttfileObjs) {
-				vttfiles.add(new File((String)vf));
+				File f = new File((String)vf);
+				if (f.exists()) {
+					vttfiles.add(new File((String)vf));
+				} else {
+					throw new FileNotFoundException((String)vf);
+				}
 			}
 			List<Object> labelObjs = conf.getList("label");
 			List<String> labels = new ArrayList<>(labelObjs.size());
@@ -65,7 +70,7 @@ public class REDExCrossValidator implements CrossValidatable {
 			}
 			CVResult aggregate = CVResult.aggregate(results);
 			LOG.info("\n--- Aggregate ---\n" + aggregate.getScore().getEvaluation());
-			
+			LOG.info("# Regexes Discovered: " + aggregate.getRegExes().size());
 			String regexOutputFile = conf.getString("regex.output.file");
 			if (regexOutputFile != null) {
 				try (FileWriter fw = new FileWriter(regexOutputFile)) {
@@ -130,7 +135,7 @@ public class REDExCrossValidator implements CrossValidatable {
 				+ "\nconvertToLowercase: " + caseInsensitive
 				+ "\nstopAfterFirstFold: " + stopAfterFirstFold
 				+ "\nshuffle: " + shuffle
-				+ "\nlimit" + limit);
+				+ "\nsnippetLimit: " + limit);
 		
 		// randomize the order of the snippets
 		if (shuffle) {
@@ -138,7 +143,7 @@ public class REDExCrossValidator implements CrossValidatable {
 		}
 		
 		// limit the number of snippets
-		if (limit > 0) {
+		if (limit > 0 && limit < snippets.size()) {
 			List<Snippet> limited = new ArrayList<>(limit);
 			for (int i = 0; i < limit; i++) {
 				limited.add(snippets.get(i));
@@ -255,7 +260,7 @@ public class REDExCrossValidator implements CrossValidatable {
 			pw.println();
 			pw.println("--- Trained Regexes:");
 			int rank = 1;
-			for (Collection<SnippetRegEx> sres : ex.getRankedSnippetRegExs()) {
+ 			for (Collection<SnippetRegEx> sres : ex.getRankedSnippetRegExs()) {
 				pw.println("--- Rank " + rank);
 				for (SnippetRegEx trainedSre : sres) {
 					pw.println(trainedSre.toString());

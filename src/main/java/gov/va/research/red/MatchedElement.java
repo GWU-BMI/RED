@@ -4,12 +4,14 @@ public class MatchedElement {
 	private int startPos, endPos;
 	private String match;
 	private String matchingRegex;
+	private double confidence;
 	
-	public MatchedElement(int startPos, int endPos, String match, String matchingRegex) {
+	public MatchedElement(int startPos, int endPos, String match, String matchingRegex, double confidence) {
 		this.startPos = startPos;
 		this.endPos = endPos;
 		this.match = match;
 		this.matchingRegex = matchingRegex;
+		this.confidence = confidence;
 	}
 
 	@Override
@@ -20,6 +22,8 @@ public class MatchedElement {
 		result = prime * result + ((match == null) ? 0 : match.hashCode());
 		result = prime * result + startPos;
 		result = prime * result  + ((matchingRegex == null) ? 0 : matchingRegex.hashCode());
+		long confLb = Double.doubleToLongBits(confidence);
+		result = prime * result + (int)(confLb^(confLb>>>32));
 		return result;
 	}
 
@@ -53,6 +57,9 @@ public class MatchedElement {
 				return false;
 			}
 		} else if (!matchingRegex.equals(other.matchingRegex)) {
+			return false;
+		}
+		if (confidence != other.confidence) {
 			return false;
 		}
 		return true;
@@ -89,10 +96,18 @@ public class MatchedElement {
 	public void setMatchingRegex(String matchingRegex) {
 		this.matchingRegex = matchingRegex;
 	}
+	
+	public double getConfidence() {
+		return confidence;
+	}
+
+	public void setConfidence(double confidence) {
+		this.confidence = confidence;
+	}
 
 	@Override
 	public String toString() {
-		return "" + startPos + "|" + (match == null ? "null" : match) + "|" + endPos + "|" + (matchingRegex == null ? "null" : matchingRegex);
+		return "" + startPos + "|" + (match == null ? "null" : match) + "|" + endPos + "|" + (matchingRegex == null ? "null" : matchingRegex) + "|" + confidence;
 	}
 	
 	

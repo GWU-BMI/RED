@@ -44,17 +44,10 @@ import gov.va.research.red.Tokenizer;
  */
 public class SnippetRegEx {
 
-	// Snippets are represented as a list of segments. Each segment is a list of tokens.
-	// The first segment (at index 0) represents the tokens between the beginning of the snippet and the beginning of the first labeled segment, and may be empty if the first labeled segment starts at the beginning of the snippet.
-	// The second segment  (at index 1) represents the tokens in the first labeled segment.
-	// The third segment (at index 2) represents the tokens between the end of the first labeled segment and the start of the second labeled segment (or the end of the snippet).
-	// etc.
-	// In this manner, all segments with an odd index will be labeled segments, and those with an even index will not be labeled segments.
-	// If there are no labeled segments, then there will be a single segment at index 0
-
-	private static final String DIGIT_TEXT = "zero|one|two|three|four|five|six|seven|eight|nine";
+	// Snippets are represented as a list of segments. Each segment is a list of tokens with a segment type.
+	private static final String DIGIT_TEXT = "zero|one|two|three|four|five|six|seven|eight|nine|ten";
 	private static final Pattern DIGIT_TEXT_PATTERN = Pattern.compile(DIGIT_TEXT, Pattern.CASE_INSENSITIVE);
-	private List<List<Token>> segments;
+	private List<Segment> segments;
 	private Pattern pattern;
 	private double sensitivity;
 	
@@ -63,19 +56,19 @@ public class SnippetRegEx {
 	 * @param snippet The Snippet to use for the construction.
 	 */
 	public SnippetRegEx(Snippet snippet) {
-		segments = new ArrayList<List<Token>>(snippet.getLabeledSegments().size() + 1);
+		segments = new ArrayList<Segment>(snippet.getLabeledSegments().size() + 2);
 		int prevEnd = 0;
 		for (LabeledSegment ls : snippet.getLabeledSegments()) {
 			String segmentStr = snippet.getText().substring(prevEnd, ls.getStart());
-			List<Token> segment = Tokenizer.tokenize(segmentStr);
-			segments.add(segment);
-			List<Token> labeledSegment = Tokenizer.tokenize(ls.getLabeledString());
-			segments.add(labeledSegment);
+			List<Token> tokens = Tokenizer.tokenize(segmentStr);
+			segments.add(new Segment(tokens, false));
+			tokens = Tokenizer.tokenize(ls.getLabeledString());
+			segments.add(new Segment(tokens, true));
 			prevEnd = ls.getStart() + ls.getLength();
 		}
 		String segmentStr = snippet.getText().substring(prevEnd);
-		List<Token> segment = Tokenizer.tokenize(segmentStr);
-		segments.add(segment);
+		List<Token> tokens = Tokenizer.tokenize(segmentStr);
+		segments.add(new Segment(tokens, false));
 	}
 
 	/**
@@ -83,13 +76,13 @@ public class SnippetRegEx {
 	 * @param snippetRegEx The SnippetRegEx to copy.
 	 */
 	public SnippetRegEx(SnippetRegEx snippetRegEx) {
-		segments = new ArrayList<List<Token>>(snippetRegEx.segments.size());
-		for (List<Token> segment : snippetRegEx.segments) {
-			List<Token> newSegment = new ArrayList<Token>(segment.size());
-			for (Token token : segment) {
-				newSegment.add(new Token(token));
+		segments = new ArrayList<Segment>(snippetRegEx.segments.size());
+		for (Segment segment : snippetRegEx.segments) {
+			List<Token> newTokens = new ArrayList<Token>(segments.size());
+			for (Token token : segment.getTokens()) {
+				newTokens.add(new Token(token));
 			}
-			segments.add(newSegment);
+			segments.add(new Segment(newTokens, segment.isLabeled()));
 		}
 	}
 
@@ -108,15 +101,15 @@ public class SnippetRegEx {
 			return false;
 		}
 		for (int s = 0; s < segments.size(); s++) {
-			List<Token> segment = segments.get(s);
-			List<Token> sreSegment = sre.segments.get(s);
+			Segment segment = segments.get(s);
+			Segment sreSegment = sre.segments.get(s);
 			if (segment != sreSegment) {
-				if (segment == null || sreSegment == null || (segment.size() != sreSegment.size())) {
+				if (segment == null || sreSegment == null || (segment.getTokens().size() != sreSegment.getTokens().size()) || (segment.isLabeled() != sreSegment.isLabeled())) {
 					return false;
 				}
-				for (int t = 0; t < segment.size(); t++) {
-					Token token = segment.get(t);
-					Token sreToken = sreSegment.get(t);
+				for (int t = 0; t < segment.getTokens().size(); t++) {
+					Token token = segment.getTokens().get(t);
+					Token sreToken = sreSegment.getTokens().get(t);
 					if (token != sreToken && (token == null || !token.equals(sreToken))) {
 						return false;
 					}
@@ -140,11 +133,11 @@ public class SnippetRegEx {
 	private String getRegEx() {
 		StringBuilder regex = new StringBuilder();
 		boolean isLabeled = false;
-		for (List<Token> segment : segments) {
+		for (Segment segment : segments) {
 			if (isLabeled) {
 				regex.append("(");
 			}
-			for (Token token : segment) {
+			for (Token token : segment.getTokens()) {
 				regex.append(token.toRegEx());
 			}
 			if (isLabeled) {
@@ -168,11 +161,12 @@ public class SnippetRegEx {
 	/**
 	 * @return A list of all labeled segments.
 	 */
-	public List<List<Token>> getLabeledSegments() {
+	public List<Segment> getLabeledSegments() {
 		if (segments != null && segments.size() > 0) {
-			List<List<Token>> lsList = new ArrayList<>((segments.size() - 1) / 2);
-			for (int i = 1; i < segments.size(); i+=2) {
-				lsList.add(segments.get(i));
+			List<Segment> lsList = new ArrayList<>((segments.size() - 1) / 2);
+			for (Segment segment : segments) {
+				if (segment.isLabeled())
+				lsList.add(segment);
 			}
 			return lsList;
 		}
@@ -183,10 +177,14 @@ public class SnippetRegEx {
 	 * Sets all labeled segments to the value of the provided segment.
 	 * @param labeledSegment The segment with which to replace all labeled segments.
 	 */
-	public void setLabeledSegments(List<Token> labeledSegment) {
+	public void setLabeledSegments(Segment labeledSegment) {
 		if (segments != null && segments.size() > 0) {
-			for (int i = 1; i < segments.size(); i+=2) {
-				segments.set(i, labeledSegment);
+			ListIterator<Segment> li = segments.listIterator();
+			while (li.hasNext()) {
+				Segment segment = li.next();
+				if (segment.isLabeled()) {
+					li.set(labeledSegment);
+				}
 			}
 		}
 	}
@@ -194,11 +192,13 @@ public class SnippetRegEx {
 	/**
 	 * @return A list of all unlabeled segments.
 	 */
-	public List<List<Token>> getUnlabeledSegments() {
+	public List<Segment> getUnlabeledSegments() {
 		if (segments != null && segments.size() > 0) {
-			List<List<Token>> ulsList = new ArrayList<>(((segments.size() - 1) / 2) + 1);
-			for (int i = 0; i < segments.size(); i+=2) {
-				ulsList.add(segments.get(i));
+			List<Segment> ulsList = new ArrayList<>(((segments.size() - 1) / 2) + 1);
+			for (Segment segment : segments) {
+				if (!segment.isLabeled()) {
+					ulsList.add(segment);
+				}
 			}
 			return ulsList;
 		}
@@ -211,8 +211,8 @@ public class SnippetRegEx {
 	 */
 	public Collection<TokenFreq> getTokenFrequencies() {
 		Map<Token,TokenFreq> tokenFreqs = new HashMap<>();
-		for (List<Token> segment : segments) {
-			for (Token t : segment) {
+		for (Segment segment : segments) {
+			for (Token t : segment.getTokens()) {
 				if (TokenType.WORD.equals(t.getType()) || TokenType.PUNCTUATION.equals(t.getType())) {
 					TokenFreq tf = tokenFreqs.get(t);
 					if (tf == null) {
@@ -233,8 +233,8 @@ public class SnippetRegEx {
 	 */
 	public boolean replaceDigits() {
 		boolean changed = false;
-		for (List<Token> segment : segments) {
-			ListIterator<Token> lsIt = segment.listIterator();
+		for (Segment segment : segments) {
+			ListIterator<Token> lsIt = segment.getTokens().listIterator();
 			while (lsIt.hasNext()) {
 				Token t = lsIt.next();
 				if (TokenType.INTEGER.equals(t.getType())/* || DIGIT_TEXT_PATTERN.matcher(t.getString()).matches()*/) {
@@ -252,8 +252,8 @@ public class SnippetRegEx {
 	 */
 	public boolean replacePunct() {
 		boolean changed = false;
-		for (List<Token> segment : segments) {
-			ListIterator<Token> lsIt = segment.listIterator();
+		for (Segment segment : segments) {
+			ListIterator<Token> lsIt = segment.getTokens().listIterator();
 			while (lsIt.hasNext()) {
 				Token t = lsIt.next();
 				if (TokenType.PUNCTUATION.equals(t.getType())) {
@@ -306,8 +306,8 @@ public class SnippetRegEx {
 	 */
 	public boolean replaceWhiteSpace() {
 		boolean changed = false;
-		for (List<Token> segment : segments) {
-			ListIterator<Token> lsIt = segment.listIterator();
+		for (Segment segment : segments) {
+			ListIterator<Token> lsIt = segment.getTokens().listIterator();
 			while (lsIt.hasNext()) {
 				Token t = lsIt.next();
 				if (TokenType.WHITESPACE.equals(t.getType())) {
@@ -327,8 +327,10 @@ public class SnippetRegEx {
 		if (segments != null) {
 			if (segments.size() > 0) {
 				if (segments.get(0) != null) {
-					if (segments.get(0).size() > 0) {
-						return segments.get(0).remove(0);
+					if (segments.get(0).getTokens() != null) {
+						if (segments.get(0).getTokens().size() > 0) {
+							return segments.get(0).getTokens().remove(0);
+						}
 					}
 				}
 			}
@@ -344,11 +346,11 @@ public class SnippetRegEx {
 		if (segments != null) {
 			if (segments.size() > 0) {
 				int lastSegIdx = segments.size() - 1;
-				List<Token> lastSeg = segments.get(lastSegIdx);
-				if (lastSeg != null) {
-					int lastSegSize = lastSeg.size();
+				Segment lastSeg = segments.get(lastSegIdx);
+				if (lastSeg != null && lastSeg.getTokens() != null) {
+					int lastSegSize = lastSeg.getTokens().size();
 					if (lastSegSize > 0) {
-						return lastSeg.remove(lastSegSize - 1);
+						return lastSeg.getTokens().remove(lastSegSize - 1);
 					}
 				}
 			}
@@ -365,16 +367,16 @@ public class SnippetRegEx {
 		if (segments != null) {
 			if (segments.size() > 0) {
 				if (segments.get(0) == null) {
-					segments.set(0, new LinkedList<>());
+					segments.set(0, new Segment(new ArrayList<Token>(), false));
 				}
 			} else {
-				segments.add(new LinkedList<>());
+				segments.add(new Segment(new ArrayList<Token>(), false));
 			}
 		} else {
-			segments = new ArrayList<List<Token>>();
-			segments.add(new LinkedList<>());
+			segments = new ArrayList<Segment>();
+			segments.add(new Segment(new ArrayList<Token>(), false));
 		}
-		segments.get(0).add(0, token);		
+		segments.get(0).getTokens().add(0, token);		
 	}
 	
 	/**
@@ -386,16 +388,16 @@ public class SnippetRegEx {
 			if (segments.size() > 0) {
 				int lastSegIdx = segments.size() - 1;
 				if (segments.get(lastSegIdx) == null) {
-					segments.set(lastSegIdx, new LinkedList<>());
+					segments.set(lastSegIdx, new Segment(new ArrayList<>(), false));
 				}
 			} else {
-				segments.add(new LinkedList<>());
+				segments.add(new Segment(new ArrayList<>(), false));
 			}
 		} else {
-			segments = new ArrayList<List<Token>>();
-			segments.add(new LinkedList<>());
+			segments = new ArrayList<Segment>();
+			segments.add(new Segment(new ArrayList<>(), false));
 		}
-		segments.get(segments.size() - 1).add(token);
+		segments.get(segments.size() - 1).getTokens().add(token);
 	}
 	
 	/**
@@ -411,7 +413,10 @@ public class SnippetRegEx {
 		if (segments.get(0) == null) {
 			return 0;
 		}
-		return segments.get(0).size();
+		if (segments.get(0).getTokens() == null) {
+			return 0;
+		}
+		return segments.get(0).getTokens().size();
 	}
 	
 	/**
@@ -428,7 +433,10 @@ public class SnippetRegEx {
 		if (segments.get(lastSegIdx) == null) {
 			return 0;
 		}
-		return segments.get(lastSegIdx).size();
+		if (segments.get(lastSegIdx).getTokens() == null) {
+			return 0;
+		}
+		return segments.get(lastSegIdx).getTokens().size();
 	}
 	
 	class TokenFreq implements Comparable<TokenFreq> {
