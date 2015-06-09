@@ -1,5 +1,6 @@
 package gov.va.research.red.ex;
 
+import gov.va.research.red.CVResult;
 import gov.va.research.red.CVScore;
 import gov.va.research.red.CVUtils;
 import gov.va.research.red.LabeledSegment;
@@ -7,11 +8,19 @@ import gov.va.research.red.MatchedElement;
 import gov.va.research.red.Snippet;
 import gov.va.research.red.Token;
 import gov.va.research.red.TokenType;
+import gov.va.research.red.VTTReader;
 import gov.va.research.red.ex.SnippetRegEx.TokenFreq;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.nio.file.FileSystems;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -29,6 +38,9 @@ import java.util.TreeMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.commons.configuration.Configuration;
+import org.apache.commons.configuration.ConfigurationException;
+import org.apache.commons.configuration.PropertiesConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -743,6 +755,111 @@ public class REDExFactory {
 				boolean allowOverMatches) {
 			CVScore score = test(testing, ex, allowOverMatches, null);
 			return score.getTp() - score.getFp();
+		}
+	}
+	
+	public REDExtractor buildModel(
+			final Collection<Snippet> snippets, final Collection<String> labels,
+			final boolean allowOverMatches, String outputTag, Path outputModelPath) throws IOException {
+		REDExtractor rex = train(snippets, labels, allowOverMatches, outputTag);
+		REDExtractor.dump(rex, outputModelPath);
+		return rex;
+	}
+	
+	public static void main(String[] args) throws ConfigurationException, IOException {
+		if (args.length != 2) {
+			System.out.println("Arguments: [buildmodel|crossvalidate] <properties file>");
+		} else {
+			String op = args[0];
+			Configuration conf = new PropertiesConfiguration(args[1]);
+			List<Object> vttfileObjs = conf.getList("vtt.file");
+			List<File> vttfiles = new ArrayList<>(vttfileObjs.size());
+			for (Object vf : vttfileObjs) {
+				File f = new File((String)vf);
+				if (f.exists()) {
+					vttfiles.add(new File((String)vf));
+				} else {
+					throw new FileNotFoundException((String)vf);
+				}
+			}
+			List<Object> labelObjs = conf.getList("label");
+			List<String> labels = new ArrayList<>(labelObjs.size());
+			for (Object label : labelObjs) {
+				labels.add((String)label);
+			}
+			int folds = conf.getInt("folds");
+			Boolean allowOvermatches = conf.getBoolean("allowOvermatches", Boolean.TRUE);
+			Boolean caseInsensitive = conf.getBoolean("caseInsensitive", Boolean.TRUE);
+			Boolean stopAfterFirstFold = conf.getBoolean("stopAfterFirstFold", Boolean.FALSE);
+			Boolean shuffle = conf.getBoolean("shuffle", Boolean.TRUE);
+			int limit = conf.getInt("snippetLimit", -1);
+			String modelOutputFile = conf.getString("model.output.file");
+			
+			if ("crossvalidate".equalsIgnoreCase(op)) {
+				REDExCrossValidator rexcv = new REDExCrossValidator();
+				List<CVResult> results = rexcv.crossValidate(vttfiles, labels, folds, allowOvermatches, caseInsensitive, stopAfterFirstFold.booleanValue(), shuffle, limit);
+	
+				// Display results
+				int i = 0;
+				for (CVResult s : results) {
+					if (s != null) {
+						LOG.info("\n--- Run " + (i++) + " ---\n" + s.getScore().getEvaluation());
+					}
+				}
+				CVResult aggregate = CVResult.aggregate(results);
+				LOG.info("\n--- Aggregate ---\n" + aggregate.getScore().getEvaluation());
+				LOG.info("# Regexes Discovered: " + aggregate.getRegExes().size());
+				String regexOutputFile = conf.getString("regex.output.file");
+				if (regexOutputFile != null) {
+					try (FileWriter fw = new FileWriter(regexOutputFile)) {
+						try (PrintWriter pw = new PrintWriter(fw)) {
+							for (String regex : aggregate.getRegExes()) {
+								pw.println(regex);
+							}
+						}
+					}
+				}
+			} else if ("buildmodel".equalsIgnoreCase(op)) {
+				VTTReader vttr = new VTTReader();
+				// get snippets
+				List<Snippet> snippets = new ArrayList<>();
+				for (File vttFile : vttfiles) {
+					Collection<Snippet> fileSnippets = vttr.findSnippets(vttFile, labels, caseInsensitive);
+					snippets.addAll(fileSnippets);
+				}
+				LOG.info("Building model using " + snippets.size() + " snippets from " + vttfiles +  " files.\n"
+						+ "\nallowOverMatches: " + allowOvermatches
+						+ "\nconvertToLowercase: " + caseInsensitive
+						+ "\nshuffle: " + shuffle
+						+ "\nsnippetLimit: " + limit
+						+ "\nregex.output.file: " + conf.getString("regex.output.file")
+						+ "\nmodel.output.file: " + modelOutputFile);
+				
+				// randomize the order of the snippets
+				if (shuffle) {
+					Collections.shuffle(snippets);
+				}
+				
+				// limit the number of snippets
+				if (limit > 0 && limit < snippets.size()) {
+					List<Snippet> limited = new ArrayList<>(limit);
+					for (int i = 0; i < limit; i++) {
+						limited.add(snippets.get(i));
+					}
+					snippets = limited;
+				}
+
+				LOG.info("training ...");
+				REDExtractor rex = new REDExFactory().train(snippets, labels, allowOvermatches, "m");
+				LOG.info("... done training.");
+				LOG.info("Writing model file ...");
+				Path modelFilePath = FileSystems.getDefault().getPath("", modelOutputFile);
+				if (Files.exists(modelFilePath)) {
+					throw new IOException("Output model file already exists: " + modelOutputFile);
+				}
+				REDExtractor.dump(rex, modelFilePath);
+				LOG.info("... wrote model file to " + modelOutputFile);
+			}
 		}
 	}
 }

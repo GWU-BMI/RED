@@ -80,6 +80,27 @@
   		<artifactId>gson</artifactId>
   		<version>2.3.1</version>
   	</dependency>
+  	<dependency>
+  		<groupId>org.apache.hadoop</groupId>
+  		<artifactId>hadoop-mapreduce-client-core</artifactId>
+  		<version>2.6.0</version>
+  	</dependency>
+  	<dependency>
+  		<groupId>org.apache.hadoop</groupId>
+  		<artifactId>hadoop-common</artifactId>
+  		<version>2.6.0</version>
+  	</dependency>
+	<dependency>
+		<groupId>org.apache.mrunit</groupId>
+		<artifactId>mrunit</artifactId>
+		<version>1.1.0</version>
+		<classifier>hadoop2</classifier> 
+	</dependency>
+	<dependency>
+		<groupId>gov.nih.ncbi</groupId>
+		<artifactId>bioc</artifactId>
+		<version>1.0.1</version>
+	</dependency>
   </dependencies>
   <scm>
   	<connection>scm:git:http://inlp.bmi.utah.edu/git/RED.git/</connection>

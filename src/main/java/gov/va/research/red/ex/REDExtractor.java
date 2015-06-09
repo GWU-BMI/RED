@@ -174,6 +174,9 @@ public class REDExtractor implements Extractor {
 			Matcher matcher = sre.getPattern().matcher(target);
 			boolean test = matcher.find();
 			if(test){
+				if (matcher.groupCount() < 1) {
+					throw new RuntimeException("No capturing group match. Target = " + target + ", Pattern = " + sre.getPattern());
+				}
 				String candidateLS = matcher.group(1);
 				if(candidateLS != null && !candidateLS.equals("")){
 					int startPos = target.indexOf(candidateLS);

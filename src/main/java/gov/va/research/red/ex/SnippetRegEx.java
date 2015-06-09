@@ -122,7 +122,7 @@ public class SnippetRegEx {
 	@Override
 	public String toString() {
 		if (pattern == null) {
-			pattern = Pattern.compile(getRegEx());
+			pattern = Pattern.compile(getRegEx(), Pattern.CASE_INSENSITIVE);
 		}
 		return pattern.toString();
 	}
@@ -237,8 +237,8 @@ public class SnippetRegEx {
 			ListIterator<Token> lsIt = segment.getTokens().listIterator();
 			while (lsIt.hasNext()) {
 				Token t = lsIt.next();
-				if (TokenType.INTEGER.equals(t.getType())/* || DIGIT_TEXT_PATTERN.matcher(t.getString()).matches()*/) {
-					lsIt.set(new Token("(?:\\d+?|" + DIGIT_TEXT + ")", TokenType.REGEX));
+				if (TokenType.INTEGER.equals(t.getType())) {
+					lsIt.set(new Token("(?:\\d+" + (segment.isLabeled() ? "|" : "?|") + DIGIT_TEXT + ")", TokenType.REGEX));
 					changed = true;
 				}
 			}

@@ -107,7 +107,32 @@ public class MatchedElement {
 
 	@Override
 	public String toString() {
-		return "" + startPos + "|" + (match == null ? "null" : match) + "|" + endPos + "|" + (matchingRegex == null ? "null" : matchingRegex) + "|" + confidence;
+		return "" + startPos + "|" + endPos + "|" + (match == null ? "" : match) + "|" + (matchingRegex == null ? "" : matchingRegex) + "|" + confidence;
+	}
+	
+	public static MatchedElement fromString(String str) {
+		Integer startPos = -1;
+		Integer endPos = -1;
+		String match = null;
+		String matchingRegex = null;
+		double confidence = -1;
+		String[] values = str.split("\\|");
+		if (values[0] != null && values[0].length() > 0) {
+			startPos = Integer.parseInt(values[0]);
+		}
+		if (values[1] != null && values[1].length() > 0) {
+			endPos = Integer.parseInt(values[1]);
+		}
+		if (values[2] != null && values[2].length() > 0) {
+			match = values[2];
+		}
+		if (values[3] != null && values[3].length() > 0) {
+			matchingRegex = values[3];
+		}
+		if (values[4] != null && values[4].length() > 0) {
+			confidence = Double.parseDouble(values[4]);
+		}
+		return new MatchedElement(startPos, endPos, match, matchingRegex, confidence);
 	}
 	
 	
