@@ -1,10 +1,12 @@
 package gov.va.research.red;
 
+
 public class MatchedElement {
 	private int startPos, endPos;
 	private String match;
 	private String matchingRegex;
 	private double confidence;
+	private static final String UNIT_SEPARATOR = "\u001F";
 	
 	public MatchedElement(int startPos, int endPos, String match, String matchingRegex, double confidence) {
 		this.startPos = startPos;
@@ -107,7 +109,7 @@ public class MatchedElement {
 
 	@Override
 	public String toString() {
-		return "" + startPos + "|" + endPos + "|" + (match == null ? "" : match) + "|" + (matchingRegex == null ? "" : matchingRegex) + "|" + confidence;
+		return "" + startPos + UNIT_SEPARATOR + endPos + UNIT_SEPARATOR + (match == null ? "" : match) + UNIT_SEPARATOR + (matchingRegex == null ? "" : matchingRegex) + UNIT_SEPARATOR + confidence;
 	}
 	
 	public static MatchedElement fromString(String str) {
@@ -116,7 +118,7 @@ public class MatchedElement {
 		String match = null;
 		String matchingRegex = null;
 		double confidence = -1;
-		String[] values = str.split("\\|");
+		String[] values = str.split(UNIT_SEPARATOR);
 		if (values[0] != null && values[0].length() > 0) {
 			startPos = Integer.parseInt(values[0]);
 		}
@@ -134,6 +136,5 @@ public class MatchedElement {
 		}
 		return new MatchedElement(startPos, endPos, match, matchingRegex, confidence);
 	}
-	
 	
 }

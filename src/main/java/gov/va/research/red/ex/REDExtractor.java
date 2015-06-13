@@ -3,12 +3,19 @@ package gov.va.research.red.ex;
 import gov.va.research.red.MatchedElement;
 
 import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
+import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.PathMatcher;
 import java.nio.file.StandardOpenOption;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -18,10 +25,21 @@ import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.function.Consumer;
 import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import javax.xml.stream.XMLStreamException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import bioc.BioCAnnotation;
+import bioc.BioCCollection;
+import bioc.BioCDocument;
+import bioc.BioCPassage;
+import bioc.io.BioCCollectionWriter;
+import bioc.io.BioCFactory;
 
 import com.google.gson.Gson;
 
@@ -171,9 +189,9 @@ public class REDExtractor implements Extractor {
 		public Set<MatchedElement> call() {
 			Set<MatchedElement> matchedElements = new HashSet<>();
 			//LOG.debug("Pattern: " + sre.toString());
-			Matcher matcher = sre.getPattern().matcher(target);
-			boolean test = matcher.find();
-			if(test){
+			Pattern p = Pattern.compile("w\\s{1,2}?((?:\\d+?|zero|one|two|three|four|five|six|seven|eight|nine|ten))\\p{Punct}{1,2}?(?:\\d+?|zero|one|two|three|four|five|six|seven|eight|nine|ten)", Pattern.CASE_INSENSITIVE);
+			Matcher matcher = /*sre.getPattern()*/p.matcher(target);
+			if(matcher.find()) {
 				if (matcher.groupCount() < 1) {
 					throw new RuntimeException("No capturing group match. Target = " + target + ", Pattern = " + sre.getPattern());
 				}
@@ -213,5 +231,61 @@ public class REDExtractor implements Extractor {
 		return rex;
 	}
 
+	public static void main(String[] args) throws IOException, XMLStreamException {
+		if (args.length < 2) {
+			System.err.println("Usage: REDExtractor <REDEx model file> <file dir> [file glob | file ] ...");
+		} else {
+			Path model = FileSystems.getDefault().getPath(args[0]);
+			if (!Files.exists(model)) {
+				System.err.println("REDEx model file not found: " + args[0]);
+			} else {
+				Path fileDir = FileSystems.getDefault().getPath(args[1]);
+				if (!Files.exists(fileDir)) {
+					System.err.println("file directory not found: " + args[1]);
+				} else {
+					List<Path> files = new ArrayList<>(args.length);
+					for (int i = 2; i < args.length; i++) {
+						Files.newDirectoryStream(fileDir, args[i]).forEach(new Consumer<Path>() {
+							@Override
+							public void accept(Path t) {
+								files.add(t);
+							}
+						});
+					}
+					REDExtractor rex = REDExtractor.load(model);
+					BioCCollection biocColl = new BioCCollection();
+					biocColl.setDate(new SimpleDateFormat("yyyy-MM-dd'T'HH:mm'Z'").format(new Date()));
+					int annId = 0;
+					for (Path file : files) {
+						String contents = new String(Files.readAllBytes(file));
+						BioCDocument biocDoc = new BioCDocument();
+						biocColl.addDocument(biocDoc);
+						biocDoc.setID(file.toString());
+						BioCPassage biocPass = new BioCPassage();
+						biocDoc.addPassage(biocPass);
+						List<MatchedElement> mes = rex.extract(contents);
+						for (MatchedElement me : mes) {
+							BioCAnnotation biocAnn = new BioCAnnotation();
+							biocAnn.setID(String.valueOf(annId++));
+							biocAnn.setLocation(me.getStartPos(), me.getEndPos() - me.getStartPos());
+							biocAnn.setText(me.getMatch());
+							biocPass.addAnnotation(biocAnn);
+						}
+					}
+					BioCFactory factory = BioCFactory.newFactory(BioCFactory.STANDARD);
+					try (Writer w = new OutputStreamWriter(System.out)) {
+						BioCCollectionWriter collWriter = factory.createBioCCollectionWriter(w);
+						try {
+							collWriter.writeCollection(biocColl);
+						} finally {
+							if (collWriter != null) {
+								collWriter.close();
+							}
+						}
+					}
+				}
+			}
+		}
+	}
 }
 
