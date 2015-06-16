@@ -189,8 +189,7 @@ public class REDExtractor implements Extractor {
 		public Set<MatchedElement> call() {
 			Set<MatchedElement> matchedElements = new HashSet<>();
 			//LOG.debug("Pattern: " + sre.toString());
-			Pattern p = Pattern.compile("w\\s{1,2}?((?:\\d+?|zero|one|two|three|four|five|six|seven|eight|nine|ten))\\p{Punct}{1,2}?(?:\\d+?|zero|one|two|three|four|five|six|seven|eight|nine|ten)", Pattern.CASE_INSENSITIVE);
-			Matcher matcher = /*sre.getPattern()*/p.matcher(target);
+			Matcher matcher = sre.getPattern().matcher(target);
 			if(matcher.find()) {
 				if (matcher.groupCount() < 1) {
 					throw new RuntimeException("No capturing group match. Target = " + target + ", Pattern = " + sre.getPattern());

@@ -278,7 +278,7 @@ public class REDExFactory {
 	 * @throws IOException 
 	 */
 	private void outputRegexHistory(List<Deque<SnippetRegEx>> snippetRegExStacks, String outputTag) throws IOException {
-		try (PrintWriter pw = new PrintWriter("regex-history_" + outputTag + ".txt")) {
+		try (PrintWriter pw = new PrintWriter("log/regex-history_" + outputTag + ".txt")) {
 			pw.println();
 			for (Deque<SnippetRegEx> snippetRegExStack : snippetRegExStacks) {
 				pw.println("---------- GS ----------");
@@ -295,7 +295,7 @@ public class REDExFactory {
 	 * @throws IOException 
 	 */
 	private void outputSnippet2Regex(Map<Snippet, Deque<SnippetRegEx>> snippet2regex, String outputTag) throws IOException {
-		try (PrintWriter pw = new PrintWriter("snippet-regex_" + outputTag + ".txt")) {
+		try (PrintWriter pw = new PrintWriter("log/snippet-regex_" + outputTag + ".txt")) {
 			boolean first = true;
 			for (Map.Entry<Snippet, Deque<SnippetRegEx>> snip2re : snippet2regex.entrySet()) {
 				if (first) {

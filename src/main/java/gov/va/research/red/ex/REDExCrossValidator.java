@@ -52,11 +52,12 @@ public class REDExCrossValidator implements CrossValidatable {
 				labels.add((String)label);
 			}
 			int folds = conf.getInt("folds");
-			Boolean allowOvermatches = conf.getBoolean("allowOvermatches", Boolean.TRUE);
-			Boolean caseInsensitive = conf.getBoolean("caseInsensitive", Boolean.TRUE);
-			Boolean stopAfterFirstFold = conf.getBoolean("stopAfterFirstFold", Boolean.FALSE);
+			Boolean allowOvermatches = conf.getBoolean("allow.overmatches", Boolean.TRUE);
+			Boolean caseInsensitive = conf.getBoolean("case.insensitive", Boolean.TRUE);
+			Boolean stopAfterFirstFold = conf.getBoolean("stop.after.first.fold", Boolean.FALSE);
 			Boolean shuffle = conf.getBoolean("shuffle", Boolean.TRUE);
-			int limit = conf.getInt("snippetLimit", -1);
+			int limit = conf.getInt("snippet.limit", -1);
+			new File("log").mkdir();
 			
 			REDExCrossValidator rexcv = new REDExCrossValidator();
 			List<CVResult> results = rexcv.crossValidate(vttfiles, labels, folds, allowOvermatches, caseInsensitive, stopAfterFirstFold.booleanValue(), shuffle, limit);
@@ -131,11 +132,11 @@ public class REDExCrossValidator implements CrossValidatable {
 		}
 		LOG.info("Cross validating " + snippets.size() + " snippets from " + vttFiles +  " files.\n"
 				+ "Folds: " + folds
-				+ "\nallowOverMatches: " + allowOverMatches
-				+ "\nconvertToLowercase: " + caseInsensitive
-				+ "\nstopAfterFirstFold: " + stopAfterFirstFold
+				+ "\nallow.overmatches: " + allowOverMatches
+				+ "\ncase.insensitive: " + caseInsensitive
+				+ "\nstop.after.first.fold: " + stopAfterFirstFold
 				+ "\nshuffle: " + shuffle
-				+ "\nsnippetLimit: " + limit);
+				+ "\nsnippet.limit: " + limit);
 		
 		// randomize the order of the snippets
 		if (shuffle) {
@@ -156,8 +157,8 @@ public class REDExCrossValidator implements CrossValidatable {
 
 		// Run evaluations, "folds" number of times, alternating which partition is being used for testing.
 		List<CVResult> results = new ArrayList<>(folds);
-		try (PrintWriter testingPW = new PrintWriter(new File("testing.txt"));
-			 PrintWriter trainingPW = new PrintWriter(new File("training.txt"))	) {
+		try (PrintWriter testingPW = new PrintWriter(new File("log/testing.txt"));
+			 PrintWriter trainingPW = new PrintWriter(new File("log/training.txt"))	) {
 			AtomicInteger fold = new AtomicInteger(0);
 			for (List<Snippet> partition : partitions) {
 				CVScore score = null;

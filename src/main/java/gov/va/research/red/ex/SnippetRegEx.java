@@ -30,6 +30,9 @@ import java.util.ListIterator;
 import java.util.Map;
 import java.util.regex.Pattern;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.google.gson.Gson;
 
 import gov.va.research.red.LabeledSegment;
@@ -44,6 +47,7 @@ import gov.va.research.red.Tokenizer;
  */
 public class SnippetRegEx {
 
+	private static final Logger LOG = LoggerFactory.getLogger(SnippetRegEx.class);
 	// Snippets are represented as a list of segments. Each segment is a list of tokens with a segment type.
 	private static final String DIGIT_TEXT = "zero|one|two|three|four|five|six|seven|eight|nine|ten";
 	private static final Pattern DIGIT_TEXT_PATTERN = Pattern.compile(DIGIT_TEXT, Pattern.CASE_INSENSITIVE);
@@ -59,6 +63,10 @@ public class SnippetRegEx {
 		segments = new ArrayList<Segment>(snippet.getLabeledSegments().size() + 2);
 		int prevEnd = 0;
 		for (LabeledSegment ls : snippet.getLabeledSegments()) {
+			if (ls.getStart() < prevEnd) {
+				LOG.debug("Overlapping labeled segments found, skipping all but the first.");
+				continue;
+			}
 			String segmentStr = snippet.getText().substring(prevEnd, ls.getStart());
 			List<Token> tokens = Tokenizer.tokenize(segmentStr);
 			segments.add(new Segment(tokens, false));
