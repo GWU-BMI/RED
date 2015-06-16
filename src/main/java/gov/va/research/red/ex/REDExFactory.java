@@ -51,7 +51,7 @@ public class REDExFactory {
 
 	public REDExtractor train (
 			final Collection<Snippet> snippets, final Collection<String> labels,
-			final boolean allowOverMatches, String outputTag) throws IOException {
+			final boolean allowOverMatches, String outputTag, boolean caseInsensitive) throws IOException {
 		// Set up snippet-to-regex map and regex history stacks
 		Map<Snippet, Deque<SnippetRegEx>> snippet2regex = new HashMap<>(snippets.size());
 		List<Deque<SnippetRegEx>> sreStacks = new ArrayList<>(snippets.size());
@@ -118,7 +118,7 @@ public class REDExFactory {
 
 		// perform tier 1 discovery
 		String ot1 = (outputTag == null ? "t1" : outputTag + "_t1");
-		List<Deque<SnippetRegEx>> tier1 = abstractIteratively (snippets, sreStacks, labels, allowOverMatches, ot1, null, noFalsePositives);
+		List<Deque<SnippetRegEx>> tier1 = abstractIteratively (snippets, sreStacks, labels, allowOverMatches, ot1, caseInsensitive, null, noFalsePositives);
 		outputSnippet2Regex(snippet2regex, ot1);
 		outputRegexHistory(sreStacks, ot1);
 		
@@ -138,7 +138,7 @@ public class REDExFactory {
 		// perform tier 2 discovery
 		TPFPDiff ptfpDiff = new TPFPDiff();
 		String ot2 = (outputTag == null ? "t2" : outputTag + "_t2");
-		List<Deque<SnippetRegEx>> tier2 = abstractIteratively (snippets, tier1Copy, labels, allowOverMatches, ot2, ptfpDiff, ptfpDiff);
+		List<Deque<SnippetRegEx>> tier2 = abstractIteratively (snippets, tier1Copy, labels, allowOverMatches, ot2, caseInsensitive, ptfpDiff, ptfpDiff);
 		outputSnippet2Regex(snippet2regex, ot2);
 		outputRegexHistory(sreStacks, ot2);
 
@@ -175,9 +175,9 @@ public class REDExFactory {
 		}
 
 		LOG.info(outputTag + ": measuring sensitivity ...");
-		measureSensitivity(snippets, returnList);
+		measureSensitivity(snippets, returnList, caseInsensitive);
 		LOG.info(outputTag + ": ... done measuring sensitivity");
-		return new REDExtractor(returnList, "# snippets = " + snippets.size() + "\nlabels = " + labels + "\nallowOverMatches = " + allowOverMatches);
+		return new REDExtractor(returnList, "# snippets = " + snippets.size() + "\nlabels = " + labels + "\nallowOverMatches = " + allowOverMatches, caseInsensitive);
 	}
 
 	private List<Deque<SnippetRegEx>> abstractIteratively (
@@ -186,6 +186,7 @@ public class REDExFactory {
 			final Collection<String> labels,
 			final boolean allowOverMatches,
 			final String outputTag,
+			final boolean caseInsensitive,
 			final ScoreFunction beforeChangeScoreFunction,
 			final ScoreFunction afterChangeScoreFunction) throws IOException {
 		String ot = outputTag == null ? "" : outputTag;
@@ -199,7 +200,7 @@ public class REDExFactory {
 //		LOG.info(ot + ": ... done generalizing LSs");
 		
 		LOG.info(ot + ": generalizing LF to MF ...");
-		newSreStacks = generalizeLFtoMF(snippets, sreStacks, allowOverMatches, beforeChangeScoreFunction, afterChangeScoreFunction);
+		newSreStacks = generalizeLFtoMF(snippets, sreStacks, allowOverMatches, caseInsensitive, beforeChangeScoreFunction, afterChangeScoreFunction);
 		newSreStacks = removeDuplicates(sreStacks);
 		LOG.info(ot + ": ... done generalizing LF to MF");
 			
@@ -212,7 +213,7 @@ public class REDExFactory {
 	 * @return
 	 */
 	private List<Deque<SnippetRegEx>> generalizeLFtoMF(Collection<Snippet> snippets,
-			List<Deque<SnippetRegEx>> snippetRegExStacks, boolean allowOverMatches,
+			List<Deque<SnippetRegEx>> snippetRegExStacks, boolean allowOverMatches, boolean caseInsensitive,
 			ScoreFunction beforeChangeScoreFunction, ScoreFunction afterChangeScoreFunction) {
 		// build term frequency list
 		Map<Token,TokenFreq> tokenFreqs = new HashMap<>();
@@ -246,7 +247,7 @@ public class REDExFactory {
 						if (newUlsToken.equals(token)) {
 							boolean changed = false;
 							if (TokenType.WORD.equals(newUlsToken.getType())) {
-								newUlsIt.set(new Token("[A-Za-z]{1," + ((int)Math.ceil(newUlsToken.getString().length() * 1.2)) + "}?", TokenType.REGEX));
+								newUlsIt.set(new Token((caseInsensitive ? "[a-z]" : "[A-Za-z]") + "{1," + ((int)Math.ceil(newUlsToken.getString().length() * 1.2)) + "}?", TokenType.REGEX));
 								changed = true;
 							} else if (TokenType.PUNCTUATION.equals(newUlsToken.getType())) {
 								newUlsIt.set(new Token("\\p{Punct}{1," + ((int)Math.ceil(newUlsToken.getString().length() * 1.2)) + "}?", TokenType.REGEX));
@@ -374,20 +375,20 @@ public class REDExFactory {
 		return nodups;
 	}
 
-	private void measureSensitivity(Collection<Snippet> snippets, List<Collection<SnippetRegEx>> rankedRegExLists) {
+	private void measureSensitivity(Collection<Snippet> snippets, List<Collection<SnippetRegEx>> rankedRegExLists, boolean caseInsensitive) {
 		for (Collection<SnippetRegEx> regexs : rankedRegExLists) {
 			for (SnippetRegEx regEx : regexs) {
-				int count = sensitivityCount(regEx, snippets);
+				int count = sensitivityCount(regEx, snippets, caseInsensitive);
 				double sensitivity = ((double)count)/((double)snippets.size());
 				regEx.setSensitivity(sensitivity);
 			}
 		}
 	}
 	
-	private int sensitivityCount(SnippetRegEx regEx, Collection<Snippet> snippets) {
+	private int sensitivityCount(SnippetRegEx regEx, Collection<Snippet> snippets, boolean caseInsensitive) {
 		int count = 0;
 		for (Snippet snippt : snippets) {
-			Matcher matcher = regEx.getPattern().matcher(snippt.getText());
+			Matcher matcher = regEx.getPattern(caseInsensitive).matcher(snippt.getText());
 			while (matcher.find()) {
 				count++;
 			}
@@ -760,8 +761,8 @@ public class REDExFactory {
 	
 	public REDExtractor buildModel(
 			final Collection<Snippet> snippets, final Collection<String> labels,
-			final boolean allowOverMatches, String outputTag, Path outputModelPath) throws IOException {
-		REDExtractor rex = train(snippets, labels, allowOverMatches, outputTag);
+			final boolean allowOverMatches, String outputTag, Path outputModelPath, boolean caseInsensitive) throws IOException {
+		REDExtractor rex = train(snippets, labels, allowOverMatches, outputTag, caseInsensitive);
 		REDExtractor.dump(rex, outputModelPath);
 		return rex;
 	}
@@ -850,7 +851,7 @@ public class REDExFactory {
 				}
 
 				LOG.info("training ...");
-				REDExtractor rex = new REDExFactory().train(snippets, labels, allowOvermatches, "m");
+				REDExtractor rex = new REDExFactory().train(snippets, labels, allowOvermatches, "m", caseInsensitive);
 				LOG.info("... done training.");
 				LOG.info("Writing model file ...");
 				Path modelFilePath = FileSystems.getDefault().getPath("", modelOutputFile);

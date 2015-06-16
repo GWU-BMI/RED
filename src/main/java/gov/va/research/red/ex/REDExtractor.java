@@ -8,15 +8,12 @@ import java.io.Writer;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.PathMatcher;
 import java.nio.file.StandardOpenOption;
-import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -27,7 +24,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.function.Consumer;
 import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import javax.xml.stream.XMLStreamException;
 
@@ -48,15 +44,18 @@ public class REDExtractor implements Extractor {
 	
 	private List<Collection<SnippetRegEx>> rankedSnippetRegExs;
 	private String metadata;
+	private boolean caseInsensitive;
 	
-	public REDExtractor(Collection<SnippetRegEx> sres) {
+	public REDExtractor(Collection<SnippetRegEx> sres, boolean caseInsensitive) {
 		this.rankedSnippetRegExs = new ArrayList<>(1);
 		this.rankedSnippetRegExs.add(sres);
+		this.caseInsensitive = caseInsensitive;
 	}
 	
-	public REDExtractor(List<Collection<SnippetRegEx>> rankedSres, String metadata) {
+	public REDExtractor(List<Collection<SnippetRegEx>> rankedSres, String metadata, boolean caseInsensitive) {
 		this.rankedSnippetRegExs = rankedSres;
 		this.metadata = metadata;
+		this.caseInsensitive = caseInsensitive;
 	}
 
 	public REDExtractor(SnippetRegEx snippetRegEx) {
@@ -73,7 +72,7 @@ public class REDExtractor implements Extractor {
 		for (Collection<SnippetRegEx> snippetREs : this.rankedSnippetRegExs) {
 			if(snippetREs != null && !snippetREs.isEmpty()) {
 				returnMap = snippetREs.parallelStream().map((sre) -> {
-					MatchFinder mf = new MatchFinder(sre, target);
+					MatchFinder mf = new MatchFinder(sre, target, caseInsensitive);
 					Set<MatchedElement> mes = mf.call();
 					return mes;
 				}).reduce(new ConcurrentHashMap<MatchedElement, Double>(), (s1, s2) -> {
@@ -122,7 +121,7 @@ public class REDExtractor implements Extractor {
 		return new ArrayList<>(returnList);
 	}
 	
-	public MatchedElement extractFirst(String target) {
+	public MatchedElement extractFirst(String target, boolean caseInsensitive) {
 		if(target == null || target.equals("")) {
 			return null;
 		}
@@ -130,14 +129,14 @@ public class REDExtractor implements Extractor {
 			if(snippetREs != null && !snippetREs.isEmpty()){
 				Optional<MatchedElement> matchedElement = snippetREs.parallelStream().map((sre) -> {
 					Set<MatchedElement> matchedElements = new HashSet<>();
-					Matcher matcher = sre.getPattern().matcher(target);
+					Matcher matcher = sre.getPattern(caseInsensitive).matcher(target);
 					boolean test = matcher.find();
 					if(test) {
 						String candidateLS = matcher.group(1);
 						if(candidateLS != null && !candidateLS.equals("")){
 							int startPos = target.indexOf(candidateLS);
 							int endPos = startPos + candidateLS.length();
-							matchedElements.add(new MatchedElement(startPos, endPos, candidateLS, sre.getPattern().toString(), sre.getSensitivity()));
+							matchedElements.add(new MatchedElement(startPos, endPos, candidateLS, sre.getPattern(caseInsensitive).toString(), sre.getSensitivity()));
 						}
 					}
 					return matchedElements;
@@ -179,20 +178,22 @@ public class REDExtractor implements Extractor {
 	private class MatchFinder implements Callable<Set<MatchedElement>> {
 		SnippetRegEx sre;
 		String target;
+		boolean caseInsensitive;
 		
-		public MatchFinder(SnippetRegEx sre, String target) {
+		public MatchFinder(SnippetRegEx sre, String target, boolean caseInsensitive) {
 			this.sre = sre;
 			this.target = target;
+			this.caseInsensitive = caseInsensitive;
 		}
 
 		@Override
 		public Set<MatchedElement> call() {
 			Set<MatchedElement> matchedElements = new HashSet<>();
 			//LOG.debug("Pattern: " + sre.toString());
-			Matcher matcher = sre.getPattern().matcher(target);
+			Matcher matcher = sre.getPattern(caseInsensitive).matcher(target);
 			if(matcher.find()) {
 				if (matcher.groupCount() < 1) {
-					throw new RuntimeException("No capturing group match. Target = " + target + ", Pattern = " + sre.getPattern());
+					throw new RuntimeException("No capturing group match. Target = " + target + ", Pattern = " + sre.getPattern(caseInsensitive));
 				}
 				String candidateLS = matcher.group(1);
 				if(candidateLS != null && !candidateLS.equals("")){

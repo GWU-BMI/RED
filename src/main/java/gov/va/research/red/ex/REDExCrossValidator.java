@@ -183,7 +183,7 @@ public class REDExCrossValidator implements CrossValidatable {
 						// Train
 						REDExtractor ex = null;
 						try {
-							ex = trainExtractor(labels, training, allowOverMatches, trainingPW, "" + newFold);
+							ex = trainExtractor(labels, training, allowOverMatches, trainingPW, "" + newFold, caseInsensitive);
 						} catch (Exception e) {
 							throw new RuntimeException(e);
 						}
@@ -214,10 +214,10 @@ public class REDExCrossValidator implements CrossValidatable {
 	 * @return an extractor containing regexes discovered during training.
 	 * @throws IOException
 	 */
-	private REDExtractor trainExtractor(String label, List<Snippet> training, boolean allowOverMatches, float fpThreshold, String outputTag) throws IOException {
+	private REDExtractor trainExtractor(String label, List<Snippet> training, boolean allowOverMatches, float fpThreshold, String outputTag, boolean caseInsensitive) throws IOException {
 		Collection<String> labels = new ArrayList<>(1);
 		labels.add(label);
-		return trainExtractor(labels, training, allowOverMatches, null, outputTag);
+		return trainExtractor(labels, training, allowOverMatches, null, outputTag, caseInsensitive);
 	}
 
 	/**
@@ -227,9 +227,9 @@ public class REDExCrossValidator implements CrossValidatable {
 	 * @return an extractor containing regexes discovered during training.
 	 * @throws IOException
 	 */
-	private REDExtractor trainExtractor(Collection<String> labels, List<Snippet> training, boolean allowOverMatches, PrintWriter pw, String outputTag) throws IOException {
+	private REDExtractor trainExtractor(Collection<String> labels, List<Snippet> training, boolean allowOverMatches, PrintWriter pw, String outputTag, boolean caseInsensitive) throws IOException {
 		REDExFactory rexe = new REDExFactory();
-		REDExtractor ex = rexe.train(training, labels, allowOverMatches, outputTag);
+		REDExtractor ex = rexe.train(training, labels, allowOverMatches, outputTag, caseInsensitive);
 		if (pw != null) {
 			List<Snippet> labelled = new ArrayList<>();
 			List<Snippet> unlabelled = new ArrayList<>();

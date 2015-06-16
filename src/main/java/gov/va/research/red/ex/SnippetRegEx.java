@@ -130,7 +130,7 @@ public class SnippetRegEx {
 	@Override
 	public String toString() {
 		if (pattern == null) {
-			pattern = Pattern.compile(getRegEx(), Pattern.CASE_INSENSITIVE);
+			pattern = Pattern.compile(getRegEx(true));
 		}
 		return pattern.toString();
 	}
@@ -138,8 +138,8 @@ public class SnippetRegEx {
 	/**
 	 * @return The java.lang.String representation of the regular expression.
 	 */
-	private String getRegEx() {
-		StringBuilder regex = new StringBuilder();
+	private String getRegEx(boolean caseInsensitive) {
+		StringBuilder regex = new StringBuilder(caseInsensitive ? "(?i)" : "");
 		boolean isLabeled = false;
 		for (Segment segment : segments) {
 			if (isLabeled) {
@@ -159,9 +159,9 @@ public class SnippetRegEx {
 	/**
 	 * @return The java.util.regex.Pattern representation of the regular expression.
 	 */
-	public Pattern getPattern() {
+	public Pattern getPattern(boolean caseInsensitive) {
 		if (pattern == null) {
-			pattern = Pattern.compile(getRegEx(), Pattern.CASE_INSENSITIVE);
+			pattern = Pattern.compile(getRegEx(caseInsensitive));
 		}
 		return pattern;
 	}
