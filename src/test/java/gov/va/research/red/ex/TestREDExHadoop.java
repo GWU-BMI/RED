@@ -21,8 +21,12 @@ import gov.va.research.red.MatchedElement;
 import gov.va.research.red.MatchedElementWritable;
 
 import java.io.IOException;
+import java.io.StringReader;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
+
+import javax.xml.stream.XMLStreamException;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.Text;
@@ -34,6 +38,11 @@ import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+
+import bioc.BioCAnnotation;
+import bioc.BioCDocument;
+import bioc.io.BioCDocumentReader;
+import bioc.io.BioCFactory;
 
 /**
  * @author doug
@@ -71,6 +80,7 @@ public class TestREDExHadoop {
 		BioCReducer reducer = new BioCReducer();
 		reduceDriver = ReduceDriver.newReduceDriver(reducer);
 		mapReduceDriver = MapReduceDriver.newMapReduceDriver(mapper, reducer);
+		mapReduceDriver.getConfiguration().set("regex.file", "redex-pain.model");
 	}
 
 	/**
@@ -82,11 +92,27 @@ public class TestREDExHadoop {
 
 	@Test
 	public void testMapper() {
-		MatchedElement me = new MatchedElement(2, 5, "5/10", "", 1);
+		MatchedElement me = new MatchedElement(2, 3, "5", "(?i)w\\s{1,2}?((\\d+|zero|one|two|three|four|five|six|seven|eight|nine|ten))\\p{Punct}{1,2}?(?:\\d+?|zero|one|two|three|four|five|six|seven|eight|nine|ten)", 0.002883922134102379);
 		MatchedElementWritable mew = new MatchedElementWritable(me);
 		mapDriver.withInput(new Text("p0|d0|2015-06-08"), new Text(
 				"w 5/10"));
 		mapDriver.withOutput(new Text("p0|d0|2015-06-08"), mew);
+		mapDriver.setValueComparator(new Comparator<MatchedElementWritable>() {
+			@Override
+			public int compare(MatchedElementWritable o1,
+					MatchedElementWritable o2) {
+				if (o1.getMatchedElement().getStartPos() != o2.getMatchedElement().getStartPos()) {
+					return o1.getMatchedElement().getStartPos() - o2.getMatchedElement().getEndPos();
+				}
+				if (o1.getMatchedElement().getEndPos() != o2.getMatchedElement().getEndPos()) {
+					return o1.getMatchedElement().getEndPos() - o2.getMatchedElement().getEndPos();
+				}
+				if (!o1.getMatchedElement().getMatch().equals(o2.getMatchedElement().getMatch())) {
+					return o1.getMatchedElement().getMatch().compareTo(o2.getMatchedElement().getMatch());
+				}
+				return 0;
+			}
+		});
 		try {
 			mapDriver.runTest();
 		} catch (IOException e) {
@@ -99,9 +125,33 @@ public class TestREDExHadoop {
 		List<MatchedElementWritable> mewList = new ArrayList<>();
 		MatchedElementWritable mew = new MatchedElementWritable(new MatchedElement(9, 10, "5", "", 1));
 		mewList.add(mew);
-		Text output = new Text();
+		Text output = new Text(
+				"<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
+				+ "<!DOCTYPE collection SYSTEM \"BioC.dtd\">"
+				+ "<collection>"
+				+   "<source></source>"
+				+   "<date></date>"
+				+   "<key></key>"
+				+   "<document>"
+				+     "<id>d0</id>"
+				+     "<infon key=\"date\">2015-06-08</infon>"
+				+     "<infon key=\"Patient ID\">p0</infon>"
+				+     "<passage>"
+				+       "<offset>-1</offset>"
+				+       "<annotation id=\"\">"
+				+         "<infon key=\"dateTime\">2015-06-17T21:44Z</infon>"
+				+         "<infon key=\"confidence\">1.0</infon>"
+				+         "<infon key=\"type\"></infon>"
+				+         "<infon key=\"value\">5</infon>"
+				+         "<location offset=\"9\" length=\"1\"></location>"
+				+         "<text></text>"
+				+       "</annotation>"
+				+     "</passage>"
+				+   "</document>"
+				+ "</collection>");
 		reduceDriver.withInput(new Text("p0|d0|2015-06-08"), mewList);
-		reduceDriver.withOutput(new Text("p0|d0|2015-06-08"), output);
+		reduceDriver.withOutput(output, new Text());
+		reduceDriver.setKeyComparator(new BioCXMLComparator());
 		try {
 			reduceDriver.runTest();
 		} catch (IOException e) {
@@ -112,13 +162,75 @@ public class TestREDExHadoop {
 	@Test
 	public void testMapReduce() {
 		mapReduceDriver.withInput(new Text("p0|d0|2015-06-08"), new Text(
-				"Achieved 5 METs\nPain score 5/10\nKatz score : 5"));
-		Text output = new Text();
-		mapReduceDriver.withOutput(new Text("p0|d0|2015-06-08"), output);
+				"w 5/10"));
+		Text output = new Text(
+				"<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
+				+ "<!DOCTYPE collection SYSTEM \"BioC.dtd\">"
+				+ "<collection>"
+				+   "<source></source>"
+				+   "<date>2015-06-18T17:29Z</date>"
+				+   "<key>c3po.key</key>"
+				+   "<document>"
+				+     "<id>d0</id>"
+				+     "<infon key=\"date\">2015-06-08</infon>"
+				+     "<infon key=\"Patient ID\">p0</infon>"
+				+     "<passage>"
+				+       "<offset>-1</offset>"
+				+       "<annotation id=\"\">"
+				+         "<infon key=\"dateTime\">2015-06-18T17:29Z</infon>"
+				+         "<infon key=\"confidence\">0.046142754145638065</infon>"
+				+         "<infon key=\"type\"></infon>"
+				+         "<infon key=\"value\">5</infon>"
+				+         "<location offset=\"2\" length=\"1\"></location>"
+				+         "<text></text>"
+				+       "</annotation>"
+				+     "</passage>"
+				+   "</document>"
+				+ "</collection>");
+		mapReduceDriver.withOutput(output, new Text());
+		mapReduceDriver.setKeyComparator(new BioCXMLComparator());
 		try {
 			mapReduceDriver.runTest();
 		} catch (IOException e) {
 			throw new AssertionError(e);
 		}
+	}
+	
+	private class BioCXMLComparator implements Comparator<Text> {
+
+		/* (non-Javadoc)
+		 * @see java.util.Comparator#compare(java.lang.Object, java.lang.Object)
+		 */
+		@Override
+		public int compare(Text o1, Text o2) {
+			BioCFactory fact = BioCFactory.newFactory(BioCFactory.STANDARD);
+			try {
+				BioCDocumentReader o1Reader = fact.createBioCDocumentReader(new StringReader(o1.toString()));
+				BioCDocument o1Doc = o1Reader.readDocument();
+				BioCDocumentReader o2Reader = fact.createBioCDocumentReader(new StringReader(o2.toString()));
+				BioCDocument o2Doc = o2Reader.readDocument();
+				BioCAnnotation o1Ann = o1Doc.getPassage(0).getAnnotation(0);
+				BioCAnnotation o2Ann = o2Doc.getPassage(0).getAnnotation(0);
+				if (!o1Doc.getID().equals(o2Doc.getID())) {
+					return o1Doc.getID().compareTo(o2Doc.getID());
+				}
+				if (!o1Doc.getInfon("Patient ID").equals(o2Doc.getInfon("Patient ID"))) {
+					return o1Doc.getInfon("Patient ID").compareTo(o2Doc.getInfon("Patient ID"));
+				}
+				if (!o1Ann.getInfon("value").equals(o2Ann.getInfon("value"))) {
+					return o1Ann.getInfon("value").compareTo(o2Ann.getInfon("value"));
+				}
+				if (o1Ann.getLocations().get(0).getOffset() != o2Ann.getLocations().get(0).getOffset()) {
+					return o1Ann.getLocations().get(0).getOffset() - o2Ann.getLocations().get(0).getOffset();
+				}
+				if (o1Ann.getLocations().get(0).getLength() != o2Ann.getLocations().get(0).getLength()) {
+					return o1Ann.getLocations().get(0).getLength() - o2Ann.getLocations().get(0).getLength();
+				}
+			} catch (XMLStreamException e) {
+				throw new AssertionError(e);
+			}
+			return 0;
+		}
+		
 	}
 }

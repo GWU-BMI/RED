@@ -19,6 +19,7 @@ package gov.va.research.red;
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
+import java.util.Arrays;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.BinaryComparable;
@@ -46,7 +47,13 @@ public class MatchedElementWritable extends BinaryComparable
 	 */
 	@Override
 	public void write(DataOutput out) throws IOException {
-		out.writeUTF(matchedElement.toString());
+		out.writeInt(matchedElement.getStartPos());
+		out.writeInt(matchedElement.getEndPos());
+		out.writeInt(matchedElement.getMatch().length());
+		out.writeChars(matchedElement.getMatch());
+		out.writeInt(matchedElement.getMatchingRegex().length());
+		out.writeChars(matchedElement.getMatchingRegex());
+		out.writeDouble(matchedElement.getConfidence());
 	}
 
 	/* (non-Javadoc)
@@ -54,8 +61,22 @@ public class MatchedElementWritable extends BinaryComparable
 	 */
 	@Override
 	public void readFields(DataInput in) throws IOException {
-		String meString = in.readUTF();
-		this.matchedElement = MatchedElement.fromString(meString);
+		int startPos = in.readInt();
+		int endPos = in.readInt();
+		int matchLen = in.readInt();
+		char[] matchChars = new char[matchLen];
+		for (int i = 0; i < matchLen; i++) {
+			matchChars[i] = in.readChar();
+		}
+		String match = new String(matchChars);
+		int matchingRegexLen = in.readInt();
+		char[] matchingRegexChars = new char[matchingRegexLen];
+		for (int i = 0; i < matchingRegexLen; i++) {
+			matchingRegexChars[i] = in.readChar();
+		}
+		String matchingRegex = new String(matchingRegexChars);
+		double confidence = in.readDouble();
+		this.matchedElement = new MatchedElement(startPos, endPos, match, matchingRegex, confidence);
 	}
 
 	/* (non-Javadoc)
@@ -87,4 +108,11 @@ public class MatchedElementWritable extends BinaryComparable
 	public void setMatchedElement(MatchedElement matchedElement) {
 		this.matchedElement = matchedElement;
 	}
+
+	@Override
+	public boolean equals(Object other) {
+		// TODO Auto-generated method stub
+		return super.equals(other);
+	}
+	
 }

@@ -53,7 +53,7 @@ public class REDExMapper extends Mapper<Text, Text, Text, MatchedElementWritable
 			System.out.println(entry.getKey() + ":" + entry.getValue());
 		}
 		String regexFilename = conf.get("regex.file");
-		Path regexPath = FileSystems.getDefault().getPath("", regexFilename);
+		Path regexPath = FileSystems.getDefault().getPath(regexFilename);
 		rex = REDExtractor.load(regexPath);
 	}
 
@@ -64,8 +64,10 @@ public class REDExMapper extends Mapper<Text, Text, Text, MatchedElementWritable
 			Mapper<Text, Text, Text, MatchedElementWritable>.Context context)
 			throws IOException, InterruptedException {
 		List<MatchedElement> matches = rex.extract(value.toString());
-		for (MatchedElement me : matches) {
-			context.write(key, new MatchedElementWritable(me));
+		if (matches != null) {
+			for (MatchedElement me : matches) {
+				context.write(key, new MatchedElementWritable(me));
+			}
 		}
 	}
 }

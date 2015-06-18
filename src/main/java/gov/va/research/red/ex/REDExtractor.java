@@ -24,6 +24,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.function.Consumer;
 import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.xml.stream.XMLStreamException;
 
@@ -58,9 +59,10 @@ public class REDExtractor implements Extractor {
 		this.caseInsensitive = caseInsensitive;
 	}
 
-	public REDExtractor(SnippetRegEx snippetRegEx) {
+	public REDExtractor(SnippetRegEx snippetRegEx, boolean caseInsensitive) {
 		this.rankedSnippetRegExs = new ArrayList<>(1);
 		this.rankedSnippetRegExs.add(Arrays.asList(new SnippetRegEx[] { snippetRegEx }));
+		this.caseInsensitive = caseInsensitive;
 	}
 
 	@Override
@@ -190,16 +192,18 @@ public class REDExtractor implements Extractor {
 		public Set<MatchedElement> call() {
 			Set<MatchedElement> matchedElements = new HashSet<>();
 			//LOG.debug("Pattern: " + sre.toString());
-			Matcher matcher = sre.getPattern(caseInsensitive).matcher(target);
+			Pattern p = sre.getPattern(caseInsensitive);
+			Matcher matcher = p.matcher(target);
 			if(matcher.find()) {
 				if (matcher.groupCount() < 1) {
-					throw new RuntimeException("No capturing group match. Target = " + target + ", Pattern = " + sre.getPattern(caseInsensitive));
-				}
-				String candidateLS = matcher.group(1);
-				if(candidateLS != null && !candidateLS.equals("")){
-					int startPos = target.indexOf(candidateLS);
-					int endPos = startPos + candidateLS.length();
-					matchedElements.add(new MatchedElement(startPos, endPos, candidateLS, sre.toString(), sre.getSensitivity()));
+					LOG.error("No capturing group match.\nTarget = " + target + "\nPattern = " + sre.getPattern(caseInsensitive));
+				} else {
+					String candidateLS = matcher.group(1);
+					if(candidateLS != null && !candidateLS.equals("")){
+						int startPos = target.indexOf(candidateLS);
+						int endPos = startPos + candidateLS.length();
+						matchedElements.add(new MatchedElement(startPos, endPos, candidateLS, sre.toString(), sre.getSensitivity()));
+					}
 				}
 			}
 			return matchedElements;

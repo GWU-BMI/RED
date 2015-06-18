@@ -84,11 +84,11 @@ public class REDExFactory {
 		// Check for false positives. Each ls3 should have at least one true positive, matching the snippet it originated from.
 		for (Deque<SnippetRegEx> sreStack : sreStacks) {
 			SnippetRegEx sre = sreStack.peek();
-			boolean tps = checkForTruePositives(snippets, new REDExtractor(sre), allowOverMatches);
+			boolean tps = checkForTruePositives(snippets, new REDExtractor(sre, caseInsensitive), allowOverMatches);
 			if (!tps) {
 				throw new RuntimeException(outputTag + ": No tps for regex, should be at least one: " + sre.toString());
 			}
-			boolean fps = (0 == noFalsePositives.score(snippets, new REDExtractor(sre), allowOverMatches));
+			boolean fps = (0 == noFalsePositives.score(snippets, new REDExtractor(sre, caseInsensitive), allowOverMatches));
 			if (fps) {
 				throw new RuntimeException("Inconsistent annotataion? : fps for regex: " + sre.toString());
 			}
@@ -104,11 +104,11 @@ public class REDExFactory {
 		// Check for false positives. Each ls3 should have at least one true positive, matching the snippet it originated from.
 		for (Deque<SnippetRegEx> sreStack : sreStacks) {
 			SnippetRegEx sre = sreStack.peek();
-			boolean tps = checkForTruePositives(snippets, new REDExtractor(sre), allowOverMatches);
+			boolean tps = checkForTruePositives(snippets, new REDExtractor(sre, caseInsensitive), allowOverMatches);
 			if (!tps) {
 				throw new RuntimeException("No tps for regex, should be at least one: " + sre.toString());
 			}
-			boolean fps = (0 == noFalsePositives.score(snippets, new REDExtractor(sre), allowOverMatches));
+			boolean fps = (0 == noFalsePositives.score(snippets, new REDExtractor(sre, caseInsensitive), allowOverMatches));
 			if (fps) {
 				throw new RuntimeException("Inconsistent annotataion? : fps for regex: " + sre.toString());
 			}
@@ -191,7 +191,7 @@ public class REDExFactory {
 			final ScoreFunction afterChangeScoreFunction) throws IOException {
 		String ot = outputTag == null ? "" : outputTag;
 		LOG.info(ot + ": trimming regexes ...");
-		trimRegEx(snippets, sreStacks, allowOverMatches, beforeChangeScoreFunction, afterChangeScoreFunction);
+		trimRegEx(snippets, sreStacks, allowOverMatches, caseInsensitive, beforeChangeScoreFunction, afterChangeScoreFunction);
 		LOG.info(ot + ": ... done trimming regexes");
 		List<Deque<SnippetRegEx>> newSreStacks = removeDuplicates(sreStacks);
 			
@@ -254,8 +254,8 @@ public class REDExFactory {
 								changed = true;
 							}
 							if (changed) {
-								int beforeScore = (beforeChangeScoreFunction == null ? 1 : beforeChangeScoreFunction.score(snippets, new REDExtractor(saveSre), allowOverMatches));
-								int afterScore = (afterChangeScoreFunction == null ? 0 : afterChangeScoreFunction.score(snippets, new REDExtractor(newSre), allowOverMatches));
+								int beforeScore = (beforeChangeScoreFunction == null ? 1 : beforeChangeScoreFunction.score(snippets, new REDExtractor(saveSre, caseInsensitive), allowOverMatches));
+								int afterScore = (afterChangeScoreFunction == null ? 0 : afterChangeScoreFunction.score(snippets, new REDExtractor(newSre, caseInsensitive), allowOverMatches));
 								if (afterScore < beforeScore) {
 									// revert
 									newSre = saveSre;
@@ -296,6 +296,7 @@ public class REDExFactory {
 	 * @throws IOException 
 	 */
 	private void outputSnippet2Regex(Map<Snippet, Deque<SnippetRegEx>> snippet2regex, String outputTag) throws IOException {
+		new File("log").mkdir();
 		try (PrintWriter pw = new PrintWriter("log/snippet-regex_" + outputTag + ".txt")) {
 			boolean first = true;
 			for (Map.Entry<Snippet, Deque<SnippetRegEx>> snip2re : snippet2regex.entrySet()) {
@@ -327,6 +328,7 @@ public class REDExFactory {
 			final Collection<Snippet> snippets,
 			final List<Deque<SnippetRegEx>> snippetRegExStacks,
 			final boolean allowOverMatches,
+			final boolean caseInsensitive,
 			ScoreFunction beforeChangeScoreFunction,
 			ScoreFunction afterChangeScoreFunction) {
 		Set<Segment> lsSet = new HashSet<>();
@@ -349,8 +351,8 @@ public class REDExFactory {
 			SnippetRegEx beforeSre = ls3stack.peek();
 			SnippetRegEx sreCopy = new SnippetRegEx(beforeSre);
 			sreCopy.setLabeledSegments(new Segment(genLS, true));
-			int beforeScore = (beforeChangeScoreFunction == null ? 1 : beforeChangeScoreFunction.score(snippets, new REDExtractor(beforeSre), allowOverMatches));
-			int afterScore = (afterChangeScoreFunction == null ? 0 : afterChangeScoreFunction.score(snippets, new REDExtractor(sreCopy), allowOverMatches));
+			int beforeScore = (beforeChangeScoreFunction == null ? 1 : beforeChangeScoreFunction.score(snippets, new REDExtractor(beforeSre, caseInsensitive), allowOverMatches));
+			int afterScore = (afterChangeScoreFunction == null ? 0 : afterChangeScoreFunction.score(snippets, new REDExtractor(sreCopy, caseInsensitive), allowOverMatches));
 			if (beforeScore <= afterScore){
 				ls3stack.push(sreCopy);
 			}
@@ -438,7 +440,7 @@ public class REDExFactory {
 	 * @param snippets
 	 * @param snippetRegExStacks
 	 */
-	private void trimRegEx(final Collection<Snippet> snippets, List<Deque<SnippetRegEx>> snippetRegExStacks, boolean allowOverMatches,
+	private void trimRegEx(final Collection<Snippet> snippets, List<Deque<SnippetRegEx>> snippetRegExStacks, boolean allowOverMatches, boolean caseInsensitive,
 			ScoreFunction beforeChangeScoreFunction, ScoreFunction afterChangeScoreFunction) {
 		// trim from the front and back, repeat while progress is being made
 		snippetRegExStacks.parallelStream().forEach(sreStack -> {
@@ -452,8 +454,8 @@ public class REDExFactory {
 				if (sreTrim.getFirstSegmentLength() >= sreTrim.getLastSegmentLength()) {
 					Token removed = sreTrim.trimFromBeginning();
 					if (removed != null) {
-						int beforeScore = (beforeChangeScoreFunction == null ? 1 : beforeChangeScoreFunction.score(snippets, new REDExtractor(beforeSre), allowOverMatches));
-						int afterScore = (afterChangeScoreFunction == null ? 0 : afterChangeScoreFunction.score(snippets, new REDExtractor(sreTrim), allowOverMatches));
+						int beforeScore = (beforeChangeScoreFunction == null ? 1 : beforeChangeScoreFunction.score(snippets, new REDExtractor(beforeSre, caseInsensitive), allowOverMatches));
+						int afterScore = (afterChangeScoreFunction == null ? 0 : afterChangeScoreFunction.score(snippets, new REDExtractor(sreTrim, caseInsensitive), allowOverMatches));
 						if (afterScore < beforeScore){
 							sreTrim.addToBeginning(removed);
 							beginningProgress = false;
@@ -464,8 +466,8 @@ public class REDExFactory {
 				} else if (sreTrim.getFirstSegmentLength() <= sreTrim.getLastSegmentLength()) {
 					Token removed = sreTrim.trimFromEnd();
 					if (removed != null) {
-						int beforeScore = (beforeChangeScoreFunction == null ? 1 : beforeChangeScoreFunction.score(snippets, new REDExtractor(beforeSre), allowOverMatches));
-						int afterScore = (afterChangeScoreFunction == null ? 0 : afterChangeScoreFunction.score(snippets, new REDExtractor(sreTrim), allowOverMatches));
+						int beforeScore = (beforeChangeScoreFunction == null ? 1 : beforeChangeScoreFunction.score(snippets, new REDExtractor(beforeSre, caseInsensitive), allowOverMatches));
+						int afterScore = (afterChangeScoreFunction == null ? 0 : afterChangeScoreFunction.score(snippets, new REDExtractor(sreTrim, caseInsensitive), allowOverMatches));
 						if (afterScore < beforeScore){
 							sreTrim.addToEnd(removed);
 							endProgress = false;

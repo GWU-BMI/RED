@@ -32,9 +32,11 @@ import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Reducer;
 
 import bioc.BioCAnnotation;
+import bioc.BioCCollection;
 import bioc.BioCDocument;
 import bioc.BioCLocation;
 import bioc.BioCPassage;
+import bioc.io.BioCCollectionWriter;
 import bioc.io.BioCDocumentWriter;
 import bioc.io.BioCFactory;
 
@@ -48,6 +50,7 @@ public class BioCReducer extends Reducer<Text, MatchedElementWritable, Text, Tex
 	private DateFormat dateFormat;
 	private DateFormat dateTimeFormat;
 	private String type;
+	private BioCCollection biocCollection;
 
 	
 	@Override
@@ -61,6 +64,10 @@ public class BioCReducer extends Reducer<Text, MatchedElementWritable, Text, Tex
 		dateTimeFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm'Z'");
 		dateTimeFormat.setTimeZone(timezone);
 		type = context.getConfiguration().get("value.type");
+		biocCollection = new BioCCollection();
+		biocCollection.setDate(dateTimeFormat.format(new Date()));
+		biocCollection.setKey("c3po.key");
+//		biocCollection.setSource("");
 	}
 
 	@Override
@@ -69,7 +76,7 @@ public class BioCReducer extends Reducer<Text, MatchedElementWritable, Text, Tex
 			Iterable<MatchedElementWritable> values,
 			Reducer<Text, MatchedElementWritable, Text, Text>.Context context)
 			throws IOException, InterruptedException {
-		String[] ids = key.toString().split("|");
+		String[] ids = key.toString().split("\\|");
 		if (ids.length != 3) {
 			throw new IOException(
 					"Invalid key format. Expected <patient id>|<document id>|<document date/time> but found: "
@@ -102,13 +109,27 @@ public class BioCReducer extends Reducer<Text, MatchedElementWritable, Text, Tex
 					"" + match.getConfidence());
 			biocPassage.addAnnotation(biocAnnotation);
 		}
+		biocCollection.addDocument(biocDoc);
+	}
+
+	@Override
+	protected void cleanup(
+			Reducer<Text, MatchedElementWritable, Text, Text>.Context context)
+			throws IOException, InterruptedException {
 		StringWriter sw = new StringWriter();
-		try (BioCDocumentWriter writer = biocFactory.createBioCDocumentWriter(sw)) {
-			writer.writeDocument(biocDoc);
+		BioCCollectionWriter cw = null;
+		try {
+			cw = biocFactory.createBioCCollectionWriter(sw);
+			cw.writeCollection(biocCollection);
 		} catch (XMLStreamException e) {
-			throw new IOException(e);
+			throw new RuntimeException(e);
+		} finally {
+			if (cw != null) {
+				cw.close();
+			}
 		}
-		context.write(key, new Text(sw.toString()));
+		Text output = new Text(sw.toString());
+		context.write(output, new Text());
 	}
 
 }

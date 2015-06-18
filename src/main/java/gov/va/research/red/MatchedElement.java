@@ -111,30 +111,4 @@ public class MatchedElement {
 	public String toString() {
 		return "" + startPos + UNIT_SEPARATOR + endPos + UNIT_SEPARATOR + (match == null ? "" : match) + UNIT_SEPARATOR + (matchingRegex == null ? "" : matchingRegex) + UNIT_SEPARATOR + confidence;
 	}
-	
-	public static MatchedElement fromString(String str) {
-		Integer startPos = -1;
-		Integer endPos = -1;
-		String match = null;
-		String matchingRegex = null;
-		double confidence = -1;
-		String[] values = str.split(UNIT_SEPARATOR);
-		if (values[0] != null && values[0].length() > 0) {
-			startPos = Integer.parseInt(values[0]);
-		}
-		if (values[1] != null && values[1].length() > 0) {
-			endPos = Integer.parseInt(values[1]);
-		}
-		if (values[2] != null && values[2].length() > 0) {
-			match = values[2];
-		}
-		if (values[3] != null && values[3].length() > 0) {
-			matchingRegex = values[3];
-		}
-		if (values[4] != null && values[4].length() > 0) {
-			confidence = Double.parseDouble(values[4]);
-		}
-		return new MatchedElement(startPos, endPos, match, matchingRegex, confidence);
-	}
-	
 }

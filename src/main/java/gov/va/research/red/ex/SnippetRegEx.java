@@ -50,7 +50,6 @@ public class SnippetRegEx {
 	private static final Logger LOG = LoggerFactory.getLogger(SnippetRegEx.class);
 	// Snippets are represented as a list of segments. Each segment is a list of tokens with a segment type.
 	private static final String DIGIT_TEXT = "zero|one|two|three|four|five|six|seven|eight|nine|ten";
-	private static final Pattern DIGIT_TEXT_PATTERN = Pattern.compile(DIGIT_TEXT, Pattern.CASE_INSENSITIVE);
 	private List<Segment> segments;
 	private Pattern pattern;
 	private double sensitivity;
@@ -140,18 +139,22 @@ public class SnippetRegEx {
 	 */
 	private String getRegEx(boolean caseInsensitive) {
 		StringBuilder regex = new StringBuilder(caseInsensitive ? "(?i)" : "");
-		boolean isLabeled = false;
+		StringBuilder segmentSB = new StringBuilder();
 		for (Segment segment : segments) {
-			if (isLabeled) {
-				regex.append("(");
-			}
+			segmentSB.setLength(0);
 			for (Token token : segment.getTokens()) {
-				regex.append(token.toRegEx());
+				segmentSB.append(token.toRegEx());
 			}
-			if (isLabeled) {
-				regex.append(")");
+			String segmentStr = segmentSB.toString();
+			if (segment.isLabeled()) {
+				// A capture group looking like ((?:whatever)) does not work, so remove the (?: piece
+				if (segmentStr.startsWith("(?:") && segmentStr.endsWith(")")) {
+					segmentStr = "(" + segmentStr.substring(3);
+				}
+				regex.append("(" + segmentStr + ")");
+			} else {
+				regex.append(segmentStr);
 			}
-			isLabeled = !isLabeled;
 		}
 		return regex.toString();
 	}
