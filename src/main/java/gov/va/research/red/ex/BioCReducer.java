@@ -22,6 +22,8 @@ import gov.va.research.red.MatchedElementWritable;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.text.DateFormat;
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.TimeZone;
@@ -92,11 +94,15 @@ public class BioCReducer extends Reducer<Text, MatchedElementWritable, Text, Tex
 		biocDoc.putInfon("date", documentDateTime);
 
 		BioCPassage biocPassage = new BioCPassage();
+		biocPassage.setOffset(0);
 		biocDoc.addPassage(biocPassage);
 		Date now = new Date();
+		int id = 1;
 		for (MatchedElementWritable matchWritable : values) {
 			MatchedElement match = matchWritable.getMatchedElement();
 			BioCAnnotation biocAnnotation = new BioCAnnotation();
+			String idStr = patientId + "." + documentId + "." + (id++);
+			biocAnnotation.setID(idStr);
 			BioCLocation biocLocation = new BioCLocation(
 					match.getStartPos(), match.getEndPos()
 							- match.getStartPos());
@@ -104,9 +110,9 @@ public class BioCReducer extends Reducer<Text, MatchedElementWritable, Text, Tex
 			biocAnnotation.putInfon("dateTime",
 					dateTimeFormat.format(now));
 			biocAnnotation.putInfon("type", type);
-			biocAnnotation.putInfon("value", match.getMatch());
-			biocAnnotation.putInfon("confidence",
-					"" + match.getConfidence());
+			String confStr = String.format("%.4f", match.getConfidence());
+			biocAnnotation.putInfon("confidence", confStr);
+			biocAnnotation.setText(match.getMatch());
 			biocPassage.addAnnotation(biocAnnotation);
 		}
 		biocCollection.addDocument(biocDoc);

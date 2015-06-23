@@ -21,6 +21,7 @@ import gov.va.research.red.MatchedElement;
 import gov.va.research.red.MatchedElementWritable;
 
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -41,6 +42,9 @@ import org.junit.Test;
 
 import bioc.BioCAnnotation;
 import bioc.BioCDocument;
+import bioc.BioCPassage;
+import bioc.io.BioCCollectionReader;
+import bioc.io.BioCCollectionWriter;
 import bioc.io.BioCDocumentReader;
 import bioc.io.BioCFactory;
 
@@ -79,8 +83,10 @@ public class TestREDExHadoop {
 		mapDriver.getConfiguration().set("regex.file", "redex-pain.model");
 		BioCReducer reducer = new BioCReducer();
 		reduceDriver = ReduceDriver.newReduceDriver(reducer);
+		reduceDriver.getConfiguration().set("value.type", "pain");
 		mapReduceDriver = MapReduceDriver.newMapReduceDriver(mapper, reducer);
 		mapReduceDriver.getConfiguration().set("regex.file", "redex-pain.model");
+		mapReduceDriver.getConfiguration().set("value.type", "pain");
 	}
 
 	/**
@@ -137,14 +143,13 @@ public class TestREDExHadoop {
 				+     "<infon key=\"date\">2015-06-08</infon>"
 				+     "<infon key=\"Patient ID\">p0</infon>"
 				+     "<passage>"
-				+       "<offset>-1</offset>"
+				+       "<offset>0</offset>"
 				+       "<annotation id=\"\">"
 				+         "<infon key=\"dateTime\">2015-06-17T21:44Z</infon>"
 				+         "<infon key=\"confidence\">1.0</infon>"
-				+         "<infon key=\"type\"></infon>"
-				+         "<infon key=\"value\">5</infon>"
+				+         "<infon key=\"type\">pain</infon>"
 				+         "<location offset=\"9\" length=\"1\"></location>"
-				+         "<text></text>"
+				+         "<text>5</text>"
 				+       "</annotation>"
 				+     "</passage>"
 				+   "</document>"
@@ -175,14 +180,13 @@ public class TestREDExHadoop {
 				+     "<infon key=\"date\">2015-06-08</infon>"
 				+     "<infon key=\"Patient ID\">p0</infon>"
 				+     "<passage>"
-				+       "<offset>-1</offset>"
+				+       "<offset>0</offset>"
 				+       "<annotation id=\"\">"
 				+         "<infon key=\"dateTime\">2015-06-18T17:29Z</infon>"
 				+         "<infon key=\"confidence\">0.046142754145638065</infon>"
-				+         "<infon key=\"type\"></infon>"
-				+         "<infon key=\"value\">5</infon>"
+				+         "<infon key=\"type\">pain</infon>"
 				+         "<location offset=\"2\" length=\"1\"></location>"
-				+         "<text></text>"
+				+         "<text>5</text>"
 				+       "</annotation>"
 				+     "</passage>"
 				+   "</document>"
@@ -217,18 +221,26 @@ public class TestREDExHadoop {
 				if (!o1Doc.getInfon("Patient ID").equals(o2Doc.getInfon("Patient ID"))) {
 					return o1Doc.getInfon("Patient ID").compareTo(o2Doc.getInfon("Patient ID"));
 				}
-				if (!o1Ann.getInfon("value").equals(o2Ann.getInfon("value"))) {
-					return o1Ann.getInfon("value").compareTo(o2Ann.getInfon("value"));
+				if (o1Doc.getPassages().size() != o2Doc.getPassages().size()) {
+					return o1Doc.getPassages().size() - o2Doc.getPassages().size();
+				}
+				
+				if (!o1Ann.getText().equals(o2Ann.getText())) {
+					return o1Ann.getText().compareTo(o2Ann.getText());
+				}
+				if (!o1Ann.getInfon("type").equals(o2Ann.getInfon("type"))) {
+					return o1Ann.getInfon("type").compareTo(o2Ann.getInfon("type"));
 				}
 				if (o1Ann.getLocations().get(0).getOffset() != o2Ann.getLocations().get(0).getOffset()) {
 					return o1Ann.getLocations().get(0).getOffset() - o2Ann.getLocations().get(0).getOffset();
 				}
 				if (o1Ann.getLocations().get(0).getLength() != o2Ann.getLocations().get(0).getLength()) {
 					return o1Ann.getLocations().get(0).getLength() - o2Ann.getLocations().get(0).getLength();
-				}
+				}				
 			} catch (XMLStreamException e) {
 				throw new AssertionError(e);
 			}
+			System.out.println(o1.toString());
 			return 0;
 		}
 		
