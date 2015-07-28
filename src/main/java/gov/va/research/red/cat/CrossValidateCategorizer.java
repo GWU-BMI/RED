@@ -25,12 +25,19 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import gov.va.research.red.CVScore;
 import gov.va.research.red.CVUtils;
 import gov.va.research.red.RegEx;
 import gov.va.research.red.Snippet;
 import gov.va.research.red.VTTReader;
+
+import org.python.util.PythonInterpreter;
+
+import gov.va.research.red.cat.IREDClassifier;
+import gov.va.research.red.cat.REDClassifierFactory;
 
 /**
  * @author doug
@@ -104,9 +111,84 @@ public class CrossValidateCategorizer {
 					trainingNoLabel.addAll(p);
 				}
 			}
-
+			List<String> snippetsTrain = new ArrayList<>();
+			List<List<Integer>> segspansTrain = new ArrayList<>();
+			List<Integer> labelsTrain = new ArrayList<>();
+			int k = 0;
+			for (Snippet snip: trainingYes) {
+				k += 1;
+				if (snip.getLabeledStrings().size()==0)
+					continue;
+				String text = snip.getText();
+				String ls = snip.getLabeledStrings().get(0);
+				int start = text.indexOf(ls);
+				if (start==1)
+					continue;
+				snippetsTrain.add(text);
+				List<Integer> span = new ArrayList<>();
+				span.add(start);
+				span.add(start+ls.length());
+				segspansTrain.add(span);
+				labelsTrain.add(1);
+			}
+			k = 0;
+			for (Snippet snip: trainingNo) {
+				k += 1;
+				if (snip.getLabeledStrings().size()==0)
+					continue;
+				String text = snip.getText();
+				String ls = snip.getLabeledStrings().get(0);
+				int start = text.indexOf(ls);
+				if (start==1)
+					continue;
+				snippetsTrain.add(text);
+				List<Integer> span = new ArrayList<>();
+				span.add(start);
+				span.add(start+ls.length());
+				segspansTrain.add(span);
+				labelsTrain.add(-1);
+			}
+			IREDClassifier redc = REDClassifierFactory.createModel();
+			redc.fit(snippetsTrain, segspansTrain, labelsTrain);
+			
+			List<String> snippetsTest = new ArrayList<>();
+			List<Integer> labelsTest = new ArrayList<>();
+			k = 0;
+			for (Snippet snip: testingYes) {
+				k += 1;
+				if (snip.getLabeledStrings().size()==0)
+					continue;
+				String text = snip.getText();
+				snippetsTest.add(text);
+				labelsTest.add(1);
+			}
+			k = 0;
+			for (Snippet snip: testingNo) {
+				k += 1;
+				if (snip.getLabeledStrings().size()==0)
+					continue;
+				String text = snip.getText();
+				snippetsTest.add(text);
+				labelsTest.add(-1);
+			}
+			
+			List<Integer> labelsPred = redc.predict(snippetsTest, -1);
+			CVScore score = new CVScore();
+			for (k=0;k<labelsTest.size();k++) {
+				int labelTest = labelsTest.get(k);
+				int labelPred = labelsPred.get(k);
+				if (labelTest==1 && labelPred==1)
+					score.setTp(score.getTp()+1);
+				else if (labelTest==1 && labelPred==-1)
+					score.setFn(score.getFn()+1);
+				else if (labelTest==-1 && labelPred==-1)
+					score.setTn(score.getTn()+1);
+				else if (labelTest==-1 && labelPred==1)
+					score.setFp(score.getFp()+1);
+			}
+			results.add(score);
 			// Train
-			REDCategorizer regExCategorizer = new REDCategorizer();
+			/*REDCategorizer regExCategorizer = new REDCategorizer();
 			Map<String, Collection<RegEx>> regExsPosNeg = regExCategorizer.generateRegexClassifications(trainingYes, trainingNo, trainingNoLabel, yesLabels, noLabels);
 
 			// Test
@@ -117,7 +199,7 @@ public class CrossValidateCategorizer {
 				testingAll.addAll(testingNoLabel);
 				CVScore score = regExCategorizer.testClassifier(testingAll, regExsPosNeg.get(Boolean.TRUE.toString()), regExsPosNeg.get(Boolean.FALSE.toString()), null, yesLabels, noLabels, pw);
 				results.add(score);
-			}
+			}*/
 		}
 		pw.close();
 		return results;

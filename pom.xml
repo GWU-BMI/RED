@@ -101,6 +101,11 @@
 		<artifactId>bioc</artifactId>
 		<version>1.0.1</version>
 	</dependency>
+	<dependency>
+		<groupId>org.python</groupId>
+		<artifactId>jython-standalone</artifactId>
+		<version>2.7.0</version>
+	</dependency>
   </dependencies>
   <scm>
   	<connection>scm:git:http://inlp.bmi.utah.edu/git/RED.git/</connection>
