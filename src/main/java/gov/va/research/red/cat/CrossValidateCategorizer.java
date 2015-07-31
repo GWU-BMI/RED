@@ -77,12 +77,12 @@ public class CrossValidateCategorizer {
 
 		// Run evaluations, "folds" number of times, alternating which partition is being used for testing.
 		List<CVScore> results = new ArrayList<>(folds);
-		PrintWriter pw = new PrintWriter(new File("ten-fold cross validation.txt"));
-		int fold = 0;
+		//PrintWriter pw = new PrintWriter(new File("ten-fold cross validation.txt"));
+		//int fold = 0;
+		System.out.println("Estimating performance with "+folds+"-fold cross validation:");
 		for (int i=0;i<folds;i++) {
 			List<Snippet> testingYes = partitionsYes.get(i);
 			List<Snippet> testingNo = partitionsNo.get(i);
-			pw.println("##### FOLD " + (++fold) + " #####");
 			// set up training and testing sets for this fold
 			List<Snippet> trainingYes = new ArrayList<>();
 			for (List<Snippet> p : partitionsYes) {
@@ -136,6 +136,7 @@ public class CrossValidateCategorizer {
 				labelsTrain.add(-1);
 			}
 			IREDClassifier redc = REDClassifierFactory.createModel();
+			System.out.println("##### FOLD " + (i+1) + " #####");
 			redc.fit(snippetsTrain, segspansTrain, labelsTrain);
 			
 			List<String> snippetsTest = new ArrayList<>();
@@ -159,7 +160,7 @@ public class CrossValidateCategorizer {
 				labelsTest.add(-1);
 			}
 			
-			List<Integer> labelsPred = redc.predict(snippetsTest, -1);
+			List<Integer> labelsPred = redc.predict(snippetsTest, 1);
 			CVScore score = new CVScore();
 			for (k=0;k<labelsTest.size();k++) {
 				int labelTest = labelsTest.get(k);
@@ -175,7 +176,8 @@ public class CrossValidateCategorizer {
 			}
 			results.add(score);
 		}
-		pw.close();
+		//pw.close();
+		System.out.println("Done with "+folds+"-fold cross validation.");
 		return results;
 	}
 

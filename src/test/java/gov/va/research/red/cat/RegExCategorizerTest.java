@@ -122,8 +122,9 @@ public class RegExCategorizerTest {
 			List<CVScore> results = rexcv.crossValidateClassifier(Arrays.asList(new File[] { new File(CLASSIFIER_TEST_URI) }), yesLabels, noLabels, 10, true);
 			int i = 0;
 			for (CVScore score : results) {
-				System.out.println("--- Run " + (i++) + " ---");
+				System.out.println("--- Run " + (i+1) + " ---");
 				System.out.println(score.getEvaluation());
+				i++;
 			}
 			System.out.println("--- Aggregate ---");
 			CVScore aggregate = CVScore.aggregate(results);
