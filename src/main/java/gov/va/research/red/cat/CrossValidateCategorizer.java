@@ -23,21 +23,12 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.Random;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import gov.va.research.red.CVScore;
 import gov.va.research.red.CVUtils;
-import gov.va.research.red.RegEx;
 import gov.va.research.red.Snippet;
 import gov.va.research.red.VTTReader;
-
-import org.python.util.PythonInterpreter;
-
-import gov.va.research.red.cat.IREDClassifier;
-import gov.va.research.red.cat.REDClassifierFactory;
 
 /**
  * @author doug
@@ -45,7 +36,7 @@ import gov.va.research.red.cat.REDClassifierFactory;
  */
 public class CrossValidateCategorizer {
 
-	public List<CVScore> crossValidateClassifier(List<File> vttFiles, List<String> yesLabels, List<String> noLabels, int folds)
+	public List<CVScore> crossValidateClassifier(List<File> vttFiles, List<String> yesLabels, List<String> noLabels, int folds, boolean biasForRecall)
 			throws IOException {
 		VTTReader vttr = new VTTReader();
 		// get snippets
@@ -67,19 +58,22 @@ public class CrossValidateCategorizer {
 		for (File vttFile : vttFiles) {
 			snippetsNoLabel.addAll(vttr.extractSnippets(vttFile, true));
 		}
-		return crossValidateClassifier(snippetsYes, snippetsNo, snippetsNoLabel, yesLabels, noLabels, folds);
+		return crossValidateClassifier(snippetsYes, snippetsNo, snippetsNoLabel, yesLabels, noLabels, folds, biasForRecall);
 	}
 	
-	public List<CVScore> crossValidateClassifier(List<Snippet> snippetsYes,List<Snippet> snippetsNo, List<Snippet> snippetsNoLabel, Collection<String> yesLabels, Collection<String> noLabels, int folds) throws IOException {
+	public List<CVScore> crossValidateClassifier(List<Snippet> snippetsYes,List<Snippet> snippetsNo, List<Snippet> snippetsNoLabel, Collection<String> yesLabels, Collection<String> noLabels, int folds, boolean biasForRecall) throws IOException {
 		// randomize the order of the snippets
+		if (biasForRecall) {
+			snippetsYes.addAll(snippetsNoLabel);
+		} else {
+			snippetsNo.addAll(snippetsNoLabel);
+		}
 		Collections.shuffle(snippetsYes, new Random(1));
 		Collections.shuffle(snippetsNo, new Random(2));
-		Collections.shuffle(snippetsNoLabel, new Random(3));
 		
 		// partition snippets into one partition per fold
 		List<List<Snippet>> partitionsYes = CVUtils.partitionSnippets(folds, snippetsYes);
 		List<List<Snippet>> partitionsNo = CVUtils.partitionSnippets(folds, snippetsNo);
-		List<List<Snippet>> partitionsNoLabel = CVUtils.partitionSnippets(folds, snippetsNoLabel);
 
 		// Run evaluations, "folds" number of times, alternating which partition is being used for testing.
 		List<CVScore> results = new ArrayList<>(folds);
@@ -88,7 +82,6 @@ public class CrossValidateCategorizer {
 		for (int i=0;i<folds;i++) {
 			List<Snippet> testingYes = partitionsYes.get(i);
 			List<Snippet> testingNo = partitionsNo.get(i);
-			List<Snippet> testingNoLabel = partitionsNoLabel.get(i);
 			pw.println("##### FOLD " + (++fold) + " #####");
 			// set up training and testing sets for this fold
 			List<Snippet> trainingYes = new ArrayList<>();
@@ -105,12 +98,6 @@ public class CrossValidateCategorizer {
 				}
 			}
 			
-			List<Snippet> trainingNoLabel = new ArrayList<>();
-			for (List<Snippet> p : partitionsNoLabel) {
-				if (p != testingNoLabel) {
-					trainingNoLabel.addAll(p);
-				}
-			}
 			List<String> snippetsTrain = new ArrayList<>();
 			List<List<Integer>> segspansTrain = new ArrayList<>();
 			List<Integer> labelsTrain = new ArrayList<>();
@@ -187,19 +174,6 @@ public class CrossValidateCategorizer {
 					score.setFp(score.getFp()+1);
 			}
 			results.add(score);
-			// Train
-			/*REDCategorizer regExCategorizer = new REDCategorizer();
-			Map<String, Collection<RegEx>> regExsPosNeg = regExCategorizer.generateRegexClassifications(trainingYes, trainingNo, trainingNoLabel, yesLabels, noLabels);
-
-			// Test
-			if (regExsPosNeg != null) {
-				List<Snippet> testingAll = new ArrayList<Snippet>();
-				testingAll.addAll(testingYes);
-				testingAll.addAll(testingNo);
-				testingAll.addAll(testingNoLabel);
-				CVScore score = regExCategorizer.testClassifier(testingAll, regExsPosNeg.get(Boolean.TRUE.toString()), regExsPosNeg.get(Boolean.FALSE.toString()), null, yesLabels, noLabels, pw);
-				results.add(score);
-			}*/
 		}
 		pw.close();
 		return results;

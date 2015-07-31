@@ -119,7 +119,7 @@ public class RegExCategorizerTest {
 				//System.out.println(n+"\t"+regEx.getRegEx());
 			}//*/
 			CrossValidateCategorizer rexcv = new CrossValidateCategorizer();
-			List<CVScore> results = rexcv.crossValidateClassifier(Arrays.asList(new File[] { new File(CLASSIFIER_TEST_URI) }), yesLabels, noLabels, 10);
+			List<CVScore> results = rexcv.crossValidateClassifier(Arrays.asList(new File[] { new File(CLASSIFIER_TEST_URI) }), yesLabels, noLabels, 10, true);
 			int i = 0;
 			for (CVScore score : results) {
 				System.out.println("--- Run " + (i++) + " ---");
