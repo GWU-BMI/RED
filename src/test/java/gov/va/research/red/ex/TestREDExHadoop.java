@@ -20,9 +20,13 @@ import static org.junit.Assert.fail;
 import gov.va.research.red.MatchedElement;
 import gov.va.research.red.MatchedElementWritable;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringReader;
+import java.net.URL;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -77,15 +81,17 @@ public class TestREDExHadoop {
 	 */
 	@Before
 	public void setUp() throws Exception {
+		URL modelURL = this.getClass().getClassLoader().getResource("redex-pain.model");
+		File modelFile = new File(modelURL.toURI());
 		REDExMapper mapper = new REDExMapper();
 		mapDriver = new MapDriver<Text, Text, Text, MatchedElementWritable>(
 				mapper);
-		mapDriver.getConfiguration().set("regex.file", "redex-pain.model");
+		mapDriver.getConfiguration().set("regex.file", modelFile.getPath());
 		BioCReducer reducer = new BioCReducer();
 		reduceDriver = ReduceDriver.newReduceDriver(reducer);
 		reduceDriver.getConfiguration().set("value.type", "pain");
 		mapReduceDriver = MapReduceDriver.newMapReduceDriver(mapper, reducer);
-		mapReduceDriver.getConfiguration().set("regex.file", "redex-pain.model");
+		mapReduceDriver.getConfiguration().set("regex.file", modelFile.getPath());
 		mapReduceDriver.getConfiguration().set("value.type", "pain");
 	}
 
@@ -98,10 +104,10 @@ public class TestREDExHadoop {
 
 	@Test
 	public void testMapper() {
-		MatchedElement me = new MatchedElement(2, 3, "5", "(?i)w\\s{1,2}?((\\d+|zero|one|two|three|four|five|six|seven|eight|nine|ten))\\p{Punct}{1,2}?(?:\\d+?|zero|one|two|three|four|five|six|seven|eight|nine|ten)", 0.002883922134102379);
+		MatchedElement me = new MatchedElement(10, 11, "1", "(?i)developed\\s{1,2}?((\\d+|zero|one|two|three|four|five|six|seven|eight|nine|ten))\\p{Punct}{1,2}?(?:\\d+?|zero|one|two|three|four|five|six|seven|eight|nine|ten)", 0.005767844268204758);
 		MatchedElementWritable mew = new MatchedElementWritable(me);
 		mapDriver.withInput(new Text("p0|d0|2015-06-08"), new Text(
-				"w 5/10"));
+				"developed 1.1"));
 		mapDriver.withOutput(new Text("p0|d0|2015-06-08"), mew);
 		mapDriver.setValueComparator(new Comparator<MatchedElementWritable>() {
 			@Override
@@ -129,7 +135,7 @@ public class TestREDExHadoop {
 	@Test
 	public void testReducer() {
 		List<MatchedElementWritable> mewList = new ArrayList<>();
-		MatchedElementWritable mew = new MatchedElementWritable(new MatchedElement(9, 10, "5", "", 1));
+		MatchedElementWritable mew = new MatchedElementWritable(new MatchedElement(10, 11, "1", "", 1));
 		mewList.add(mew);
 		Text output = new Text(
 				"<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
@@ -148,8 +154,8 @@ public class TestREDExHadoop {
 				+         "<infon key=\"dateTime\">2015-06-17T21:44Z</infon>"
 				+         "<infon key=\"confidence\">1.0</infon>"
 				+         "<infon key=\"type\">pain</infon>"
-				+         "<location offset=\"9\" length=\"1\"></location>"
-				+         "<text>5</text>"
+				+         "<location offset=\"10\" length=\"1\"></location>"
+				+         "<text>1</text>"
 				+       "</annotation>"
 				+     "</passage>"
 				+   "</document>"
@@ -167,14 +173,14 @@ public class TestREDExHadoop {
 	@Test
 	public void testMapReduce() {
 		mapReduceDriver.withInput(new Text("p0|d0|2015-06-08"), new Text(
-				"w 5/10"));
+				"developed 1.1"));
 		Text output = new Text(
 				"<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
 				+ "<!DOCTYPE collection SYSTEM \"BioC.dtd\">"
 				+ "<collection>"
 				+   "<source></source>"
-				+   "<date>2015-06-18T17:29Z</date>"
-				+   "<key>c3po.key</key>"
+				+   "<date></date>"
+				+   "<key></key>"
 				+   "<document>"
 				+     "<id>d0</id>"
 				+     "<infon key=\"date\">2015-06-08</infon>"
@@ -182,11 +188,11 @@ public class TestREDExHadoop {
 				+     "<passage>"
 				+       "<offset>0</offset>"
 				+       "<annotation id=\"\">"
-				+         "<infon key=\"dateTime\">2015-06-18T17:29Z</infon>"
-				+         "<infon key=\"confidence\">0.046142754145638065</infon>"
+				+         "<infon key=\"dateTime\">2015-06-17T21:44Z</infon>"
+				+         "<infon key=\"confidence\">1.0</infon>"
 				+         "<infon key=\"type\">pain</infon>"
-				+         "<location offset=\"2\" length=\"1\"></location>"
-				+         "<text>5</text>"
+				+         "<location offset=\"10\" length=\"1\"></location>"
+				+         "<text>1</text>"
 				+       "</annotation>"
 				+     "</passage>"
 				+   "</document>"

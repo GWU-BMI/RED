@@ -65,8 +65,10 @@ public class REDExCrossValidator implements CrossValidatable {
 			// Display results
 			int i = 0;
 			for (CVResult s : results) {
-				if (s != null) {
+				if (s != null && s.getScore() != null) {
 					LOG.info("\n--- Run " + (i++) + " ---\n" + s.getScore().getEvaluation());
+				} else {
+					LOG.info("\n--- Run " + (i++) + " ---\nnull score");
 				}
 			}
 			CVResult aggregate = CVResult.aggregate(results);
@@ -187,17 +189,25 @@ public class REDExCrossValidator implements CrossValidatable {
 						} catch (Exception e) {
 							throw new RuntimeException(e);
 						}
-			
-						// Test
-						REDExFactory rexe = new REDExFactory();
-						score = rexe.test(testing, ex, allowOverMatches, pw);
-						regExes = ex.getRegularExpressions();
+						if (ex == null) {
+							pw.println("null REDExtractor");
+						} else {		
+							// Test
+							REDExFactory rexe = new REDExFactory();
+							score = rexe.test(testing, ex, allowOverMatches, pw);
+							regExes = ex.getRegularExpressions();
+						}
 					}
-					LOG.info("\n" + score.getEvaluation());
-					testingPW.println();
-					testingPW.println(sw.toString());
-					testingPW.println();
-					testingPW.println(score.getEvaluation());
+					if (score == null) {
+						LOG.info("\n null score");
+						testingPW.println("null score");
+					} else {
+						LOG.info("\n" + score.getEvaluation());
+						testingPW.println();
+						testingPW.println(sw.toString());
+						testingPW.println();
+						testingPW.println(score.getEvaluation());
+					}
 					testingPW.flush();
 				} catch (IOException e) {
 					throw new RuntimeException(e);
@@ -261,13 +271,17 @@ public class REDExCrossValidator implements CrossValidatable {
 			pw.println();
 			pw.println("--- Trained Regexes:");
 			int rank = 1;
- 			for (Collection<SnippetRegEx> sres : ex.getRankedSnippetRegExs()) {
-				pw.println("--- Rank " + rank);
-				for (SnippetRegEx trainedSre : sres) {
-					pw.println(trainedSre.toString());
-					pw.println("----------");
+			if (ex == null) {
+				pw.println("null REDExtractor");
+			} else {
+	 			for (Collection<SnippetRegEx> sres : ex.getRankedSnippetRegExs()) {
+					pw.println("--- Rank " + rank);
+					for (SnippetRegEx trainedSre : sres) {
+						pw.println(trainedSre.toString());
+						pw.println("----------");
+					}
+					rank++;
 				}
-				rank++;
 			}
 		}
 		return ex;

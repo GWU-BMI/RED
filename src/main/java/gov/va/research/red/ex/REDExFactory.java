@@ -90,7 +90,7 @@ public class REDExFactory {
 			}
 			boolean fps = (0 == noFalsePositives.score(snippets, new REDExtractor(sre, caseInsensitive), allowOverMatches));
 			if (fps) {
-				throw new RuntimeException("Inconsistent annotataion? : fps for regex: " + sre.toString());
+				LOG.warn("Inconsistent annotataion? : fps for regex: " + sre.toString());
 			}
 		}
 		
@@ -110,7 +110,7 @@ public class REDExFactory {
 			}
 			boolean fps = (0 == noFalsePositives.score(snippets, new REDExtractor(sre, caseInsensitive), allowOverMatches));
 			if (fps) {
-				throw new RuntimeException("Inconsistent annotataion? : fps for regex: " + sre.toString());
+				LOG.warn("Inconsistent annotataion? : fps for regex: " + sre.toString());
 			}
 		}
 		
@@ -791,11 +791,11 @@ public class REDExFactory {
 				labels.add((String)label);
 			}
 			int folds = conf.getInt("folds");
-			Boolean allowOvermatches = conf.getBoolean("allowOvermatches", Boolean.TRUE);
-			Boolean caseInsensitive = conf.getBoolean("caseInsensitive", Boolean.TRUE);
-			Boolean stopAfterFirstFold = conf.getBoolean("stopAfterFirstFold", Boolean.FALSE);
+			Boolean allowOvermatches = conf.getBoolean("allow.overmatches", Boolean.TRUE);
+			Boolean caseInsensitive = conf.getBoolean("case.insensitive", Boolean.TRUE);
+			Boolean stopAfterFirstFold = conf.getBoolean("stop.after.first.fold", Boolean.FALSE);
 			Boolean shuffle = conf.getBoolean("shuffle", Boolean.TRUE);
-			int limit = conf.getInt("snippetLimit", -1);
+			int limit = conf.getInt("snippet.limit", -1);
 			String modelOutputFile = conf.getString("model.output.file");
 			
 			if ("crossvalidate".equalsIgnoreCase(op)) {
