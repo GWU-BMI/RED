@@ -16,11 +16,11 @@
       <plugin>
         <artifactId>maven-assembly-plugin</artifactId>
         <configuration>
-          <archive>
-            <manifest>
-              <mainClass>gov.va.research.red.ex.REDExCrossValidator</mainClass>
-            </manifest>
-          </archive>
+<!--           <archive> -->
+<!--             <manifest> -->
+<!--               <mainClass>gov.va.research.red.ex.REDExCrossValidator</mainClass> -->
+<!--             </manifest> -->
+<!--           </archive> -->
           <descriptorRefs>
             <descriptorRef>jar-with-dependencies</descriptorRef>
           </descriptorRefs>
@@ -81,28 +81,6 @@
   		<version>2.3.1</version>
   	</dependency>
   	<dependency>
-  		<groupId>org.apache.hadoop</groupId>
-  		<artifactId>hadoop-mapreduce-client-core</artifactId>
-  		<version>2.6.0</version>
-  		<exclusions>
-  			<exclusion>
-  				<groupId>jdk.tools</groupId>
-  				<artifactId>jdk.tools</artifactId>
-  			</exclusion>
-  		</exclusions>
-  	</dependency>
-  	<dependency>
-  		<groupId>org.apache.hadoop</groupId>
-  		<artifactId>hadoop-common</artifactId>
-  		<version>2.6.0</version>
-  	</dependency>
-	<dependency>
-		<groupId>org.apache.mrunit</groupId>
-		<artifactId>mrunit</artifactId>
-		<version>1.1.0</version>
-		<classifier>hadoop2</classifier> 
-	</dependency>
-	<dependency>
 		<groupId>gov.nih.ncbi</groupId>
 		<artifactId>bioc</artifactId>
 		<version>1.0.1</version>

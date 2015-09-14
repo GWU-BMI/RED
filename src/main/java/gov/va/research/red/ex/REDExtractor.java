@@ -4,6 +4,7 @@ import gov.va.research.red.MatchedElement;
 
 import java.io.IOException;
 import java.io.OutputStreamWriter;
+import java.io.Reader;
 import java.io.Writer;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
@@ -18,6 +19,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Scanner;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
@@ -233,6 +235,22 @@ public class REDExtractor implements Extractor {
 		String json = new String(Files.readAllBytes(path));
 		REDExtractor rex = gson.fromJson(json, REDExtractor.class);
 		return rex;
+	}
+
+	/**
+	 * Loads (deserializes) a REDExtractor from a reader.
+	 * @param reader The reader for the dumped REDExtractor.
+	 * @return a REDExtractor represented by the reader.
+	 * @throws IOException
+	 */
+	public static REDExtractor load(Reader reader) throws IOException {
+		try (Scanner s = new Scanner(reader)) {
+			s.useDelimiter("\\Z");
+			String json = s.next();
+			Gson gson = new Gson();
+			REDExtractor rex = gson.fromJson(json, REDExtractor.class);
+			return rex;
+		}		
 	}
 
 	public static void main(String[] args) throws IOException, XMLStreamException {
