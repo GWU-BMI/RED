@@ -239,7 +239,7 @@ public class REDExCrossValidator implements CrossValidatable {
 	 */
 	private REDExtractor trainExtractor(Collection<String> labels, List<Snippet> training, boolean allowOverMatches, PrintWriter pw, String outputTag, boolean caseInsensitive) throws IOException {
 		REDExFactory rexe = new REDExFactory();
-		REDExtractor ex = rexe.train(training, labels, allowOverMatches, outputTag, caseInsensitive);
+		REDExtractor ex = rexe.train(training, labels, allowOverMatches, outputTag, caseInsensitive, false);
 		if (pw != null) {
 			List<Snippet> labelled = new ArrayList<>();
 			List<Snippet> unlabelled = new ArrayList<>();

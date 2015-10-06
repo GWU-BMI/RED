@@ -1,16 +1,5 @@
 package gov.va.research.red.ex;
 
-import gov.va.research.red.CVResult;
-import gov.va.research.red.CVScore;
-import gov.va.research.red.CVUtils;
-import gov.va.research.red.LabeledSegment;
-import gov.va.research.red.MatchedElement;
-import gov.va.research.red.Snippet;
-import gov.va.research.red.Token;
-import gov.va.research.red.TokenType;
-import gov.va.research.red.VTTReader;
-import gov.va.research.red.ex.SnippetRegEx.TokenFreq;
-
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
@@ -20,7 +9,6 @@ import java.io.StringWriter;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -34,9 +22,7 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
 import java.util.Set;
-import java.util.TreeMap;
 import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.ConfigurationException;
@@ -44,14 +30,27 @@ import org.apache.commons.configuration.PropertiesConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import gov.va.research.red.CVResult;
+import gov.va.research.red.CVScore;
+import gov.va.research.red.CVUtils;
+import gov.va.research.red.LabeledSegment;
+import gov.va.research.red.MatchedElement;
+import gov.va.research.red.Snippet;
+import gov.va.research.red.Token;
+import gov.va.research.red.TokenType;
+import gov.va.research.red.VTTReader;
+import gov.va.research.red.ex.SnippetRegEx.TokenFreq;
+
 public class REDExFactory {
 
 	private static final Logger LOG = LoggerFactory
 			.getLogger(REDExFactory.class);
+	private static final boolean DEBUG = Boolean.valueOf(System.getProperty("debug", String.valueOf(false)));
 
 	public REDExtractor train (
 			final Collection<Snippet> snippets, final Collection<String> labels,
-			final boolean allowOverMatches, String outputTag, boolean caseInsensitive) throws IOException {
+			final boolean allowOverMatches, final String outputTag, final boolean caseInsensitive,
+			final boolean measureSensitivity) throws IOException {
 		// Set up snippet-to-regex map and regex history stacks
 		Map<Snippet, Deque<SnippetRegEx>> snippet2regex = new HashMap<>(snippets.size());
 		List<Deque<SnippetRegEx>> sreStacks = new ArrayList<>(snippets.size());
@@ -174,9 +173,11 @@ public class REDExFactory {
 			}
 		}
 
-		LOG.info(outputTag + ": measuring sensitivity ...");
-		measureSensitivity(snippets, returnList, caseInsensitive);
-		LOG.info(outputTag + ": ... done measuring sensitivity");
+		if (measureSensitivity) {
+			LOG.info(outputTag + ": measuring sensitivity ...");
+			measureSensitivity(snippets, returnList, caseInsensitive);
+			LOG.info(outputTag + ": ... done measuring sensitivity");
+		}
 		return new REDExtractor(returnList, "# snippets = " + snippets.size() + "\nlabels = " + labels + "\nallowOverMatches = " + allowOverMatches, caseInsensitive);
 	}
 
@@ -196,7 +197,7 @@ public class REDExFactory {
 		List<Deque<SnippetRegEx>> newSreStacks = removeDuplicates(sreStacks);
 			
 //		LOG.info(ot + ": generalizing LSs ...");
-//		newSreStacks = generalizeLS(snippets, sreStacks, allowOverMatches, beforeChangeScoreFunction, afterChangeScoreFunction);
+//		newSreStacks = generalizeLS(snippets, sreStacks, allowOverMatches, caseInsensitive, beforeChangeScoreFunction, afterChangeScoreFunction);
 //		LOG.info(ot + ": ... done generalizing LSs");
 		
 		LOG.info(ot + ": generalizing LF to MF ...");
@@ -267,6 +268,11 @@ public class REDExFactory {
 					}
 				}
 				if (replaced) {
+					if (!DEBUG) {
+						while (null != sreStack.poll()) {
+							// empty stack
+						}
+					}
 					sreStack.push(newSre);
 				}
 			});
@@ -354,6 +360,11 @@ public class REDExFactory {
 			int beforeScore = (beforeChangeScoreFunction == null ? 1 : beforeChangeScoreFunction.score(snippets, new REDExtractor(beforeSre, caseInsensitive), allowOverMatches));
 			int afterScore = (afterChangeScoreFunction == null ? 0 : afterChangeScoreFunction.score(snippets, new REDExtractor(sreCopy, caseInsensitive), allowOverMatches));
 			if (beforeScore <= afterScore){
+				if (!DEBUG) {
+					while (null != ls3stack.poll()) {
+						// empty stack
+					}
+				}
 				ls3stack.push(sreCopy);
 			}
 		}
@@ -404,6 +415,11 @@ public class REDExFactory {
 			SnippetRegEx newSre = new SnippetRegEx(sre);
 			boolean changed = newSre.replaceDigits();
 			if (changed) {
+				if (!DEBUG) {
+					while (null != sreStack.poll()) {
+						// empty stack
+					}
+				}
 				sreStack.push(newSre);
 			}
 		});
@@ -416,6 +432,11 @@ public class REDExFactory {
 			SnippetRegEx newSre = new SnippetRegEx(sre);
 			boolean changed = newSre.replacePunct();
 			if (changed) {
+				if (!DEBUG) {
+					while (null != sreStack.poll()) {
+						// empty stack
+					}
+				}
 				sreStack.push(newSre);
 			}
 		});
@@ -428,6 +449,11 @@ public class REDExFactory {
 			SnippetRegEx newSre = new SnippetRegEx(sre);
 			boolean changed = newSre.replaceWhiteSpace();
 			if (changed) {
+				if (!DEBUG) {
+					while (null != ls3stack.poll()) {
+						// empty stack
+					}
+				}
 				ls3stack.push(newSre);
 			}
 		});
@@ -477,6 +503,11 @@ public class REDExFactory {
 					}
 				}
 				if (beginningProgress || endProgress) {
+					if (!DEBUG) {
+						while (null != sreStack.poll()) {
+							// empty stack
+						}
+					}
 					sreStack.push(sreTrim);
 				}
 			} while (beginningProgress || endProgress);
@@ -763,8 +794,9 @@ public class REDExFactory {
 	
 	public REDExtractor buildModel(
 			final Collection<Snippet> snippets, final Collection<String> labels,
-			final boolean allowOverMatches, String outputTag, Path outputModelPath, boolean caseInsensitive) throws IOException {
-		REDExtractor rex = train(snippets, labels, allowOverMatches, outputTag, caseInsensitive);
+			final boolean allowOverMatches, String outputTag, Path outputModelPath,
+			boolean caseInsensitive, final boolean debug) throws IOException {
+		REDExtractor rex = train(snippets, labels, allowOverMatches, outputTag, caseInsensitive, true);
 		REDExtractor.dump(rex, outputModelPath);
 		return rex;
 	}
@@ -831,11 +863,10 @@ public class REDExFactory {
 					snippets.addAll(fileSnippets);
 				}
 				LOG.info("Building model using " + snippets.size() + " snippets from " + vttfiles +  " files.\n"
-						+ "\nallowOverMatches: " + allowOvermatches
-						+ "\nconvertToLowercase: " + caseInsensitive
+						+ "\nallow.overmatches: " + allowOvermatches
+						+ "\ncase.insensitive: " + caseInsensitive
 						+ "\nshuffle: " + shuffle
-						+ "\nsnippetLimit: " + limit
-						+ "\nregex.output.file: " + conf.getString("regex.output.file")
+						+ "\nsnippet.limit: " + limit
 						+ "\nmodel.output.file: " + modelOutputFile);
 				
 				// randomize the order of the snippets
@@ -853,7 +884,7 @@ public class REDExFactory {
 				}
 
 				LOG.info("training ...");
-				REDExtractor rex = new REDExFactory().train(snippets, labels, allowOvermatches, "m", caseInsensitive);
+				REDExtractor rex = new REDExFactory().train(snippets, labels, allowOvermatches, "m", caseInsensitive, true);
 				LOG.info("... done training.");
 				LOG.info("Writing model file ...");
 				Path modelFilePath = FileSystems.getDefault().getPath("", modelOutputFile);
@@ -862,6 +893,8 @@ public class REDExFactory {
 				}
 				REDExtractor.dump(rex, modelFilePath);
 				LOG.info("... wrote model file to " + modelOutputFile);
+			} else {
+				System.out.println("Operation " + op + " not recognized. Must be buildmodel or crossvalidate.");
 			}
 		}
 	}
