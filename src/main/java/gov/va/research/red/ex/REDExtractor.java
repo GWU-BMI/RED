@@ -47,24 +47,32 @@ public class REDExtractor implements Extractor {
 	
 	private List<Collection<SnippetRegEx>> rankedSnippetRegExs;
 	private String metadata;
-	private boolean caseInsensitive;
+	private final boolean caseInsensitive;
+	private final boolean useTier2;
+	private final List<String> holdouts;
 	
-	public REDExtractor(Collection<SnippetRegEx> sres, boolean caseInsensitive) {
+	public REDExtractor(Collection<SnippetRegEx> sres, boolean caseInsensitive, List<String> holdouts) {
 		this.rankedSnippetRegExs = new ArrayList<>(1);
 		this.rankedSnippetRegExs.add(sres);
 		this.caseInsensitive = caseInsensitive;
+		this.holdouts = holdouts;
+		this.useTier2 = false;
 	}
 	
-	public REDExtractor(List<Collection<SnippetRegEx>> rankedSres, String metadata, boolean caseInsensitive) {
+	public REDExtractor(List<Collection<SnippetRegEx>> rankedSres, String metadata, boolean caseInsensitive, List<String> holdouts, boolean useTier2) {
 		this.rankedSnippetRegExs = rankedSres;
 		this.metadata = metadata;
 		this.caseInsensitive = caseInsensitive;
+		this.holdouts = holdouts;
+		this.useTier2 = useTier2;
 	}
 
-	public REDExtractor(SnippetRegEx snippetRegEx, boolean caseInsensitive) {
+	public REDExtractor(SnippetRegEx snippetRegEx, boolean caseInsensitive, List<String> holdouts) {
 		this.rankedSnippetRegExs = new ArrayList<>(1);
 		this.rankedSnippetRegExs.add(Arrays.asList(new SnippetRegEx[] { snippetRegEx }));
 		this.caseInsensitive = caseInsensitive;
+		this.holdouts = holdouts;
+		this.useTier2 = false;
 	}
 
 	@Override
@@ -73,8 +81,9 @@ public class REDExtractor implements Extractor {
 			return null;
 		}
 		ConcurrentHashMap<MatchedElement, Double> returnMap = null;
+		boolean firstSnippetRE = true; 
 		for (Collection<SnippetRegEx> snippetREs : this.rankedSnippetRegExs) {
-			if(snippetREs != null && !snippetREs.isEmpty()) {
+			if((useTier2 || firstSnippetRE) && snippetREs != null && !snippetREs.isEmpty()) {
 				returnMap = snippetREs.parallelStream().map((sre) -> {
 					MatchFinder mf = new MatchFinder(sre, target, caseInsensitive);
 					Set<MatchedElement> mes = mf.call();
@@ -105,6 +114,7 @@ public class REDExtractor implements Extractor {
 					return s1;
 				});
 			}
+			firstSnippetRE = false;
 			if (returnMap != null && !returnMap.isEmpty()) {
 				break;
 			}
@@ -123,34 +133,6 @@ public class REDExtractor implements Extractor {
 			return l1;
 		});
 		return new ArrayList<>(returnList);
-	}
-	
-	public MatchedElement extractFirst(String target, boolean caseInsensitive) {
-		if(target == null || target.equals("")) {
-			return null;
-		}
-		for (Collection<SnippetRegEx> snippetREs : this.rankedSnippetRegExs) {
-			if(snippetREs != null && !snippetREs.isEmpty()){
-				Optional<MatchedElement> matchedElement = snippetREs.parallelStream().map((sre) -> {
-					Set<MatchedElement> matchedElements = new HashSet<>();
-					Matcher matcher = sre.getPattern(caseInsensitive).matcher(target);
-					boolean test = matcher.find();
-					if(test) {
-						String candidateLS = matcher.group(1);
-						if(candidateLS != null && !candidateLS.equals("")){
-							int startPos = target.indexOf(candidateLS);
-							int endPos = startPos + candidateLS.length();
-							matchedElements.add(new MatchedElement(startPos, endPos, candidateLS, sre.getPattern(caseInsensitive).toString(), sre.getSensitivity()));
-						}
-					}
-					return matchedElements;
-				}).filter((me) -> !me.isEmpty()).map((me) -> { return me.iterator().next(); }).findFirst();
-				if (matchedElement.isPresent()) {
-					return matchedElement.orElse(null);
-				}
-			}
-		}
-		return null;
 	}
 	
 	public List<Collection<SnippetRegEx>> getRankedSnippetRegExs() {

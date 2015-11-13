@@ -49,4 +49,47 @@ public class Segment {
 		this.labeled = labeled;
 	}
 
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+		if (!(obj instanceof Segment)) {
+			return false;
+		}
+		Segment o = (Segment)obj;
+		if (this.labeled != o.labeled) {
+			return false;
+		}
+		if (this.tokens == o.tokens) {
+			return true;
+		}
+		if (this.tokens == null || o.tokens == null) {
+			return false;
+		}
+		if (this.tokens.size() != o.tokens.size()) {
+			return false;
+		}
+		for (int i = 0; i < this.tokens.size(); i++) {
+			if (!this.tokens.get(i).equals(o.tokens.get(i))) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	@Override
+	public int hashCode() {
+		int hc = 17;
+		hc = 31 * hc + (labeled ? 1 : 0);
+		if (tokens != null) {
+			for (Token t : tokens) {
+				hc = 31 * hc + t.hashCode();
+			}
+		}
+		return hc;
+	}
+
+
+
 }

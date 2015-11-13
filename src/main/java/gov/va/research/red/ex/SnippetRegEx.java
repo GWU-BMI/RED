@@ -16,15 +16,9 @@
  */
 package gov.va.research.red.ex;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
@@ -32,8 +26,6 @@ import java.util.regex.Pattern;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.google.gson.Gson;
 
 import gov.va.research.red.LabeledSegment;
 import gov.va.research.red.Snippet;
@@ -48,6 +40,7 @@ import gov.va.research.red.Tokenizer;
 public class SnippetRegEx {
 
 	private static final Logger LOG = LoggerFactory.getLogger(SnippetRegEx.class);
+
 	// Snippets are represented as a list of segments. Each segment is a list of tokens with a segment type.
 	private static final String DIGIT_TEXT = "zero|one|two|three|four|five|six|seven|eight|nine|ten";
 	private List<Segment> segments;
@@ -129,7 +122,7 @@ public class SnippetRegEx {
 	@Override
 	public String toString() {
 		if (pattern == null) {
-			pattern = Pattern.compile(getRegEx(true));
+			pattern = getPattern(true);
 		}
 		return pattern.toString();
 	}
@@ -164,7 +157,8 @@ public class SnippetRegEx {
 	 */
 	public Pattern getPattern(boolean caseInsensitive) {
 		if (pattern == null) {
-			pattern = Pattern.compile(getRegEx(caseInsensitive));
+			String regex = getRegEx(caseInsensitive);
+			pattern = Pattern.compile(regex);
 		}
 		return pattern;
 	}
@@ -190,13 +184,16 @@ public class SnippetRegEx {
 	 */
 	public void setLabeledSegments(Segment labeledSegment) {
 		if (segments != null && segments.size() > 0) {
-			ListIterator<Segment> li = segments.listIterator();
-			while (li.hasNext()) {
-				Segment segment = li.next();
-				if (segment.isLabeled()) {
-					li.set(labeledSegment);
+			ListIterator<Segment> segInt = segments.listIterator();
+			while (segInt.hasNext()) {
+				Segment s = segInt.next();
+				if (s.isLabeled()) {
+					segInt.set(labeledSegment);
 				}
 			}
+		} else {
+			segments = new ArrayList<>(1);
+			segments.add(labeledSegment);
 		}
 	}
 	
@@ -329,18 +326,38 @@ public class SnippetRegEx {
 		}
 		return changed;
 	}
-	
-	/**
-	 * Removes the first token of the first segment.
-	 * @return The token that was removed, or null if the first segment was empty.
-	 */
+
 	public Token trimFromBeginning() {
+		return getBeginningToken(true);
+	}
+	
+	public Token trimFromEnd() {
+		return getEndToken(true);
+	}
+	
+	public Token getBeginningToken() {
+		return getBeginningToken(false);
+	}
+	
+	public Token getEndToken() {
+		return getEndToken(false);
+	}
+
+	/**
+	 * Gets or Removes the first token from the first segment.
+	 * @return The first token, or null if the first segment was empty.
+	 */
+	Token getBeginningToken(final boolean remove) {
 		if (segments != null) {
 			if (segments.size() > 0) {
 				if (segments.get(0) != null) {
 					if (segments.get(0).getTokens() != null) {
 						if (segments.get(0).getTokens().size() > 0) {
-							return segments.get(0).getTokens().remove(0);
+							if (remove) {
+								return segments.get(0).getTokens().remove(0);
+							} else {
+								return segments.get(0).getTokens().get(0);
+							}
 						}
 					}
 				}
@@ -350,10 +367,10 @@ public class SnippetRegEx {
 	}
 
 	/**
-	 * Removes the last token of the last segment.
-	 * @return The token that was removed, or null if the last segment was empty.
+	 * Gets or Removes the last token of the last segment.
+	 * @return The last token, or null if the last segment was empty.
 	 */
-	public Token trimFromEnd() {
+	Token getEndToken(final boolean remove) {
 		if (segments != null) {
 			if (segments.size() > 0) {
 				int lastSegIdx = segments.size() - 1;
@@ -361,7 +378,11 @@ public class SnippetRegEx {
 				if (lastSeg != null && lastSeg.getTokens() != null) {
 					int lastSegSize = lastSeg.getTokens().size();
 					if (lastSegSize > 0) {
-						return lastSeg.getTokens().remove(lastSegSize - 1);
+						if (remove) {
+							return lastSeg.getTokens().remove(lastSegSize - 1);
+						} else {
+							return lastSeg.getTokens().get(lastSegSize - 1);
+						}
 					}
 				}
 			}
