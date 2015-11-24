@@ -59,12 +59,17 @@ public class SnippetRegEx {
 				LOG.debug("Overlapping labeled segments found, skipping all but the first.");
 				continue;
 			}
-			String segmentStr = snippet.getText().substring(prevEnd, ls.getStart());
-			List<Token> tokens = Tokenizer.tokenize(segmentStr);
-			segments.add(new Segment(tokens, false));
-			tokens = Tokenizer.tokenize(ls.getLabeledString());
-			segments.add(new Segment(tokens, true));
-			prevEnd = ls.getStart() + ls.getLength();
+			String segmentStr;
+			try {
+				segmentStr = snippet.getText().substring(prevEnd, ls.getStart());
+				List<Token> tokens = Tokenizer.tokenize(segmentStr);
+				segments.add(new Segment(tokens, false));
+				tokens = Tokenizer.tokenize(ls.getLabeledString());
+				segments.add(new Segment(tokens, true));
+				prevEnd = ls.getStart() + ls.getLength();
+			} catch (Exception e) {
+				LOG.error(e.getMessage() + "\n<Snippet Text>\n" + snippet.getText() + "\n</SnippetText>\nstartIdx = " + prevEnd + "\nendIdx = " + ls.getStart());
+			}
 		}
 		String segmentStr = snippet.getText().substring(prevEnd);
 		List<Token> tokens = Tokenizer.tokenize(segmentStr);

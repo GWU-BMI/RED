@@ -88,7 +88,7 @@ public class REDExFactory {
 			SnippetRegEx sre = sreStack.peek();
 			boolean tps = checkForTruePositives(snippets, new REDExtractor(sre, caseInsensitive, holdouts), allowOverMatches);
 			if (!tps) {
-				throw new RuntimeException(outputTag + ": No tps for regex, should be at least one: " + sre.toString());
+				LOG.warn(outputTag + ": No tps for regex, should be at least one: " + sre.toString());
 			}
 			boolean fps = (0 == noFalsePositives.score(snippets, new REDExtractor(sre, caseInsensitive, holdouts), allowOverMatches));
 			if (fps) {
@@ -108,7 +108,7 @@ public class REDExFactory {
 			SnippetRegEx sre = sreStack.peek();
 			boolean tps = checkForTruePositives(snippets, new REDExtractor(sre, caseInsensitive, holdouts), allowOverMatches);
 			if (!tps) {
-				throw new RuntimeException("No tps for regex, should be at least one: " + sre.toString());
+				LOG.warn("No tps for regex, should be at least one: " + sre.toString());
 			}
 			boolean fps = (0 == noFalsePositives.score(snippets, new REDExtractor(sre, caseInsensitive, holdouts), allowOverMatches));
 			if (fps) {
