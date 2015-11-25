@@ -256,7 +256,6 @@ public class REDExCrossValidator implements CrossValidatable {
 				}
 				results.add(new CVResult(score, regExes));
 			}
-			;
 		}
 		return results;
 	}
