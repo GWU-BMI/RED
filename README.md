@@ -35,17 +35,17 @@ REDEx requires a single argument, the name of the properties file where options 
 
 #### Usage
 
-java -jar RED-<version>-<build number>-jar-with-dependencies.jar gov.va.research.red.ex.REDExFactory [crossvalidate|buildmodel] properties.filename
+java -cp RED-<version>-<build number>-jar-with-dependencies.jar gov.va.research.red.ex.REDExFactory [crossvalidate|buildmodel] properties.filename
 
 #### Examples
 
 Assuming the jar file is named RED-2015.9.0-b2015-10-31T23-59-59-jar-with-dependencies.jar
 
-> java -jar RED-2015.9.0-b2015-10-31T23-59-59-jar-with-dependencies.jar gov.va.research.red.ex.REDExFactory crossvalidate pain.properties
+> java -cp RED-2015.9.0-b2015-10-31T23-59-59-jar-with-dependencies.jar gov.va.research.red.ex.REDExFactory crossvalidate pain.properties
 
 This would perform a cross validation using according to the configuration options stored in the file *pain.properties*.
 
-> java -jar RED-2015.9.0-b2015-10-31T23-59-59-jar-with-dependencies.jar gov.va.research.red.ex.REDExFactory buildmodel pain.properties
+> java -cp RED-2015.9.0-b2015-10-31T23-59-59-jar-with-dependencies.jar gov.va.research.red.ex.REDExFactory buildmodel pain.properties
 
 This would build a REDEx model (two tiered collection of regular expressions) according to the configuration options stored in the file *pain.properties*.
 
@@ -59,6 +59,6 @@ java -jar RED-<version>-<build number>-jar-with-dependencies.jar gov.va.research
 
 (Assuming the jar file is named RED-2015.9.0-b2015-10-31T23-59-59-jar-with-dependencies.jar)
 
-> java -jar RED-2015.9.0-b2015-10-31T23-59-59-jar-with-dependencies.jar gov.va.research.red.ex.REDExtractor painscore.model vtt *.vtt
+> java -jar RED-2015.9.0-b2015-10-31T23-59-59-jar-with-dependencies.jar gov.va.research.red.ex.REDExtractor painscore.model docs *.txt
 
-This would use the model stored in the file *painscore.model* to extract values from all files in the *vtt* directory whose names end in *.vtt*.
+This would use the model stored in the file *painscore.model* to extract values from all files in the *docs* directory whose names end in *.txt*.
