@@ -114,7 +114,7 @@ public class REDExtractor implements Extractor {
 			}
 		}
 		if(returnMap == null || returnMap.isEmpty()) {
-			return null;
+			return new HashSet<>(0);
 		}
 		
 		Set<MatchedElement> returnSet = new HashSet<>(returnMap.size());

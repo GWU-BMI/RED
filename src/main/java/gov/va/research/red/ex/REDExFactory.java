@@ -158,8 +158,8 @@ public class REDExFactory {
 
 		if (useTier2) {
 			// perform tier 2 discovery
-			//ScoreFunction sf = new TPFPDiff();
-			ScoreFunction sf = new F1Score();
+			ScoreFunction sf = new TPFPDiff();
+			//ScoreFunction sf = new F1Score();
 			String ot2 = (outputTag == null ? "t2" : outputTag + "_t2");
 			List<Deque<SnippetRegEx>> tier2 = abstractIteratively (snippets, tier1Copy, allowOverMatches, ot2, caseInsensitive, sf, sf, holdouts, false);
 			outputSnippet2Regex(snippet2regex, ot2);
@@ -585,171 +585,130 @@ public class REDExFactory {
 	CVScore testREDExOnSnippet(REDExtractor ex,
 			boolean allowOverMatches, boolean caseInsensitive,
 			final PrintWriter localPW, Snippet snippet) {
-		Set<MatchedElement> candidates = ex.extract(snippet.getText());
-//			MatchedElement predicted = REDExFactory.chooseBestCandidates(candidates);
+		Set<MatchedElement> predictions = ex.extract(snippet.getText());
 		List<String> actual = snippet.getPosLabeledStrings();
 		// Score
 		int tp = 0;
 		int fp = 0;
 		int tn = 0;
 		int fn = 0;
-		if (candidates == null || candidates.size() == 0) {
-			if (actual == null || actual.size() == 0) {
-				tn = 1;
-			} else {
-				if (localPW != null) {
-					localPW.println("##### FALSE NEGATIVE #####"
-						+ "\n--- Test Snippet:"
-						+ "\n" + snippet.getText()
-						+ "\n>>> Predicted: null, Actual: " + actual);
-				}
-				fn = 1;
+		if (caseInsensitive) {
+			for (MatchedElement me : predictions) {
+				me.setMatch(me.getMatch().toLowerCase());
 			}
-		} else if (actual == null || actual.size() == 0) {
-			if (localPW != null) {
-				StringBuilder predVals = new StringBuilder();
-				StringBuilder predREs = new StringBuilder();
-				boolean first = true;
-				for (MatchedElement me : candidates) {
-					char pre = 0;
-					if (first) {
-						pre = '[';
-						first = false;
-					} else {
-						pre = ',';
+		}
+		Set<Integer> candPosMatchIndexes = new HashSet<>();
+		Set<Integer> plsMatchIndexes = new HashSet<>();
+		Set<Integer> candNegMatchIndexes = new HashSet<>();
+		Set<Integer> nlsMatchIndexes = new HashSet<>();
+		List<MatchedElement> candidateList = new ArrayList<>(predictions);
+		for (int c = 0; c < candidateList.size(); c++) {
+			MatchedElement candidate = candidateList.get(c);
+			if (allowOverMatches) {
+				for (int p = 0; p < snippet.getPosLabeledSegments().size(); p++) {
+					LabeledSegment pls = snippet.getPosLabeledSegments().get(p);
+					if (caseInsensitive) {
+						pls.setLabeledString(pls.getLabeledString().toLowerCase());
 					}
-					predVals.append(pre + me.getMatch());
-					predREs.append(pre + '[' + me.getMatch() + ',' + me.getMatchingRegexs()).append("\n");
-				}
-				predVals.append(']');
-				predREs.append(']');
-				localPW.println("##### FALSE POSITIVE #####"
-						+ "\n--- Test Snippet:"
-						+ "\n" + snippet.getText()
-						+ "\n>>> Predicted: " + candidates + ", Actual: " + actual
-						+ "\nPredicting Regexes:"
-						+ "\n" + predREs.toString());
-			}
-			fp = 1;
-		} else {
-			if (caseInsensitive) {
-				for (MatchedElement me : candidates) {
-					me.setMatch(me.getMatch().toLowerCase());
-				}
-			}
-			Set<Integer> candPosMatchIndexes = new HashSet<>();
-			Set<Integer> plsMatchIndexes = new HashSet<>();
-			Set<Integer> candNegMatchIndexes = new HashSet<>();
-			Set<Integer> nlsMatchIndexes = new HashSet<>();
-			List<MatchedElement> candidateList = new ArrayList<>(candidates);
-			for (int c = 0; c < candidateList.size(); c++) {
-				MatchedElement candidate = candidateList.get(c);
-				if (allowOverMatches) {
-					for (int p = 0; p < snippet.getPosLabeledSegments().size(); p++) {
-						LabeledSegment pls = snippet.getPosLabeledSegments().get(p);
-						if (caseInsensitive) {
-							pls.setLabeledString(pls.getLabeledString().toLowerCase());
-						}
-						if (rangesOverlap(pls.getStart(), pls.getStart() + pls.getLength(), candidate.getStartPos(), candidate.getEndPos())
-							&& stringsOverlap(pls.getLabeledString(), candidate.getMatch())) {
-							candPosMatchIndexes.add(c);
-							plsMatchIndexes.add(c);
-						}
-					}
-					for (int n = 0; n < snippet.getNegLabeledSegments().size(); n++) {
-						LabeledSegment nls = snippet.getNegLabeledSegments().get(n);
-						if (caseInsensitive) {
-							nls.setLabeledString(nls.getLabeledString().toLowerCase());
-						}
-						if (rangesOverlap(nls.getStart(), nls.getStart() + nls.getLength(), candidate.getStartPos(), candidate.getEndPos())
-								&& stringsOverlap(nls.getLabeledString(), candidate.getMatch())) {
-							candNegMatchIndexes.add(c);
-							nlsMatchIndexes.add(n);
-						}
-					}
-				} else {
-					for (int p = 0; p < snippet.getPosLabeledSegments().size(); p++) {
-						LabeledSegment ls = snippet.getPosLabeledSegments().get(p);
-						if (ls.getStart() == candidate.getStartPos()
-							&& ls.getStart() + ls.getLength() == candidate.getEndPos()
-							&& ls.getLabeledString().equals(candidate.getMatch())) {
-							if (caseInsensitive) {
-								if (ls.getLabeledString().equalsIgnoreCase(candidate.getMatch())) {
-									candPosMatchIndexes.add(c);
-									plsMatchIndexes.add(p);
-								}
-							} else {
-								if (ls.getLabeledString().equals(candidate.getMatch())) {
-									candPosMatchIndexes.add(c);
-									plsMatchIndexes.add(p);
-								}
-							}
-						}
-					}
-					for (int n = 0; n < snippet.getNegLabeledSegments().size(); n++) {
-						LabeledSegment nls = snippet.getNegLabeledSegments().get(n);
-						if (nls.getStart() == candidate.getStartPos()
-							&& nls.getStart() + nls.getLength() == candidate.getEndPos()
-							&& nls.getLabeledString().equals(candidate.getMatch())) {
-							if (caseInsensitive) {
-								if (nls.getLabeledString().equalsIgnoreCase(candidate.getMatch())) {
-									candNegMatchIndexes.add(c);
-									nlsMatchIndexes.add(n);
-								}
-							} else {
-								if (nls.getLabeledString().equals(candidate.getMatch())) {
-									candNegMatchIndexes.add(c);
-									nlsMatchIndexes.add(n);
-								}
-							}
-						}
+					if (rangesOverlap(pls.getStart(), pls.getStart() + pls.getLength(), candidate.getStartPos(), candidate.getEndPos())
+						&& stringsOverlap(pls.getLabeledString(), candidate.getMatch())) {
+						candPosMatchIndexes.add(c);
+						plsMatchIndexes.add(c);
 					}
 				}
-			}
-			for (int p = 0; p < snippet.getPosLabeledSegments().size(); p++) {
-				if (plsMatchIndexes.contains(p)) {
-					tp++;
-				} else {
-					fn++;
-				}
-			}
-			for (int n = 0; n < snippet.getNegLabeledSegments().size(); n++) {
-				if (nlsMatchIndexes.contains(n)) {
-					fp++;
-				} else {
-					tn++;
-				}
-			}
-			for (int c = 0; c < candidates.size(); c++) {
-				if (!(candPosMatchIndexes.contains(c) || candNegMatchIndexes.contains(c))) {
-					fp++;
-				}
-			}
-			
-			if (localPW != null && fp > 0) {
-				StringBuilder sbP = new StringBuilder();
-				StringBuilder sbRe = new StringBuilder();
 				for (int n = 0; n < snippet.getNegLabeledSegments().size(); n++) {
-					boolean first = true;
-					if (candNegMatchIndexes.contains(n)) {
-						MatchedElement cand = candidateList.get(n);
-						if (first) {
-							first = false;
-							sbP.append("[" + cand.getMatch());
-						} else {
-							sbP.append(", " + cand.getMatch());
-						}
-						sbRe.append(cand.getMatchingRegexs()).append("\n");
+					LabeledSegment nls = snippet.getNegLabeledSegments().get(n);
+					if (caseInsensitive) {
+						nls.setLabeledString(nls.getLabeledString().toLowerCase());
+					}
+					if (rangesOverlap(nls.getStart(), nls.getStart() + nls.getLength(), candidate.getStartPos(), candidate.getEndPos())
+							&& stringsOverlap(nls.getLabeledString(), candidate.getMatch())) {
+						candNegMatchIndexes.add(c);
+						nlsMatchIndexes.add(n);
 					}
 				}
-				sbP.append("]");
-				localPW.println("##### FALSE POSITIVE #####"
-						+ "\n--- Test Snippet:"
-						+ "\n" + snippet.getText()
-						+ "\n>>> Predicted: " + sbP.toString() + ", Actual: " + actual
-						+ "\nPredicting Regexes:"
-						+ "\n" + sbRe.toString());
+			} else {
+				for (int p = 0; p < snippet.getPosLabeledSegments().size(); p++) {
+					LabeledSegment ls = snippet.getPosLabeledSegments().get(p);
+					if (ls.getStart() == candidate.getStartPos()
+						&& ls.getStart() + ls.getLength() == candidate.getEndPos()
+						&& ls.getLabeledString().equals(candidate.getMatch())) {
+						if (caseInsensitive) {
+							if (ls.getLabeledString().equalsIgnoreCase(candidate.getMatch())) {
+								candPosMatchIndexes.add(c);
+								plsMatchIndexes.add(p);
+							}
+						} else {
+							if (ls.getLabeledString().equals(candidate.getMatch())) {
+								candPosMatchIndexes.add(c);
+								plsMatchIndexes.add(p);
+							}
+						}
+					}
+				}
+				for (int n = 0; n < snippet.getNegLabeledSegments().size(); n++) {
+					LabeledSegment nls = snippet.getNegLabeledSegments().get(n);
+					if (nls.getStart() == candidate.getStartPos()
+						&& nls.getStart() + nls.getLength() == candidate.getEndPos()
+						&& nls.getLabeledString().equals(candidate.getMatch())) {
+						if (caseInsensitive) {
+							if (nls.getLabeledString().equalsIgnoreCase(candidate.getMatch())) {
+								candNegMatchIndexes.add(c);
+								nlsMatchIndexes.add(n);
+							}
+						} else {
+							if (nls.getLabeledString().equals(candidate.getMatch())) {
+								candNegMatchIndexes.add(c);
+								nlsMatchIndexes.add(n);
+							}
+						}
+					}
+				}
 			}
+		}
+		for (int p = 0; p < snippet.getPosLabeledSegments().size(); p++) {
+			if (plsMatchIndexes.contains(p)) {
+				tp++;
+			} else {
+				fn++;
+			}
+		}
+		for (int n = 0; n < snippet.getNegLabeledSegments().size(); n++) {
+			if (nlsMatchIndexes.contains(n)) {
+				fp++;
+			} else {
+				tn++;
+			}
+		}
+		for (int c = 0; c < predictions.size(); c++) {
+			if (!(candPosMatchIndexes.contains(c) || candNegMatchIndexes.contains(c))) {
+				fp++;
+			}
+		}
+		
+		if (localPW != null && fp > 0) {
+			StringBuilder sbP = new StringBuilder();
+			StringBuilder sbRe = new StringBuilder();
+			for (int n = 0; n < snippet.getNegLabeledSegments().size(); n++) {
+				boolean first = true;
+				if (candNegMatchIndexes.contains(n)) {
+					MatchedElement cand = candidateList.get(n);
+					if (first) {
+						first = false;
+						sbP.append("[" + cand.getMatch());
+					} else {
+						sbP.append(", " + cand.getMatch());
+					}
+					sbRe.append(cand.getMatchingRegexs()).append("\n");
+				}
+			}
+			sbP.append("]");
+			localPW.println("##### FALSE POSITIVE #####"
+					+ "\n--- Test Snippet:"
+					+ "\n" + snippet.getText()
+					+ "\n>>> Predicted: " + sbP.toString() + ", Actual: " + actual
+					+ "\nPredicting Regexes:"
+					+ "\n" + sbRe.toString());
 		}
 		return new CVScore(tp, tn, fp, fn);
 	}
