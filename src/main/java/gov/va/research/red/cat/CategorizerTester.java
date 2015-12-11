@@ -39,7 +39,7 @@ public class CategorizerTester {
 		strToWrite.append("\n------------------------\n");
 		strToWrite.append(snippet.getText());
 		strToWrite.append("\n------------------------\n");
-		Collection<LabeledSegment> labeledSegments = snippet.getLabeledSegments();
+		Collection<LabeledSegment> labeledSegments = snippet.getPosLabeledSegments();
 		if (labeledSegments!=null) for (LabeledSegment ls: labeledSegments) {
 			strToWrite.append("---The labeled segment ("+ls.getLabel()+")---\n");
 			strToWrite.append(ls.getLabeledString());

@@ -19,7 +19,6 @@ package gov.va.research.red.ex;
 import gov.va.research.red.MatchedElement;
 
 import java.util.Collection;
-import java.util.List;
 
 /**
  * Interface for Information Extractors

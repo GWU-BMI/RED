@@ -29,7 +29,7 @@ import java.util.List;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeMap;
-import java.util.regex.Pattern;
+//import java.util.regex.Pattern;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,9 +39,9 @@ import org.slf4j.LoggerFactory;
  */
 public class VTTReader {
 
-	private static final String SNIPPET_TEXT_BEGIN_REGEX = "Snippet\\s?Text:";
-	private static final Pattern SNIPPET_TEXT_BEGIN_PATTERN = Pattern.compile(SNIPPET_TEXT_BEGIN_REGEX, Pattern.CASE_INSENSITIVE);
-	private static final String SNIPPET_TEXT_END = "----------------------------------------------------------------------------------";
+//	private static final String SNIPPET_TEXT_BEGIN_REGEX = "Snippet\\s?Text:";
+//	private static final Pattern SNIPPET_TEXT_BEGIN_PATTERN = Pattern.compile(SNIPPET_TEXT_BEGIN_REGEX, Pattern.CASE_INSENSITIVE);
+//	private static final String SNIPPET_TEXT_END = "----------------------------------------------------------------------------------";
 	private static final Logger LOG = LoggerFactory.getLogger(VTTReader.class);
 
 	/**
@@ -71,7 +71,7 @@ public class VTTReader {
 		Collection<Snippet> snippets = extractSnippets(vttFile, label, convertToLowercase);
 		List<LSTriplet> ls3list = new ArrayList<>(snippets.size());
 		for (Snippet snippet : snippets) {
-			for (LabeledSegment ls : snippet.getLabeledSegments()) {
+			for (LabeledSegment ls : snippet.getPosLabeledSegments()) {
 				if (label.equals(ls.getLabel())) {
 					ls3list.add(LSTriplet.valueOf(snippet.getText(), ls));
 				}
@@ -140,10 +140,10 @@ public class VTTReader {
 					}
 					LabeledSegment ls = new LabeledSegment(markup.GetTagName().toLowerCase(), labStr, labeledOffset - p2s.getKey().start, labeledLength);
 					Snippet snippet = p2s.getValue();
-					Collection<LabeledSegment> labeledSegments = snippet.getLabeledSegments();
+					List<LabeledSegment> labeledSegments = snippet.getPosLabeledSegments();
 					if (labeledSegments == null) {
 						labeledSegments = new ArrayList<LabeledSegment>();
-						snippet.setLabeledSegments(labeledSegments);
+						snippet.setPosLabeledSegments(labeledSegments);
 					}
 					labeledSegments.add(ls);
 					if (!snippets.contains(snippet)) {
@@ -173,7 +173,7 @@ public class VTTReader {
 					int snippetEnd = snippetOffset + snippetLength;
 					String snippet = docText.substring(snippetOffset, snippetEnd).toLowerCase();
 					SnippetPosition snipPos = new SnippetPosition(snippetOffset, snippetEnd);
-					pos2snips.put(snipPos, new Snippet(snippet, null));
+					pos2snips.put(snipPos, new Snippet(snippet, null, null));
 				}
 			}
 		}
@@ -263,10 +263,10 @@ public class VTTReader {
 					}
 					LabeledSegment ls = new LabeledSegment(markup.GetTagName(), labStr, labeledOffset - p2s.getKey().start, labeledLength);
 					Snippet snippet = p2s.getValue();
-					Collection<LabeledSegment> labeledSegments = snippet.getLabeledSegments();
+					List<LabeledSegment> labeledSegments = snippet.getPosLabeledSegments();
 					if (labeledSegments == null) {
 						labeledSegments = new ArrayList<LabeledSegment>();
-						snippet.setLabeledSegments(labeledSegments);
+						snippet.setPosLabeledSegments(labeledSegments);
 					}
 					labeledSegments.add(ls);
 				}
@@ -276,7 +276,7 @@ public class VTTReader {
 	}
 	
 	/**
-	 * Finds all snippets in a vtt file and includes selected labeled segments 
+	 * Finds all snippets in a vtt file, adding positive labeled segments for tags those with matching labels, and negative labeled segments for tags without matching labels.
 	 * @param vttFile The VTT file to extract triplets from.
 	 * @param labels Labeled segments with any of these labels will be included with the snippets.
  	 * @param convertToLowercase If <code>true</code> then all text is converted to lowercase (in order, for example, to make case-insensitive comparisons easier)
@@ -292,8 +292,7 @@ public class VTTReader {
 		String docText = vttDoc.GetText();
 		for (Markup markup : vttDoc.GetMarkups().GetMarkups()) {
 			// Check if the markup is not a SnippetColumn
-			if (!"SnippetColumn".equalsIgnoreCase(markup.GetTagName()) && labels.contains(markup.GetTagName())) {
-
+			if (!"SnippetColumn".equalsIgnoreCase(markup.GetTagName())) {
 				// Get the labeled text boundaries
 				int labeledOffset = markup.GetOffset();
 				int labeledLength = markup.GetLength();
@@ -321,11 +320,20 @@ public class VTTReader {
 					}
 					LabeledSegment ls = new LabeledSegment(markup.GetTagName(), labStr, labeledOffset - p2s.getKey().start, labeledLength);
 					Snippet snippet = p2s.getValue();
-					Collection<LabeledSegment> labeledSegments = snippet.getLabeledSegments();
-					if (labeledSegments == null) {
-						labeledSegments = new ArrayList<LabeledSegment>();
-						snippet.setLabeledSegments(labeledSegments);
-					}
+					List<LabeledSegment> labeledSegments = null;
+					if (CVUtils.containsCI(labels, markup.GetTagName())) {
+						labeledSegments = snippet.getPosLabeledSegments();
+						if (labeledSegments == null) {
+							labeledSegments = new ArrayList<LabeledSegment>();
+							snippet.setPosLabeledSegments(labeledSegments);
+						}
+					} else {
+						labeledSegments = snippet.getNegLabeledSegments();
+						if (labeledSegments == null) {
+							labeledSegments = new ArrayList<LabeledSegment>();
+							snippet.setNegLabeledSegments(labeledSegments);
+						}
+					}					
 					labeledSegments.add(ls);
 				}
 			}

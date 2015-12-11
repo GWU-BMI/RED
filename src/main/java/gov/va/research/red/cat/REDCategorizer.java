@@ -299,7 +299,7 @@ public class REDCategorizer {
 			snipWriter.write(snippet.getText());
 			snipWriter.write("\n\n\n");
 			for (String label : labels) {
-				LabeledSegment lSeg = snippet.getLabeledSegment(label);
+				LabeledSegment lSeg = snippet.getPosLabeledSegment(label);
 				if (lSeg != null) {
 					String lSegStr = lSeg.getLabeledString();
 					if (lSegStr != null && !lSegStr.equals("")) {
@@ -762,7 +762,7 @@ public class REDCategorizer {
 			Collection<String> labels, Collection<RegEx> initialRegExs) {
 		for (Snippet snippet : snippets) {
 			for (String label : labels) {
-				LabeledSegment labeledSegment = snippet.getLabeledSegment(label);
+				LabeledSegment labeledSegment = snippet.getPosLabeledSegment(label);
 				if ( labeledSegment != null ) {
 					String regExString = labeledSegment.getLabeledString();
 					if (regExString != null && !regExString.isEmpty()) {
@@ -783,7 +783,7 @@ public class REDCategorizer {
 			boolean actual = false;
 			//String segment = "";
 			for(String label : yesLabels){
-				LabeledSegment actualSegment = testSnippet.getLabeledSegment(label);
+				LabeledSegment actualSegment = testSnippet.getPosLabeledSegment(label);
 				if(actualSegment != null) {
 					actual = true;
 					//segment = actualSegment.getLabeledString();
@@ -812,7 +812,7 @@ public class REDCategorizer {
 			boolean actual = false;
 			String segment = "";
 			for(String label : yesLabels){
-				LabeledSegment actualSegment = testSnippet.getLabeledSegment(label);
+				LabeledSegment actualSegment = testSnippet.getPosLabeledSegment(label);
 				if(actualSegment != null) {
 					actual = true;
 					segment = actualSegment.getLabeledString();
@@ -821,7 +821,7 @@ public class REDCategorizer {
 			}
 			if (!actual){
 				for(String label : noLabels){
-					LabeledSegment actualSegment = testSnippet.getLabeledSegment(label);
+					LabeledSegment actualSegment = testSnippet.getPosLabeledSegment(label);
 					if(actualSegment != null) {
 						//actual = true;
 						segment = actualSegment.getLabeledString();

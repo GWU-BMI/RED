@@ -17,9 +17,12 @@
 package gov.va.research.red.ex;
 
 import static org.junit.Assert.fail;
+import gov.va.research.red.CVScore;
 import gov.va.research.red.Confidence;
 import gov.va.research.red.ConfidenceMeasurer;
 import gov.va.research.red.ConfidenceSnippet;
+import gov.va.research.red.LabeledSegment;
+import gov.va.research.red.MatchedElement;
 import gov.va.research.red.RegEx;
 import gov.va.research.red.Snippet;
 import gov.va.research.red.VTTReader;
@@ -31,9 +34,9 @@ import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 import junit.framework.Assert;
 
@@ -99,7 +102,7 @@ public class REDExtractorTest {
 		REDExFactory regExt = new REDExFactory();
 		try {
 			Collection<Snippet> snippets = vttr.extractSnippets(new File(TEST_VTT_URI), "weight", true);
-			regExt.train(snippets, Arrays.asList(new String[] { "weight" }), true, "test", true, true, new ArrayList<>(0), Boolean.TRUE);
+			regExt.train(snippets, true, "test", true, true, new ArrayList<>(0), Boolean.TRUE);
 		} catch (IOException e) {
 			throw new AssertionError("Failed extract 'weight' labeled regular expressions from VTT file: " + TEST_VTT_URI, e);
 		}
@@ -110,23 +113,31 @@ public class REDExtractorTest {
 	 */
 	@Test
 	public void testReplaceDigitsLS() {
-		fail("Not yet implemented");
-	}
-
-	/**
-	 * Test method for {@link gov.va.research.red.ex.REDExFactory#replaceDigitsBLSALS(java.util.List)}.
-	 */
-	@Test
-	public void testReplaceDigitsBLSALS() {
-		fail("Not yet implemented");
+		List<LabeledSegment> lsList = new ArrayList<>(2);
+		lsList.add(new LabeledSegment("four", "four", 20, 4));
+		lsList.add(new LabeledSegment("four", "4", 25, 1));
+		String snipText = "one 1 two 2 three 3 four 4 five 5 six 6 seven 7";
+		Snippet s = new Snippet(snipText, lsList, null);
+		SnippetRegEx sre = new SnippetRegEx(s);
+		Assert.assertTrue(sre.replaceDigits());
+		Assert.assertTrue(sre.getPattern(true).matcher(snipText).find());
+		Assert.assertTrue(sre.toString().split("\\d").length == 1);
 	}
 
 	/**
 	 * Test method for {@link gov.va.research.red.ex.REDExFactory#replaceWhiteSpace(java.util.List)}.
 	 */
 	@Test
-	public void testReplaceWhiteSpaces() {
-		fail("Not yet implemented");
+	public void testReplaceWhiteSpace() {
+		List<LabeledSegment> lsList = new ArrayList<>(2);
+		lsList.add(new LabeledSegment("four", "four", 20, 4));
+		lsList.add(new LabeledSegment("four", "4", 25, 1));
+		String snipText = "one 1 two 2 three 3 four 4 five 5 six 6 seven 7";
+		Snippet s = new Snippet(snipText, lsList, null);
+		SnippetRegEx sre = new SnippetRegEx(s);
+		Assert.assertTrue(sre.replaceWhiteSpace());
+		Assert.assertTrue(sre.getPattern(true).matcher(snipText).find());
+		Assert.assertTrue(sre.toString().split("\\s").length == 1);
 	}
 	
 	@Test
@@ -141,7 +152,7 @@ public class REDExtractorTest {
 		File vttFile = new File(TEST_VTT_URI);
 		snippets.addAll(vttr.extractSnippets(vttFile, "weight", true));
 		REDExFactory regExt = new REDExFactory();
-		REDExtractor ex = regExt.train(snippets, Arrays.asList(new String[] { "weight" }), true, "test", true, true, new ArrayList<>(0), Boolean.TRUE);
+		REDExtractor ex = regExt.train(snippets, true, "test", true, true, new ArrayList<>(0), Boolean.TRUE);
 		List<Collection<SnippetRegEx>> snippetRegExs = ex.getRankedSnippetRegExs();
 		List<RegEx> yesRegExs = null;
 		if(snippetRegExs != null) {
@@ -154,11 +165,11 @@ public class REDExtractorTest {
 		}
 		List<RegEx> noRegExs = null;
 		try {
-			List<ConfidenceSnippet> confidenceSnippets = measurer.measureConfidence(snippets, yesRegExs, noRegExs);
-			for(ConfidenceSnippet confSnippet : confidenceSnippets) {
-				Confidence confidence = confSnippet.getConfidence();
-				System.out.println("Snippet confidence score "+confidence.getConfidence() + " confidence type "+confidence.getConfidenceType());
-			}
+			/*List<ConfidenceSnippet> confidenceSnippets =*/ measurer.measureConfidence(snippets, yesRegExs, noRegExs);
+//			for(ConfidenceSnippet confSnippet : confidenceSnippets) {
+//				Confidence confidence = confSnippet.getConfidence();
+//				System.out.println("Snippet confidence score "+confidence.getConfidence() + " confidence type "+confidence.getConfidenceType());
+//			}
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -171,6 +182,32 @@ public class REDExtractorTest {
 		Assert.assertEquals(ex.getRankedSnippetRegExs().size(), ex2.getRankedSnippetRegExs().size());
 		for (int i = 0; i < ex.getRankedSnippetRegExs().size(); i++) {
 			Assert.assertEquals(ex.getRankedSnippetRegExs().get(i).size(), ex2.getRankedSnippetRegExs().get(i).size());
+		}
+	}
+	
+	@Test
+	public void testScore() {
+		List<LabeledSegment> posLabeledSegments = new ArrayList<>(2);
+		posLabeledSegments.add(new LabeledSegment("prescriptions", "4", 61, 1));
+		posLabeledSegments.add(new LabeledSegment("prescriptions", "five", 83, 4));
+		List<LabeledSegment> negLabeledSegments = new ArrayList<>(2);
+		negLabeledSegments.add(new LabeledSegment("clinvisits", "two", 22, 3));
+		negLabeledSegments.add(new LabeledSegment("timespan", "3 months", 44, 8));
+		String snipText = "he went to the clinic two times in the last 3 months and got 4 prescriptions, then five more.";
+		Collection<Snippet> snippets = new ArrayList<>(1);
+		snippets.add(new Snippet(snipText, posLabeledSegments, negLabeledSegments));
+		REDExFactory ref = new REDExFactory();
+		
+		try {
+			REDExtractor re = ref.train(snippets, true, "test", true, true, new ArrayList<String>(0), true);
+			CVScore cv = ref.testREDExOnSnippet(re, true, true, null, snippets.iterator().next());
+			Assert.assertNotNull(cv);
+			Assert.assertEquals(2, cv.getTp());
+			Assert.assertEquals(0, cv.getFp());
+			Assert.assertEquals(0,  cv.getFn());
+			Assert.assertEquals(2, cv.getTn());
+		} catch (IOException e) {
+			throw new AssertionError(e.getMessage());
 		}
 	}
 

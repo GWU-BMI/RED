@@ -1,18 +1,27 @@
 package gov.va.research.red;
 
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 
 public class Snippet {
 
 	private String text;
-	private Collection<LabeledSegment> labeledSegments;
+	private List<LabeledSegment> posLabeledSegments;
+	private List<LabeledSegment> negLabeledSegments;
 
-	public Snippet(final String text, final Collection<LabeledSegment> labeledSegments) {
+
+	public Snippet(final String text, final List<LabeledSegment> posLabeledSegments, final List<LabeledSegment> negLabeledSegments) {
 		this.text = text;
-		this.labeledSegments = labeledSegments;
+		if (posLabeledSegments == null) {
+			this.posLabeledSegments = new ArrayList<>();
+		} else {
+			this.posLabeledSegments = posLabeledSegments;
+		}
+		if (negLabeledSegments == null) {
+			this.negLabeledSegments = new ArrayList<>();
+		} else {
+			this.negLabeledSegments = negLabeledSegments;
+		}
 	}
 
 	/**
@@ -21,9 +30,12 @@ public class Snippet {
 	 */
 	public Snippet(Snippet snippet) {
 		this.text = snippet.getText();
-		this.labeledSegments = new ArrayList<LabeledSegment>(snippet.getLabeledSegments().size());
-		for (LabeledSegment ls : snippet.getLabeledSegments()) {
-			this.labeledSegments.add(new LabeledSegment(ls));
+		this.posLabeledSegments = new ArrayList<LabeledSegment>(snippet.getPosLabeledSegments().size());
+		for (LabeledSegment ls : snippet.getPosLabeledSegments()) {
+			this.posLabeledSegments.add(new LabeledSegment(ls));
+		}
+		for (LabeledSegment ls : snippet.getNegLabeledSegments()) {
+			this.negLabeledSegments.add(new LabeledSegment(ls));
 		}
 	}
 
@@ -35,11 +47,11 @@ public class Snippet {
 		this.text = text;
 	}
 
-	public Collection<LabeledSegment> getLabeledSegments() {
-		if (labeledSegments == null) {
-			labeledSegments = new ArrayList<LabeledSegment>();
+	public List<LabeledSegment> getPosLabeledSegments() {
+		if (posLabeledSegments == null) {
+			posLabeledSegments = new ArrayList<LabeledSegment>();
 		}
-		return labeledSegments;
+		return posLabeledSegments;
 	}
 	
 	/**
@@ -47,11 +59,11 @@ public class Snippet {
 	 * @param label The label of the labeled segment to return
 	 * @return the first labeled segment with the <code>label</code>
 	 */
-	public LabeledSegment getLabeledSegment(String label) {
-		if (labeledSegments == null) {
+	public LabeledSegment getPosLabeledSegment(String label) {
+		if (posLabeledSegments == null) {
 			return null;
 		}
-		for(LabeledSegment labelsegment : labeledSegments){
+		for(LabeledSegment labelsegment : posLabeledSegments){
 			if(labelsegment.getLabel() != null && labelsegment.getLabel().equalsIgnoreCase(label)){
 				return labelsegment;
 			}
@@ -59,23 +71,31 @@ public class Snippet {
 		return null;
 	}
 
-	public void setLabeledSegments(Collection<LabeledSegment> labeledSegments) {
-		this.labeledSegments = labeledSegments;
+	public void setPosLabeledSegments(List<LabeledSegment> labeledSegments) {
+		this.posLabeledSegments = labeledSegments;
 	}
 
-	public List<String> getLabeledStrings() {
+	public List<String> getPosLabeledStrings() {
 		List<String> labeledStrings = new ArrayList<>();
-		if (this.labeledSegments != null) {
-			for (LabeledSegment ls : this.labeledSegments) {
+		if (this.posLabeledSegments != null) {
+			for (LabeledSegment ls : this.posLabeledSegments) {
 				labeledStrings.add(ls.getLabeledString());
 			}
 		}
 		return labeledStrings;
 	}
 
+	public List<LabeledSegment> getNegLabeledSegments() {
+		return negLabeledSegments;
+	}
+
+	public void setNegLabeledSegments(List<LabeledSegment> negLabeledSegments) {
+		this.negLabeledSegments = negLabeledSegments;
+	}
+	
 	@Override
 	public String toString() {
-		return "" + text + " " + labeledSegments;
+		return "" + text + " " + posLabeledSegments;
 	}
 
 }

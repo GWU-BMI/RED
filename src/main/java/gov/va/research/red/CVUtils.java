@@ -66,17 +66,46 @@ public class CVUtils {
 		return false;
 	}
 	
-	public static boolean containsAnyCI(final Collection<String> strings1, final Collection<String> strings2, boolean allowOverMatches) {
-		for (String s1 : strings1) {
-			String lcs1 = s1.toLowerCase();
+	/**
+	 * see {@link #containsCI(Collection<String>,String) containsCI} method.
+	 */
+	public static boolean containsCI(final String[] strings,
+			final String string) {
+		for (String s : strings) {
+			if (s.equalsIgnoreCase(string)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	
+	public static boolean containsAnyCI(final Collection<String> strings1, final Collection<String> strings2, boolean allowOverMatches, boolean caseInsensitive) {
+		Collection<String> stringColl1 = null;
+		Collection<String> stringColl2 = null;
+		if (caseInsensitive) {
+			Collection<String> lcStrings1 = new ArrayList<>(strings1.size());
+			for (String s1 : strings1) {
+				lcStrings1.add(s1.toLowerCase());
+			}
+			Collection<String> lcStrings2 = new ArrayList<>(strings2.size());
 			for (String s2 : strings2) {
-				String lcs2 = s2.toLowerCase();
+				lcStrings2.add(s2.toLowerCase());
+			}
+			stringColl1 = lcStrings1;
+			stringColl2 = lcStrings2;
+		} else {
+			stringColl1 = strings1;
+			stringColl2 = strings2;
+		}
+		for (String s1 : stringColl1) {
+			for (String s2 : stringColl2) {
 				if (allowOverMatches) {
-					if (lcs1.contains(lcs2) || lcs2.contains(lcs1)) {
+					if (s1.contains(s2) || s2.contains(s1)) {
 						return true;
 					}
 				} else {
-					if (lcs1.equals(s2)) {
+					if (s1.equals(s2)) {
 						return true;
 					}
 				}

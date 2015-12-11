@@ -4,7 +4,6 @@ import gov.va.research.red.CVResult;
 import gov.va.research.red.CVScore;
 import gov.va.research.red.CVUtils;
 import gov.va.research.red.CrossValidatable;
-import gov.va.research.red.LabeledSegment;
 import gov.va.research.red.Snippet;
 import gov.va.research.red.VTTReader;
 
@@ -17,7 +16,6 @@ import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -226,7 +224,7 @@ public class REDExCrossValidator implements CrossValidatable {
 						// Train
 						REDExtractor ex = null;
 						try {
-							ex = trainExtractor(labels, training, allowOverMatches, caseInsensitive, holdouts, useTier2,
+							ex = trainExtractor(training, allowOverMatches, caseInsensitive, holdouts, useTier2,
 									trainingPW, "" + newFold);
 						} catch (Exception e) {
 							throw new RuntimeException(e);
@@ -236,7 +234,7 @@ public class REDExCrossValidator implements CrossValidatable {
 						} else {
 							// Test
 							REDExFactory rexe = new REDExFactory();
-							score = rexe.test(testing, ex, allowOverMatches, pw);
+							score = rexe.test(testing, ex, allowOverMatches, caseInsensitive, pw);
 							regExes = ex.getRegularExpressions();
 						}
 					}
@@ -271,25 +269,17 @@ public class REDExCrossValidator implements CrossValidatable {
 	 * @return an extractor containing regexes discovered during training.
 	 * @throws IOException
 	 */
-	private REDExtractor trainExtractor(Collection<String> labels, List<Snippet> training, Boolean allowOverMatches,
+	private REDExtractor trainExtractor(List<Snippet> training, Boolean allowOverMatches,
 			Boolean caseInsensitive, List<String> holdouts, Boolean useTier2, PrintWriter pw, String outputTag)
 					throws IOException {
 		REDExFactory rexe = new REDExFactory();
-		REDExtractor ex = rexe.train(training, labels, allowOverMatches, outputTag, caseInsensitive, false, holdouts,
+		REDExtractor ex = rexe.train(training, allowOverMatches, outputTag, caseInsensitive, false, holdouts,
 				useTier2);
 		if (pw != null) {
 			List<Snippet> labelled = new ArrayList<>();
 			List<Snippet> unlabelled = new ArrayList<>();
 			for (Snippet trainingSnippet : training) {
-				boolean isLabelled = false;
-				if (trainingSnippet.getLabeledSegments() != null) {
-					for (LabeledSegment ls : trainingSnippet.getLabeledSegments()) {
-						if (CVUtils.containsCI(labels, ls.getLabel())) {
-							isLabelled = true;
-							break;
-						}
-					}
-				}
+				boolean isLabelled = trainingSnippet.getPosLabeledSegments().size() > 0;
 				if (isLabelled) {
 					labelled.add(trainingSnippet);
 				} else {
@@ -298,11 +288,11 @@ public class REDExCrossValidator implements CrossValidatable {
 			}
 			pw.println("--- Training snippets:");
 			for (Snippet s : labelled) {
-				pw.println("--- pos. for " + labels);
+				pw.println("--- pos");
 				pw.println(s.getText());
 			}
 			for (Snippet s : unlabelled) {
-				pw.println("--- neg. for " + labels);
+				pw.println("--- neg");
 				pw.println(s.getText());
 			}
 			pw.println();

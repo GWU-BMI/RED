@@ -120,13 +120,14 @@ public class CVScore {
 		this.fn++;
 	}
 
-	public void add(CVScore cvs) {
+	public CVScore add(CVScore cvs) {
 		if (cvs != null) {
 			this.tp += cvs.tp;
 			this.tn += cvs.tn;
 			this.fp += cvs.fp;
 			this.fn += cvs.fn;
 		}
+		return this;
 	}
 
 	public static CVScore aggregate(List<CVScore> scores) {
@@ -141,6 +142,6 @@ public class CVScore {
 
 	@Override
 	public String toString() {
-		return "tp:" + tp + ",fp:" + fp + ",fn:" + fn + "tn:" + tn;
+		return "tp:" + tp + ",fp:" + fp + ",fn:" + fn + ",tn:" + tn;
 	}
 }

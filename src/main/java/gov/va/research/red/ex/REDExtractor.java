@@ -14,19 +14,20 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Scanner;
 import java.util.Set;
 import java.util.concurrent.Callable;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.ConcurrentMap;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import javax.xml.stream.XMLStreamException;
 
@@ -49,72 +50,65 @@ public class REDExtractor implements Extractor {
 	private String metadata;
 	private final boolean caseInsensitive;
 	private final boolean useTier2;
-	private final List<String> holdouts;
 	
-	public REDExtractor(Collection<SnippetRegEx> sres, boolean caseInsensitive, List<String> holdouts) {
+	public REDExtractor(Collection<SnippetRegEx> sres, boolean caseInsensitive) {
 		this.rankedSnippetRegExs = new ArrayList<>(1);
 		this.rankedSnippetRegExs.add(sres);
 		this.caseInsensitive = caseInsensitive;
-		this.holdouts = holdouts;
 		this.useTier2 = false;
 	}
 	
-	public REDExtractor(List<Collection<SnippetRegEx>> rankedSres, String metadata, boolean caseInsensitive, List<String> holdouts, boolean useTier2) {
+	public REDExtractor(List<Collection<SnippetRegEx>> rankedSres, String metadata, boolean caseInsensitive, boolean useTier2) {
 		this.rankedSnippetRegExs = rankedSres;
 		this.metadata = metadata;
 		this.caseInsensitive = caseInsensitive;
-		this.holdouts = holdouts;
 		this.useTier2 = useTier2;
 	}
 
-	public REDExtractor(SnippetRegEx snippetRegEx, boolean caseInsensitive, List<String> holdouts) {
+	public REDExtractor(SnippetRegEx snippetRegEx, boolean caseInsensitive) {
 		this.rankedSnippetRegExs = new ArrayList<>(1);
 		this.rankedSnippetRegExs.add(Arrays.asList(new SnippetRegEx[] { snippetRegEx }));
 		this.caseInsensitive = caseInsensitive;
-		this.holdouts = holdouts;
 		this.useTier2 = false;
 	}
 
 	@Override
-	public List<MatchedElement> extract(String target) {
+	public Set<MatchedElement> extract(String target) {
 		if(target == null || target.length() == 0) {
 			return null;
 		}
-		ConcurrentHashMap<MatchedElement, Double> returnMap = null;
-		boolean firstSnippetRE = true; 
+		ConcurrentMap<MatchedElement.MatchPos, MatchedElement.MatchData> returnMap = null;
+		boolean tier1 = true; 
 		for (Collection<SnippetRegEx> snippetREs : this.rankedSnippetRegExs) {
-			if((useTier2 || firstSnippetRE) && snippetREs != null && !snippetREs.isEmpty()) {
-				returnMap = snippetREs.parallelStream().map((sre) -> {
+			if((useTier2 || tier1) && snippetREs != null && !snippetREs.isEmpty()) {
+				returnMap = snippetREs.parallelStream().flatMap((sre) -> {
 					MatchFinder mf = new MatchFinder(sre, target, caseInsensitive);
 					Set<MatchedElement> mes = mf.call();
-					return mes;
-				}).reduce(new ConcurrentHashMap<MatchedElement, Double>(), (s1, s2) -> {
-					for (MatchedElement me : s2) {
-						Double confidence = Double.valueOf(me.getConfidence());
-						me.setConfidence(0d);
-						Double conf = s1.get(me);
-						if (conf == null) {
-							s1.put(me,  confidence);
-						} else {
-							s1.put(me, conf + confidence);
+					return mes.parallelStream();
+				}).collect(Collectors.toConcurrentMap(
+						// MatchedElement.MatchData::getMatchPos
+						new Function<MatchedElement,MatchedElement.MatchPos>() {
+							public MatchedElement.MatchPos apply(MatchedElement me) {
+								return me.getMatchPos();
+							};
+						},
+						// MatchedElement.MatchData::getMatchData
+						new Function<MatchedElement,MatchedElement.MatchData>() {
+							public MatchedElement.MatchData apply(MatchedElement me) {
+								return me.getMatchData();
+							};
+						},
+						new java.util.function.BinaryOperator<MatchedElement.MatchData>() {
+							public MatchedElement.MatchData apply(MatchedElement.MatchData md1, MatchedElement.MatchData md2) {
+								md1.combine(md2);
+								return md1;
+							};
 						}
-					}
-					return s1;
-				}, (s1, s2) -> {
-					for (Map.Entry<MatchedElement, Double> mee : s2.entrySet()) {
-						MatchedElement me = mee.getKey();
-						Double confidence = mee.getValue();
-						Double conf = s1.get(me);
-						if (conf == null) {
-							s1.put(me,  confidence);
-						} else {
-							s1.put(me, conf + confidence);
-						}
-					}
-					return s1;
-				});
+					)
+				);
 			}
-			firstSnippetRE = false;
+			// returnMap now contains all matches for the current tier
+			tier1 = false;
 			if (returnMap != null && !returnMap.isEmpty()) {
 				break;
 			}
@@ -122,19 +116,36 @@ public class REDExtractor implements Extractor {
 		if(returnMap == null || returnMap.isEmpty()) {
 			return null;
 		}
-		ConcurrentLinkedQueue<MatchedElement> returnList = returnMap.entrySet().parallelStream().reduce(new ConcurrentLinkedQueue<>(), (l, e) -> {
-			e.getKey().setConfidence(e.getValue());
-			l.add(e.getKey());
-			return l;
-		}, (l1, l2) -> {
-			if (l1 != l2) {
-				l1.addAll(l2);
-			}
-			return l1;
-		});
-		return new ArrayList<>(returnList);
+		
+		Set<MatchedElement> returnSet = new HashSet<>(returnMap.size());
+		for (Map.Entry<MatchedElement.MatchPos, MatchedElement.MatchData> e : returnMap.entrySet()) {
+			returnSet.add(new MatchedElement(e.getKey(), e.getValue()));
+		}
+
+		return returnSet;
 	}
 	
+	private class MatchedElementPosComparator implements Comparator<MatchedElement> {
+
+		@Override
+		public int compare(MatchedElement arg0, MatchedElement arg1) {
+			if (arg0 == null) {
+				if (arg1 == null) {
+					return 0;
+				} else {
+					return -1;
+				}
+			}
+			if (arg0.getStartPos() != arg1.getStartPos()) {
+				return arg0.getStartPos() - arg1.getStartPos();
+			}
+			if (arg0.getEndPos() != arg1.getEndPos()) {
+				return arg1.getEndPos() - arg0.getEndPos();
+			}
+			return 0;
+		}
+		
+	}
 	public List<Collection<SnippetRegEx>> getRankedSnippetRegExs() {
 		return this.rankedSnippetRegExs;
 	}
@@ -175,7 +186,6 @@ public class REDExtractor implements Extractor {
 		@Override
 		public Set<MatchedElement> call() {
 			Set<MatchedElement> matchedElements = new HashSet<>();
-			//LOG.debug("Pattern: " + sre.toString());
 			Pattern p = sre.getPattern(caseInsensitive);
 			Matcher matcher = p.matcher(target);
 			if(matcher.find()) {
@@ -183,10 +193,12 @@ public class REDExtractor implements Extractor {
 					LOG.error("No capturing group match.\nTarget = " + target + "\nPattern = " + sre.getPattern(caseInsensitive));
 				} else {
 					String candidateLS = matcher.group(1);
-					if(candidateLS != null && !candidateLS.equals("")){
-						int startPos = target.indexOf(candidateLS);
-						int endPos = startPos + candidateLS.length();
-						matchedElements.add(new MatchedElement(startPos, endPos, candidateLS, sre.toString(), sre.getSensitivity()));
+					if(candidateLS != null && !(candidateLS.length() == 0)){
+						int startPos = matcher.start(1);
+						int endPos = matcher.end(1);
+						Set<String> matchingRegexes = new HashSet<>(1);
+						matchingRegexes.add(sre.toString());
+						matchedElements.add(new MatchedElement(startPos, endPos, candidateLS, matchingRegexes, sre.getSensitivity()));
 					}
 				}
 			}
@@ -267,7 +279,7 @@ public class REDExtractor implements Extractor {
 						biocDoc.setID(file.toString());
 						BioCPassage biocPass = new BioCPassage();
 						biocDoc.addPassage(biocPass);
-						List<MatchedElement> mes = rex.extract(contents);
+						Set<MatchedElement> mes = rex.extract(contents);
 						for (MatchedElement me : mes) {
 							BioCAnnotation biocAnn = new BioCAnnotation();
 							biocAnn.setID(String.valueOf(annId++));

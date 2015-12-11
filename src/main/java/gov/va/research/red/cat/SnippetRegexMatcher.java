@@ -46,8 +46,8 @@ public class SnippetRegexMatcher {
 			REDCategorizer.patternCache.put(regex, pattern);
 		}
 		for (Snippet snippet : snippets) {
-			if (snippet.getLabeledSegments() != null) {
-				for (LabeledSegment ls : snippet.getLabeledSegments()) {
+			if (snippet.getPosLabeledSegments() != null) {
+				for (LabeledSegment ls : snippet.getPosLabeledSegments()) {
 					if (!excludeLabels.contains(ls.getLabel())) {
 						String labeledString = ls.getLabeledString();
 						if (labeledString != null && !labeledString.equals("")) {
@@ -83,7 +83,7 @@ public class SnippetRegexMatcher {
 			while (m.find()) {
 				int x = m.start();
 				int y = m.end();
-				Collection<LabeledSegment> labeledSegments = snippet.getLabeledSegments();
+				Collection<LabeledSegment> labeledSegments = snippet.getPosLabeledSegments();
 				if (labeledSegments==null) {
 					return true; // find a match in a snippet with no labeled segments, so return true;
 				}

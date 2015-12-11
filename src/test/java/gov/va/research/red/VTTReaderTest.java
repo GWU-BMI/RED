@@ -113,32 +113,32 @@ public class VTTReaderTest {
 		Iterator<Snippet> snipIt = snippets.iterator();
 		{
 			Snippet snip = snipIt.next();
-			Assert.assertEquals(1, snip.getLabeledSegments().size());
-			LabeledSegment ls = snip.getLabeledSegments().iterator().next();
+			Assert.assertEquals(1, snip.getPosLabeledSegments().size());
+			LabeledSegment ls = snip.getPosLabeledSegments().iterator().next();
 			Assert.assertEquals("151", ls.getLabeledString());
 		}
 		{
 			Snippet snip = snipIt.next();
-			Assert.assertEquals(1, snip.getLabeledSegments().size());
-			LabeledSegment ls = snip.getLabeledSegments().iterator().next();
+			Assert.assertEquals(1, snip.getPosLabeledSegments().size());
+			LabeledSegment ls = snip.getPosLabeledSegments().iterator().next();
 			Assert.assertEquals("160", ls.getLabeledString());
 		}
 		{
 			Snippet snip = snipIt.next();
-			Assert.assertEquals(1, snip.getLabeledSegments().size());
-			LabeledSegment ls = snip.getLabeledSegments().iterator().next();
+			Assert.assertEquals(1, snip.getPosLabeledSegments().size());
+			LabeledSegment ls = snip.getPosLabeledSegments().iterator().next();
 			Assert.assertEquals("60.0", ls.getLabeledString());
 		}
 		{
 			Snippet snip = snipIt.next();
-			Assert.assertEquals(1, snip.getLabeledSegments().size());
-			LabeledSegment ls = snip.getLabeledSegments().iterator().next();
+			Assert.assertEquals(1, snip.getPosLabeledSegments().size());
+			LabeledSegment ls = snip.getPosLabeledSegments().iterator().next();
 			Assert.assertEquals("70", ls.getLabeledString());
 		}
 		{
 			Snippet snip = snipIt.next();
-			Assert.assertEquals(3, snip.getLabeledSegments().size());
-			Iterator<LabeledSegment> lsIt = snip.getLabeledSegments().iterator();
+			Assert.assertEquals(3, snip.getPosLabeledSegments().size());
+			Iterator<LabeledSegment> lsIt = snip.getPosLabeledSegments().iterator();
 			LabeledSegment ls1 = lsIt.next();
 			Assert.assertEquals("91.4", ls1.getLabeledString());
 			LabeledSegment ls2 = lsIt.next();
@@ -152,8 +152,8 @@ public class VTTReaderTest {
 			while (snipIt.hasNext()) {
 				snip = snipIt.next();
 			}
-			Assert.assertEquals(1, snip.getLabeledSegments().size());
-			LabeledSegment ls = snip.getLabeledSegments().iterator().next();
+			Assert.assertEquals(1, snip.getPosLabeledSegments().size());
+			LabeledSegment ls = snip.getPosLabeledSegments().iterator().next();
 			Assert.assertEquals("106", ls.getLabeledString());
 		}
 	}
@@ -179,38 +179,38 @@ public class VTTReaderTest {
 		// first 24 snippets should have no labeled segments
 		for (int i = 0; i < 24; i++) {
 			Snippet snip = snipIt.next();
-			Assert.assertEquals(0, snip.getLabeledSegments().size());
+			Assert.assertEquals(0, snip.getPosLabeledSegments().size());
 		}
 		{
 			Snippet snip = snipIt.next();
-			Assert.assertEquals(1, snip.getLabeledSegments().size());
-			LabeledSegment ls = snip.getLabeledSegments().iterator().next();
+			Assert.assertEquals(1, snip.getPosLabeledSegments().size());
+			LabeledSegment ls = snip.getPosLabeledSegments().iterator().next();
 			Assert.assertEquals("151", ls.getLabeledString());
 		}
 		{
 			Snippet snip = snipIt.next();
-			Assert.assertEquals(1, snip.getLabeledSegments().size());
-			LabeledSegment ls = snip.getLabeledSegments().iterator().next();
+			Assert.assertEquals(1, snip.getPosLabeledSegments().size());
+			LabeledSegment ls = snip.getPosLabeledSegments().iterator().next();
 			Assert.assertEquals("160", ls.getLabeledString());
 		}
 		for (int i = 0; i < 4; i++) {
 			Snippet snip = snipIt.next();
-			Assert.assertEquals(0, snip.getLabeledSegments().size());
+			Assert.assertEquals(0, snip.getPosLabeledSegments().size());
 		}
 		{
 			Snippet snip = snipIt.next();
-			Assert.assertEquals(1, snip.getLabeledSegments().size());
-			LabeledSegment ls = snip.getLabeledSegments().iterator().next();
+			Assert.assertEquals(1, snip.getPosLabeledSegments().size());
+			LabeledSegment ls = snip.getPosLabeledSegments().iterator().next();
 			Assert.assertEquals("60.0", ls.getLabeledString());
 		}
 		for (int i = 0; i < 6; i++) {
 			Snippet snip = snipIt.next();
-			Assert.assertEquals(0, snip.getLabeledSegments().size());
+			Assert.assertEquals(0, snip.getPosLabeledSegments().size());
 		}
 		{
 			Snippet snip = snipIt.next();
-			Assert.assertEquals(2, snip.getLabeledSegments().size());
-			Iterator<LabeledSegment> lsIt = snip.getLabeledSegments().iterator();
+			Assert.assertEquals(2, snip.getPosLabeledSegments().size());
+			Iterator<LabeledSegment> lsIt = snip.getPosLabeledSegments().iterator();
 			LabeledSegment ls = lsIt.next();
 			Assert.assertEquals("weight", ls.getLabel());
 			Assert.assertEquals("70", ls.getLabeledString());
@@ -220,12 +220,12 @@ public class VTTReaderTest {
 		}
 		for (int i = 0; i < 22; i++) {
 			Snippet snip = snipIt.next();
-			Assert.assertEquals(0, snip.getLabeledSegments().size());
+			Assert.assertEquals(0, snip.getPosLabeledSegments().size());
 		}
 		{
 			Snippet snip = snipIt.next();
-			Assert.assertEquals(6, snip.getLabeledSegments().size());
-			Iterator<LabeledSegment> lsIt = snip.getLabeledSegments().iterator();
+			Assert.assertEquals(6, snip.getPosLabeledSegments().size());
+			Iterator<LabeledSegment> lsIt = snip.getPosLabeledSegments().iterator();
 			LabeledSegment ls = lsIt.next();
 			Assert.assertEquals("weight", ls.getLabel());
 			Assert.assertEquals("91.4", ls.getLabeledString());
@@ -251,7 +251,7 @@ public class VTTReaderTest {
 			while (snipIt.hasNext()) {
 				snip = snipIt.next();
 			}
-			Assert.assertEquals(0, snip.getLabeledSegments().size());
+			Assert.assertEquals(0, snip.getPosLabeledSegments().size());
 		}
 	}
 }

@@ -104,10 +104,10 @@ public class CrossValidateCategorizer {
 			int k = 0;
 			for (Snippet snip: trainingYes) {
 				k += 1;
-				if (snip.getLabeledStrings().size()==0)
+				if (snip.getPosLabeledStrings().size()==0)
 					continue;
 				String text = snip.getText();
-				String ls = snip.getLabeledStrings().get(0);
+				String ls = snip.getPosLabeledStrings().get(0);
 				int start = text.indexOf(ls);
 				if (start==1)
 					continue;
@@ -121,10 +121,10 @@ public class CrossValidateCategorizer {
 			k = 0;
 			for (Snippet snip: trainingNo) {
 				k += 1;
-				if (snip.getLabeledStrings().size()==0)
+				if (snip.getPosLabeledStrings().size()==0)
 					continue;
 				String text = snip.getText();
-				String ls = snip.getLabeledStrings().get(0);
+				String ls = snip.getPosLabeledStrings().get(0);
 				int start = text.indexOf(ls);
 				if (start==1)
 					continue;
@@ -144,7 +144,7 @@ public class CrossValidateCategorizer {
 			k = 0;
 			for (Snippet snip: testingYes) {
 				k += 1;
-				if (snip.getLabeledStrings().size()==0)
+				if (snip.getPosLabeledStrings().size()==0)
 					continue;
 				String text = snip.getText();
 				snippetsTest.add(text);
@@ -153,7 +153,7 @@ public class CrossValidateCategorizer {
 			k = 0;
 			for (Snippet snip: testingNo) {
 				k += 1;
-				if (snip.getLabeledStrings().size()==0)
+				if (snip.getPosLabeledStrings().size()==0)
 					continue;
 				String text = snip.getText();
 				snippetsTest.add(text);

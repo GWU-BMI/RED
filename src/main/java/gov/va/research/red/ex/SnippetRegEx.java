@@ -43,6 +43,7 @@ public class SnippetRegEx {
 
 	// Snippets are represented as a list of segments. Each segment is a list of tokens with a segment type.
 	private static final String DIGIT_TEXT = "zero|one|two|three|four|five|six|seven|eight|nine|ten";
+	private static final Pattern DIGIT_TEXT_PATTERN = Pattern.compile(DIGIT_TEXT);
 	private List<Segment> segments;
 	private Pattern pattern;
 	private double sensitivity;
@@ -52,9 +53,9 @@ public class SnippetRegEx {
 	 * @param snippet The Snippet to use for the construction.
 	 */
 	public SnippetRegEx(Snippet snippet) {
-		segments = new ArrayList<Segment>(snippet.getLabeledSegments().size() + 2);
+		segments = new ArrayList<Segment>(snippet.getPosLabeledSegments().size() + 2);
 		int prevEnd = 0;
-		for (LabeledSegment ls : snippet.getLabeledSegments()) {
+		for (LabeledSegment ls : snippet.getPosLabeledSegments()) {
 			if (ls.getStart() < prevEnd) {
 				LOG.debug("Overlapping labeled segments found, skipping all but the first.");
 				continue;
@@ -250,7 +251,7 @@ public class SnippetRegEx {
 			ListIterator<Token> lsIt = segment.getTokens().listIterator();
 			while (lsIt.hasNext()) {
 				Token t = lsIt.next();
-				if (TokenType.INTEGER.equals(t.getType())) {
+				if (TokenType.INTEGER.equals(t.getType()) || DIGIT_TEXT_PATTERN.matcher(t.getString()).matches()) {
 					lsIt.set(new Token("(?:\\d+" + (segment.isLabeled() ? "|" : "?|") + DIGIT_TEXT + ")", TokenType.REGEX));
 					changed = true;
 				}
@@ -324,7 +325,7 @@ public class SnippetRegEx {
 			while (lsIt.hasNext()) {
 				Token t = lsIt.next();
 				if (TokenType.WHITESPACE.equals(t.getType())) {
-					lsIt.set(new Token("\\s{1," + ((int)Math.ceil(t.getString().length() * 1.2)) + "}?", TokenType.REGEX));
+					lsIt.set(new Token("\\s{1," + ((int)Math.ceil(t.getString().length() * 2.1)) + "}?", TokenType.REGEX));
 					changed = true;
 				}
 			}
