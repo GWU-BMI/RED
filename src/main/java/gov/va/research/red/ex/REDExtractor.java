@@ -249,7 +249,7 @@ public class REDExtractor implements Extractor {
 
 	/**
 	 * Main entry point for standalone execution of a REDExtractor
-	 * @param args program arguments: <REDEx model file> <file dir> [file glob | file ] ...
+	 * @param args program arguments: &lt;REDEx model file&gt; &lt;file dir&gt; [file glob | file ] ...
 	 * @throws IOException if any of the files cannot be accessed.
 	 * @throws XMLStreamException if a problem occurs with the output xml file.
 	 */
