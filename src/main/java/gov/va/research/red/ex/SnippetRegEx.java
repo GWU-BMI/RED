@@ -159,6 +159,7 @@ public class SnippetRegEx {
 	}
 	
 	/**
+	 * @param caseInsensitive if <code>true</code> then the pattern is case-insensitive.
 	 * @return The java.util.regex.Pattern representation of the regular expression.
 	 */
 	public Pattern getPattern(boolean caseInsensitive) {

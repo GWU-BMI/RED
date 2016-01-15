@@ -210,7 +210,7 @@ public class REDExtractor implements Extractor {
 	 * Dumps (serializes) the REDExtractor to a file.
 	 * @param rex The REDExtractor to dump.
 	 * @param path The path of the file to receive the dumped REDExtractor.
-	 * @throws IOException
+	 * @throws IOException if the output file cannot be written.
 	 */
 	public static void dump(REDExtractor rex, Path path) throws IOException {
 		Gson gson = new Gson();
@@ -222,7 +222,7 @@ public class REDExtractor implements Extractor {
 	 * Loads (deserializes) a REDExtractor from a file.
 	 * @param path The path of the file containing the dumped REDExtractor.
 	 * @return a REDExtractor represented in the file.
-	 * @throws IOException
+	 * @throws IOException if the input file cannot be read.
 	 */
 	public static REDExtractor load(Path path) throws IOException {
 		Gson gson = new Gson();
@@ -235,7 +235,7 @@ public class REDExtractor implements Extractor {
 	 * Loads (deserializes) a REDExtractor from a reader.
 	 * @param reader The reader for the dumped REDExtractor.
 	 * @return a REDExtractor represented by the reader.
-	 * @throws IOException
+	 * @throws IOException if the input file cannot be read.
 	 */
 	public static REDExtractor load(Reader reader) throws IOException {
 		try (Scanner s = new Scanner(reader)) {
@@ -247,6 +247,12 @@ public class REDExtractor implements Extractor {
 		}		
 	}
 
+	/**
+	 * Main entry point for standalone execution of a REDExtractor
+	 * @param args program arguments: <REDEx model file> <file dir> [file glob | file ] ...
+	 * @throws IOException if any of the files cannot be accessed.
+	 * @throws XMLStreamException if a problem occurs with the output xml file.
+	 */
 	public static void main(String[] args) throws IOException, XMLStreamException {
 		if (args.length < 2) {
 			System.err.println("Usage: REDExtractor <REDEx model file> <file dir> [file glob | file ] ...");

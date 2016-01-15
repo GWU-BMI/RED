@@ -108,7 +108,8 @@ public class CVUtils {
 	 * @param caseInsensitive
 	 *            if <code>true</code> then comparisons are performed in a
 	 *            case-insensitive manner
-	 * @return
+	 * @return <code>true</code> if there are any members in common between
+	 *         <code>strings1</code> and <code>strings2</code>
 	 */
 	public static boolean containsAny(final Collection<String> strings1,
 			final Collection<String> strings2, boolean allowOverMatches,

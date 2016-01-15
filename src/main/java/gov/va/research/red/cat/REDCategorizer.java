@@ -48,7 +48,7 @@ public class REDCategorizer {
 	 * @param yesLabels The snippet labels to consider positive.
 	 * @param noLabels The snippet labels to consider negative.
 	 * @return A two entry map containing collections of regular expressions, one collection matching positive snippets and one collection matching negative snippets.
-	 * @throws IOException
+	 * @throws IOException if there is a problem reading the vttFile
 	 */
 	public Map<String, Collection<RegEx>> findRegexesAndOutputResults (
 			final File vttFile, List<String> yesLabels, List<String> noLabels) throws IOException {
