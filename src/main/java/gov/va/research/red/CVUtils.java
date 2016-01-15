@@ -27,8 +27,10 @@ import java.util.List;
  */
 public class CVUtils {
 	/**
-	 * @param folds Number of folds (partitions) for cross-validation.
-	 * @param snippets The snippets to partition.
+	 * @param folds
+	 *            Number of folds (partitions) for cross-validation.
+	 * @param snippets
+	 *            The snippets to partition.
 	 * @return <code>folds</code> lists of snippets, partitioned evenly.
 	 */
 	public static List<List<Snippet>> partitionSnippets(int folds,
@@ -51,10 +53,16 @@ public class CVUtils {
 	}
 
 	/**
-	 * Determines if a collection of strings contains a given string, ignoring case differences.
-	 * @param strings a collection of strings
-	 * @param string a string
-	 * @return <code>true</code> if <code>string</code> is contained in <code>strings</code> where performing a case insentitive comparison.
+	 * Determines if a collection of strings contains a given string, ignoring
+	 * case differences.
+	 * 
+	 * @param strings
+	 *            a collection of strings
+	 * @param string
+	 *            a string
+	 * @return <code>true</code> if <code>string</code> is contained in
+	 *         <code>strings</code> where performing a case insentitive
+	 *         comparison.
 	 */
 	public static boolean containsCI(final Collection<String> strings,
 			final String string) {
@@ -65,12 +73,20 @@ public class CVUtils {
 		}
 		return false;
 	}
-	
+
 	/**
-	 * see {@link #containsCI(Collection<String>,String) containsCI} method.
+	 * Determines if a collection of strings contains a given string, ignoring
+	 * case differences.
+	 * 
+	 * @param strings
+	 *            an array of strings
+	 * @param string
+	 *            a string
+	 * @return <code>true</code> if <code>string</code> is contained in
+	 *         <code>strings</code> where performing a case insentitive
+	 *         comparison
 	 */
-	public static boolean containsCI(final String[] strings,
-			final String string) {
+	public static boolean containsCI(final String[] strings, final String string) {
 		for (String s : strings) {
 			if (s.equalsIgnoreCase(string)) {
 				return true;
@@ -79,8 +95,24 @@ public class CVUtils {
 		return false;
 	}
 
-	
-	public static boolean containsAnyCI(final Collection<String> strings1, final Collection<String> strings2, boolean allowOverMatches, boolean caseInsensitive) {
+	/**
+	 * Determines if one collection of strings contains any members of another
+	 * collection of strings. (do the collections intersect)
+	 * 
+	 * @param strings1
+	 *            a collection of strings
+	 * @param strings2
+	 *            a collection of strings
+	 * @param allowOverMatches
+	 *            if <code>true</code> then substring matches count as matches
+	 * @param caseInsensitive
+	 *            if <code>true</code> then comparisons are performed in a
+	 *            case-insensitive manner
+	 * @return
+	 */
+	public static boolean containsAny(final Collection<String> strings1,
+			final Collection<String> strings2, boolean allowOverMatches,
+			boolean caseInsensitive) {
 		Collection<String> stringColl1 = null;
 		Collection<String> stringColl2 = null;
 		if (caseInsensitive) {
