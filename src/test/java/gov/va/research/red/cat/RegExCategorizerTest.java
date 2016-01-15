@@ -46,14 +46,14 @@ public class RegExCategorizerTest {
 	
 	private static final String CLASSIFIER_TEST_FILE = "diabetes-snippets.vtt";
 	private static final URI CLASSIFIER_TEST_URI;
-	private static final String CLASSIFIER_TEST_FILE_SMALL = "diabetes-snippets-small.vtt";
-	private static final URI CLASSIFIER_TEST_URI_SMALL;
+//	private static final String CLASSIFIER_TEST_FILE_SMALL = "diabetes-snippets-small.vtt";
+//	private static final URI CLASSIFIER_TEST_URI_SMALL;
 	private static final String YES = "yes";
 	private static final String NO = "no";
 	static {
 		try {
 			CLASSIFIER_TEST_URI = VTTReaderTest.class.getResource("/" + CLASSIFIER_TEST_FILE).toURI();
-			CLASSIFIER_TEST_URI_SMALL = VTTReaderTest.class.getResource("/" + CLASSIFIER_TEST_FILE_SMALL).toURI();
+//			CLASSIFIER_TEST_URI_SMALL = VTTReaderTest.class.getResource("/" + CLASSIFIER_TEST_FILE_SMALL).toURI();
 		} catch (URISyntaxException e) {
 			throw new RuntimeException(e);
 		}
@@ -129,8 +129,8 @@ public class RegExCategorizerTest {
 			System.out.println("--- Aggregate ---");
 			CVScore aggregate = CVScore.aggregate(results);
 			System.out.println(aggregate.getEvaluation());//*/
-		} catch (IOException e) {
-			e.printStackTrace();
+		} catch (IOException | URISyntaxException e) {
+			throw new AssertionError(e);
 		}
 	}
 	

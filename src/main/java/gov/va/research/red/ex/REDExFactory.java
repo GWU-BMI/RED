@@ -587,11 +587,8 @@ public class REDExFactory {
 			final PrintWriter localPW, Snippet snippet) {
 		Set<MatchedElement> predictions = ex.extract(snippet.getText());
 		List<String> actual = snippet.getPosLabeledStrings();
-		// Score
-		int tp = 0;
-		int fp = 0;
-		int tn = 0;
-		int fn = 0;
+
+		// if case insensitive, convert all predictions to lower case
 		if (caseInsensitive) {
 			for (MatchedElement me : predictions) {
 				me.setMatch(me.getMatch().toLowerCase());
@@ -613,7 +610,7 @@ public class REDExFactory {
 					if (rangesOverlap(pls.getStart(), pls.getStart() + pls.getLength(), candidate.getStartPos(), candidate.getEndPos())
 						&& stringsOverlap(pls.getLabeledString(), candidate.getMatch())) {
 						candPosMatchIndexes.add(c);
-						plsMatchIndexes.add(c);
+						plsMatchIndexes.add(p);
 					}
 				}
 				for (int n = 0; n < snippet.getNegLabeledSegments().size(); n++) {
@@ -666,6 +663,12 @@ public class REDExFactory {
 				}
 			}
 		}
+		// Score
+		int tp = 0;
+		int fp = 0;
+		int tn = 0;
+		int fn = 0;
+		// See if each positive labeled segment was matched
 		for (int p = 0; p < snippet.getPosLabeledSegments().size(); p++) {
 			if (plsMatchIndexes.contains(p)) {
 				tp++;
@@ -673,6 +676,7 @@ public class REDExFactory {
 				fn++;
 			}
 		}
+		// See if any negative labeled segments were matched
 		for (int n = 0; n < snippet.getNegLabeledSegments().size(); n++) {
 			if (nlsMatchIndexes.contains(n)) {
 				fp++;
@@ -680,10 +684,15 @@ public class REDExFactory {
 				tn++;
 			}
 		}
-		for (int c = 0; c < predictions.size(); c++) {
+		// Account for any candidates that were incorrect
+		for (int c = 0; c < candidateList.size(); c++) {
 			if (!(candPosMatchIndexes.contains(c) || candNegMatchIndexes.contains(c))) {
 				fp++;
 			}
+		}
+		// If there were no positive annotation, and there were no predictions, then count it as a true negative
+		if (predictions.size() == 0 && snippet.getPosLabeledSegments().size() == 0) {
+			tn++;
 		}
 		
 		if (localPW != null && fp > 0) {

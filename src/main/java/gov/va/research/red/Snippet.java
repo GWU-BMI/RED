@@ -89,6 +89,16 @@ public class Snippet {
 		return negLabeledSegments;
 	}
 
+	public List<String> getNegLabeledStrings() {
+		List<String> labeledStrings = new ArrayList<>();
+		if (this.negLabeledSegments != null) {
+			for (LabeledSegment ls : this.negLabeledSegments) {
+				labeledStrings.add(ls.getLabeledString());
+			}
+		}
+		return labeledStrings;
+	}
+
 	public void setNegLabeledSegments(List<LabeledSegment> negLabeledSegments) {
 		this.negLabeledSegments = negLabeledSegments;
 	}
