@@ -5,7 +5,9 @@ import gov.va.research.red.MatchedElement;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Reader;
+import java.io.StringWriter;
 import java.io.Writer;
+import java.nio.charset.Charset;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -254,7 +256,7 @@ public class REDExtractor implements Extractor {
 	 * @throws XMLStreamException if a problem occurs with the output xml file.
 	 */
 	public static void main(String[] args) throws IOException, XMLStreamException {
-		if (args.length < 2) {
+		if (args.length < 3) {
 			System.err.println("Usage: REDExtractor <REDEx model file> <file dir> [file glob | file ] ...");
 		} else {
 			Path model = FileSystems.getDefault().getPath(args[0]);
@@ -295,7 +297,7 @@ public class REDExtractor implements Extractor {
 						}
 					}
 					BioCFactory factory = BioCFactory.newFactory(BioCFactory.STANDARD);
-					try (Writer w = new OutputStreamWriter(System.out)) {
+					try (Writer w = new StringWriter()) {
 						BioCCollectionWriter collWriter = factory.createBioCCollectionWriter(w);
 						try {
 							collWriter.writeCollection(biocColl);
@@ -304,6 +306,8 @@ public class REDExtractor implements Extractor {
 								collWriter.close();
 							}
 						}
+						w.flush();
+						System.out.println(w.toString());
 					}
 				}
 			}
