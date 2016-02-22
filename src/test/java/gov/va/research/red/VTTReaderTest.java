@@ -85,7 +85,7 @@ public class VTTReaderTest {
 		VTTReader vttr = new VTTReader();
 		List<LSTriplet> ls3List = null;
 		try {
-			ls3List = vttr.extractLSTriplets(new File(TEST_VTT_URI), "weight", true);
+			ls3List = vttr.readLSTriplets(new File(TEST_VTT_URI), "weight", true);
 		} catch (IOException e) {
 			throw new AssertionError("Failed extract 'weight' labeled segment triplets from VTT file: " + TEST_VTT_URI, e);
 		}
@@ -94,7 +94,7 @@ public class VTTReaderTest {
 	}
 
 	/**
-	 * Test method for {@link gov.va.research.red.VTTReader#extractSnippets(java.io.File, java.lang.String)}.
+	 * Test method for {@link gov.va.research.red.VTTReader#readSnippets(java.io.File, java.lang.String)}.
 	 */
 	@Test
 	public void testExtractSnippets() {
@@ -103,7 +103,7 @@ public class VTTReaderTest {
 
 		Collection<Snippet> snippets = null;
 		try {
-			snippets = vttr.extractSnippets(vttFile, "weight", true);
+			snippets = vttr.readSnippets(vttFile, "weight", true);
 		} catch (IOException e) {
 			throw new AssertionError("Failed extract 'weight' labeled segment snippets from VTT file: " + vttFile, e);
 		}
@@ -159,7 +159,7 @@ public class VTTReaderTest {
 	}
 	
 	/**
-	 * Test method for {@link gov.va.research.red.VTTReader#extractSnippets(java.io.File, java.lang.String)}.
+	 * Test method for {@link gov.va.research.red.VTTReader#readSnippets(java.io.File, java.lang.String)}.
 	 */
 	@Test
 	public void testExtractSnippetsNoLabel() {
@@ -168,7 +168,7 @@ public class VTTReaderTest {
 
 		Collection<Snippet> snippets = null;
 		try {
-			snippets = vttr.extractSnippets(vttFile, true);
+			snippets = vttr.readSnippets(vttFile, true);
 		} catch (IOException e) {
 			throw new AssertionError("Failed extract snippets from VTT file: " + vttFile, e);
 		}

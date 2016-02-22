@@ -1,13 +1,13 @@
 package gov.va.research.red.ex;
 
+import gov.va.research.red.CSVReader;
 import gov.va.research.red.MatchedElement;
+import gov.va.research.red.SnippetData;
 
 import java.io.IOException;
-import java.io.OutputStreamWriter;
 import java.io.Reader;
 import java.io.StringWriter;
 import java.io.Writer;
-import java.nio.charset.Charset;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -55,7 +55,6 @@ public class REDExtractor implements Extractor {
 	private String metadata;
 	private final boolean caseInsensitive;
 	private final boolean useTier2;
-
 
 	public REDExtractor(Collection<SnippetRegEx> sres, boolean caseInsensitive) {
 		this.rankedSnippetRegExs = new ArrayList<>(1);
@@ -185,14 +184,16 @@ public class REDExtractor implements Extractor {
 		this.metadata = metadata;
 	}
 
-	public List<String> getRegularExpressions() {
-		List<String> regexs = new ArrayList<>(this.rankedSnippetRegExs.size());
+	public List<List<String>> getRegularExpressions() {
+		List<List<String>> tierRegexs = new ArrayList<>(this.rankedSnippetRegExs.size());
 		for (Collection<SnippetRegEx> sres : this.rankedSnippetRegExs) {
+			List<String> regexs = new ArrayList<>(sres.size());
+			tierRegexs.add(regexs);
 			for (SnippetRegEx sre : sres) {
 				regexs.add(sre.toString());
 			}
 		}
-		return regexs;
+		return tierRegexs;
 	}
 
 	private class MatchFinder implements Callable<Set<MatchedElement>> {
@@ -321,14 +322,17 @@ public class REDExtractor implements Extractor {
 		} else {
 			Path model = FileSystems.getDefault().getPath(args[0]);
 			if (!Files.exists(model)) {
-				System.err.println("REDEx model file not found: " + args[0]);
+				throw new IllegalArgumentException("REDEx model file not found: " + args[0]);
 			} else {
 				Path fileDir = FileSystems.getDefault().getPath(args[1]);
 				if (!Files.exists(fileDir)) {
-					System.err.println("file directory not found: " + args[1]);
+					throw new IllegalArgumentException("file directory not found: " + args[1]);
 				} else {
 					List<Path> files = new ArrayList<>(args.length);
 					for (int i = 2; i < args.length; i++) {
+						if (args[i].startsWith("\"") && args[i].endsWith("\"")) {
+							args[i] = args[i].substring(1, args[i].length() - 1);
+						}
 						Files.newDirectoryStream(fileDir, args[i]).forEach(
 								new Consumer<Path>() {
 									@Override
@@ -337,7 +341,10 @@ public class REDExtractor implements Extractor {
 									}
 								});
 					}
-					LOG.info("REDExtractor running using:" + LS
+					if (files == null || files.size() == 0) {
+						throw new IllegalArgumentException("No input files");
+					}
+					System.err.println("REDExtractor running using:" + LS
 							+ "\tmodel file: " + model.toString() + LS
 							+ "\tinput files: " + files.toString() + LS
 							+ "\toutput: "
@@ -354,14 +361,40 @@ public class REDExtractor implements Extractor {
 						biocDoc.setID(file.toString());
 						BioCPassage biocPass = new BioCPassage();
 						biocDoc.addPassage(biocPass);
-						Set<MatchedElement> mes = rex.extract(contents);
-						for (MatchedElement me : mes) {
-							BioCAnnotation biocAnn = new BioCAnnotation();
-							biocAnn.setID(String.valueOf(annId++));
-							biocAnn.setLocation(me.getStartPos(),
-									me.getEndPos() - me.getStartPos());
-							biocAnn.setText(me.getMatch());
-							biocPass.addAnnotation(biocAnn);
+						if (file.toString().toLowerCase().endsWith(".csv")) {
+							Collection<SnippetData> sdColl = CSVReader
+									.readSnippetData(contents, true);
+							for (SnippetData sd : sdColl) {
+								Set<MatchedElement> mes = rex.extract(sd
+										.getSnippetText());
+								for (MatchedElement me : mes) {
+									BioCAnnotation biocAnn = new BioCAnnotation();
+									biocAnn.setID(String.valueOf(annId++));
+									biocAnn.setLocation(
+											sd.getOffset() + me.getStartPos(),
+											sd.getOffset()
+													+ (me.getEndPos() - me
+															.getStartPos()));
+									biocAnn.setText(me.getMatch());
+									biocAnn.getInfons().put("Patient ID",
+											sd.getPatientID());
+									biocAnn.getInfons().put("Document ID",
+											sd.getDocumentID());
+									biocAnn.getInfons().put("Snippet Number",
+											sd.getSnippetNumber());
+									biocPass.addAnnotation(biocAnn);
+								}
+							}
+						} else {
+							Set<MatchedElement> mes = rex.extract(contents);
+							for (MatchedElement me : mes) {
+								BioCAnnotation biocAnn = new BioCAnnotation();
+								biocAnn.setID(String.valueOf(annId++));
+								biocAnn.setLocation(me.getStartPos(),
+										me.getEndPos() - me.getStartPos());
+								biocAnn.setText(me.getMatch());
+								biocPass.addAnnotation(biocAnn);
+							}
 						}
 					}
 					BioCFactory factory = BioCFactory

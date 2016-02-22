@@ -46,20 +46,20 @@ public class CrossValidateCategorizer {
 		List<Snippet> snippetsYes = new ArrayList<>();
 		for (File vttFile : vttFiles) {
 			for (String label : yesLabels) {
-				snippetsYes.addAll(vttr.extractSnippets(vttFile, label, true));
+				snippetsYes.addAll(vttr.readSnippets(vttFile, label, true));
 			}
 		}
 
 		List<Snippet> snippetsNo = new ArrayList<>();
 		for (File vttFile : vttFiles) {
 			for (String label : noLabels) {
-				snippetsNo.addAll(vttr.extractSnippets(vttFile, label, true));
+				snippetsNo.addAll(vttr.readSnippets(vttFile, label, true));
 			}
 		}
 
 		List<Snippet> snippetsNoLabel = new ArrayList<>();
 		for (File vttFile : vttFiles) {
-			snippetsNoLabel.addAll(vttr.extractSnippets(vttFile, true));
+			snippetsNoLabel.addAll(vttr.readSnippets(vttFile, true));
 		}
 		return crossValidateClassifier(snippetsYes, snippetsNo,
 				snippetsNoLabel, yesLabels, noLabels, folds, biasForRecall);
@@ -93,7 +93,7 @@ public class CrossValidateCategorizer {
 		// int fold = 0;
 		System.out.println("Estimating performance with " + folds
 				+ "-fold cross validation:");
-		for (int i = 0; i < folds; i++) {
+		for (int i = 3; i < folds; i++) {
 			List<Snippet> testingYes = partitionsYes.get(i);
 			List<Snippet> testingNo = partitionsNo.get(i);
 			// set up training and testing sets for this fold

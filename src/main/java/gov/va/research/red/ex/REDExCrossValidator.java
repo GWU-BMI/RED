@@ -298,7 +298,11 @@ public class REDExCrossValidator implements CrossValidatable {
 							REDExFactory rexe = new REDExFactory();
 							score = rexe.test(testing, ex, allowOverMatches,
 									caseInsensitive, pw);
-							regExes = ex.getRegularExpressions();
+							List<List<String>> tieredRegexes = ex.getRegularExpressions();
+							regExes = new ArrayList<>();
+							for (List<String> tierRegexs : tieredRegexes) {
+								regExes.addAll(tierRegexs);
+							}
 						}
 					}
 					if (score == null) {

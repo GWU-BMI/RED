@@ -143,7 +143,7 @@ public class RegExCategorizerTest {
 		List<Snippet> snippets = new ArrayList<Snippet>();
 		VTTReader vttr = new VTTReader();
 		File vttFile = new File(CLASSIFIER_TEST_URI);
-		snippets.addAll(vttr.extractSnippets(vttFile, "", true));
+		snippets.addAll(vttr.readSnippets(vttFile, "", true));
 		REDCategorizer regExCategorizer = new REDCategorizer();
 		regExCategorizer.findRegexesAndOutputResults(vttFile, yesLabels, noLabels);
 	}

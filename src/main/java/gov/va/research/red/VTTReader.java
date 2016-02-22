@@ -60,15 +60,15 @@ public class VTTReader {
 	}
 
 	/**
-	 * Extracts labeled segment triplets from a VTT file
+	 * Reads labeled segment triplets from a VTT file
 	 * @param vttFile The VTT file to extract triplets from.
 	 * @param label The label of the segments to extract.
  	 * @param convertToLowercase If <code>true</code> then all text is converted to lowercase (in order, for example, to make case-insensitive comparisons easier)
 	 * @return Labeled segment triplets (before labeled segment, labeled segment, after labeled segment)
 	 * @throws IOException when a problem occurs reading <code>vttFile</code>.
 	 */
-	public List<LSTriplet> extractLSTriplets(final File vttFile, final String label, final boolean convertToLowercase) throws IOException {
-		Collection<Snippet> snippets = extractSnippets(vttFile, label, convertToLowercase);
+	public List<LSTriplet> readLSTriplets(final File vttFile, final String label, final boolean convertToLowercase) throws IOException {
+		Collection<Snippet> snippets = readSnippets(vttFile, label, convertToLowercase);
 		List<LSTriplet> ls3list = new ArrayList<>(snippets.size());
 		for (Snippet snippet : snippets) {
 			for (LabeledSegment ls : snippet.getPosLabeledSegments()) {
@@ -81,28 +81,28 @@ public class VTTReader {
 	}
 
 	/**
-	 * Extracts snippets from a vtt file.
+	 * Reads snippets from a vtt file.
 	 * @param vttFile The VTT file to extract triplets from.
 	 * @param includeLabel The label of the segments to extract.
  	 * @param convertToLowercase If <code>true</code> then all text is converted to lowercase (in order, for example, to make case-insensitive comparisons easier)
 	 * @return Snippets containing labeled segments for the specified label.
 	 * @throws IOException when a problem occurs reading <code>vttFile</code>.
 	 */
-	public Collection<Snippet> extractSnippets(final File vttFile, final String includeLabel, final boolean convertToLowercase) throws IOException {
+	public Collection<Snippet> readSnippets(final File vttFile, final String includeLabel, final boolean convertToLowercase) throws IOException {
 		Collection<String> includeLabels = new ArrayList<>(1);
 		includeLabels.add(includeLabel);
-		return extractSnippets(vttFile, includeLabels, convertToLowercase);
+		return readSnippets(vttFile, includeLabels, convertToLowercase);
 	}
 
 	/**
-	 * Extracts snippets from a vtt file.
+	 * Reads snippets from a vtt file.
 	 * @param vttFile The VTT file to extract triplets from.
 	 * @param includeLabels A collection of the labels of the segments to extract.
  	 * @param convertToLowercase If <code>true</code> then all text is converted to lowercase (in order, for example, to make case-insensitive comparisons easier)
 	 * @return Snippets containing labeled segments for the specified label.
 	 * @throws IOException when a problem occurs reading <code>vttFile</code>.
 	 */
-	public Collection<Snippet> extractSnippets(final File vttFile, final Collection<String> includeLabels, final boolean convertToLowercase)
+	public Collection<Snippet> readSnippets(final File vttFile, final Collection<String> includeLabels, final boolean convertToLowercase)
 			throws IOException {
 		VttDocument vttDoc = read(vttFile);
 		String docText = vttDoc.GetText();
@@ -181,13 +181,13 @@ public class VTTReader {
 	}
 
 	/**
-	 * Extracts snippets from a vtt file
+	 * Reads snippets from a vtt file
 	 * @param vttFile The VTT file to extract triplets from.
 	 * @param convertToLowercase If <code>true</code> then all text is converted to lowercase (in order, for example, to make case-insensitive comparisons easier)
 	 * @return All snippets in the vtt file.
 	 * @throws IOException when a problem occurs reading <code>vttFile</code>.
 	 */
-	public Collection<Snippet> extractSnippets(final File vttFile, final boolean convertToLowercase)
+	public Collection<Snippet> readSnippets(final File vttFile, final boolean convertToLowercase)
 			throws IOException {
 		VttDocument vttDoc = read(vttFile);
 		TreeMap<SnippetPosition, Snippet> pos2snips = findSnippetPositions(vttDoc, convertToLowercase);
@@ -219,13 +219,13 @@ public class VTTReader {
 	
 	
 	/**
-	 * Extracts snippets from a vtt file
+	 * Reads snippets from a vtt file
 	 * @param vttFile The VTT file to extract triplets from.
 	 * @param convertToLowercase If <code>true</code> then all text is converted to lowercase (in order, for example, to make case-insensitive comparisons easier)
 	 * @return All snippets in the vtt file.
 	 * @throws IOException when a problem occurs reading <code>vttFile</code>.
 	 */
-	public Collection<Snippet> extractSnippetsAll(final File vttFile, final boolean convertToLowercase)
+	public Collection<Snippet> readSnippetsAll(final File vttFile, final boolean convertToLowercase)
 			throws IOException {
 		VttDocument vttDoc = read(vttFile);
 		String docText = vttDoc.GetText();

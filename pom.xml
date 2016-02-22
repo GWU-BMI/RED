@@ -46,14 +46,14 @@
             <item>timestamp</item>
           </items>
         </configuration>
-        <executions>
-          <execution>
-            <phase>validate</phase>
-            <goals>
-              <goal>create</goal>
-            </goals>
-          </execution>
-        </executions>
+<!--         <executions> -->
+<!--           <execution> -->
+<!--             <phase>validate</phase> -->
+<!--             <goals> -->
+<!--               <goal>create</goal> -->
+<!--             </goals> -->
+<!--           </execution> -->
+<!--         </executions> -->
       </plugin>
     </plugins>
     <resources>

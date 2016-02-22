@@ -54,6 +54,8 @@ class REDClassifier(IREDClassifier):
         print 'generating strict regular expressions'
         self._generalize0()
         self._calcCounts()
+        print len(self._cls2strictCounts[-1])
+        print self._cls2strictCounts[-1][122], self._viewRegex(self._cls2strictTokenstrs[-1][122])
         self._sortStrict()
         print 'generating less strict regular expressions'
         self._generalize1()
@@ -289,12 +291,20 @@ class REDClassifier(IREDClassifier):
         return regex
     
     def _generalize0(self):
-        def matchOppOf(regex,acls):
+        def matchOppOf(regex,acls,prntSnip=False):
             for cls in self._cls2snippets_segspans:
                 if cls==acls:
                     continue
+                n = -1
                 for snippet,start,end in self._cls2snippets_segspans[cls]:
+                    n += 1
                     if re.search(regex,snippet,re.I):
+                        if prntSnip:
+                            print regex
+                            print n
+                            print '-'*30
+                            print snippet
+                            print '-'*30
                         return True
             return False
         for cls in self._cls2initTokenstrs:
@@ -324,9 +334,13 @@ class REDClassifier(IREDClassifier):
                 for w in self._cls2wordpunSorted[cls]:
                     if not w in words:
                         continue
+                    if cls==-1 and idx==151 and w=='menorrhagia':
+                        print w
+                        print currTokens
+                        print currTypes
                     newTokens,newTypes = self._abstract(w,currTokens,currTypes,maxSpaceLen,maxWordLen)
                     regex = self._getRegex((newTokens,newTypes))
-                    if matchOppOf(regex,cls):
+                    if matchOppOf(regex,cls,idx==151 and cls==-1):
                         actions.append(w+':F')
                         break
                     actions.append(w+':S')
@@ -394,6 +408,8 @@ class REDClassifier(IREDClassifier):
                     if re.search(ptn,snippet):
                         count += 1
                 counts.append(count)
+                if cls==1 and len(counts)==152:
+                    print counts[-1],regex
             self._cls2strictCounts[cls] = counts
             
     def _calcCountsForRejected(self):
@@ -513,6 +529,9 @@ class REDClassifier(IREDClassifier):
                     print
                 actions = []
                 strictRegex = self._getRegex(tokenstr)
+                if cls==-1 and idx==122:
+                    print tokenstr[0]
+                    print tokenstr[1]
                 overTokenstr,cls2count = self._abstractTrimTest(tokenstr,cls,alpha,actions)
                 strictActions.append(actions)
                 regex = self._getRegex(overTokenstr)
@@ -544,6 +563,16 @@ class REDClassifier(IREDClassifier):
                 likelyhood = cls2count[cls]*1.0/lenCls
                 likelyhoodOpp = sum(cls2count[c] for 
                             c in cls2snip_spans if c!=cls)*1.0/lenOpp
+                if likelyhoodOpp==0.0:
+                    print cls,i
+                    print 'cls2snip_spans.keys():',cls2snip_spans.keys()
+                    print 'cls2count:',cls2count
+                    print self._viewRegex(self._cls2overTokenstrs[cls][i])
+                    for j in self._cls2idOver2idStricts[cls][i]:
+                        print j,'\t',self._viewRegex(self._cls2strictTokenstrs[cls][j])
+                        for k in self._cls2idStrict2idInits[cls][j]:
+                            print '\t',k,'\t',self._viewRegex(self._cls2initTokenstrs[cls][k])
+                            print self._cls2initActions[cls][k]
                 clsid2lhratio[(cls,i)] = likelyhood/likelyhoodOpp
         self._clsIdOverSorted = sorted(clsid2lhratio,key=lambda ci:-clsid2lhratio[ci])
         
