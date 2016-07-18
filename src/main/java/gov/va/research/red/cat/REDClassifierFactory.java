@@ -12,7 +12,7 @@ import org.python.core.PyObject;
 import org.python.core.PyString;
 
 public final class REDClassifierFactory {
-	private static final String RED_CLASSIFIER_PY = "REDClassifier5.py";
+	private static final String RED_CLASSIFIER_PY = "REDClassifier5_5.py";
 	private static PyObject pythonClass = null;
 	
 	private REDClassifierFactory(){
@@ -31,14 +31,15 @@ public final class REDClassifierFactory {
 			}
 			System.out.println("Using " + py.getAbsolutePath());
 			System.out.print("Starting Jython Interpreter...");
+			System.setProperty("python.console.encoding", "UTF-8");
 			PythonInterpreter pint = new PythonInterpreter();
 			System.out.println("done.");
 			pint.exec("import os");
 			pint.exec("import sys");
-			pint.exec("oscwd = os.getcwd()");
+//			pint.exec("oscwd = os.getcwd()");
 //			PyString cwd = (PyString)pint.get("oscwd");
 			pint.exec("sys.path.append('" + py.getParentFile().getAbsolutePath() /*.os.getcwd()+'/src/main/python'*/ + "')");
-			pint.exec("from REDClassifier5 import REDClassifier");
+			pint.exec("from REDClassifier5_5 import REDClassifier");
 			pythonClass = pint.get("REDClassifier");
 			pint.close();
 		}

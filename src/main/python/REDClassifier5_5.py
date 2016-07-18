@@ -1,13 +1,12 @@
 # -*- coding: utf-8 -*-
 """
-Created on Tue Jun 30 10:58:26 2015
+Created on Mon Mar 28 10:51:46 2016
 
-@author: VHASLCShaoY
+@author: vhaslcshaoy
 """
 
 import re
 from math import log
-import random
 from gov.va.research.red.cat import IREDClassifier
 from java.util import ArrayList
 
@@ -42,6 +41,7 @@ class REDClassifier(IREDClassifier):
         self._cls2idOver312cls2count = {}
         self._clsIdOver30Sorted = []
         self._cls2idOver302idStricts = {}
+        self._remodule = re
         
     def fit(self,snippets,segspans,labels):
         if self._cls2snippets_segspans:
@@ -54,8 +54,6 @@ class REDClassifier(IREDClassifier):
         print 'generating strict regular expressions'
         self._generalize0()
         self._calcCounts()
-        print len(self._cls2strictCounts[-1])
-        print self._cls2strictCounts[-1][122], self._viewRegex(self._cls2strictTokenstrs[-1][122])
         self._sortStrict()
         print 'generating less strict regular expressions'
         self._generalize1()
@@ -64,7 +62,7 @@ class REDClassifier(IREDClassifier):
         self._generalize30()
         self._sortOver30()
         
-    def predict(self,snippets,labelForUndecided):
+    def predict(self,snippets,labelU=None):
         print 'predicting...'
         preds0 = self._predict0(snippets)
         preds1 = self._predict1(snippets)
@@ -74,54 +72,36 @@ class REDClassifier(IREDClassifier):
             pred0 = preds0[i]
             pred1 = preds1[i]
             pred3 = preds3[i]
-            pred = pred0 or pred1 or pred3 or labelForUndecided
+            if pred0 is not None:
+                pred = pred0
+            elif pred1 is not None:
+                pred = pred1
+            elif pred3 is not None:
+                pred = pred3
+            else:
+                pred = labelU
             preds.append(pred)
         return preds
-        
-    def getStrictRegexs(self,label):
-        regexs = []
-        for i in self._cls2idStrictSorted[label]:
-            regex = self._viewRegex(self._cls2strictTokenstrs[label][i])
-            regexs.append(regex)
-        return regexs
-        
-    def getLessStrictRegexs(self,label):
-        regexs = []
-        for cls,i in self._clsIdOverSorted:
-            if cls!=label:
-                continue
-            regex = self._viewRegex(self._cls2overTokenstrs[cls][i])
-            regexs.append(regex)
-        return regexs
-        
-    def getLeastStrictRegexs(self,label):
-        regexs = []
-        for cls,i in self._clsIdOver30Sorted:
-            if cls!=label:
-                continue
-            regex = self._viewRegex(self._cls2over30Tokenstrs[cls][i])
-            regexs.append(regex)
-        return regexs
     
     def _preprocess(self,snippets,segspans,labels):
-#         def fixSpan(snippet,start,end):
-#             if start>0 and snippet[start-1].isalnum() and snippet[start].isalnum():
-#                 start -= 1
-#                 while start>0 and snippet[start-1].isalnum():
-#                     start -=1
-#             if end<len(snippet) and snippet[end-1].isalnum() and snippet[end].isalnum():
-#                 while end<len(snippet) and snippet[end].isalnum():
-#                     end += 1
-#             return (snippet,start,end)
-#         assert isinstance(snippets,list)
-#         assert isinstance(segspans,list)
-#         assert isinstance(labels,list)
-#         assert len(snippets)==len(segspans)==len(labels)
+        def fixSpan(snippet,start,end):
+            if start>0 and snippet[start-1].isalnum() and snippet[start].isalnum():
+                start -= 1
+                while start>0 and snippet[start-1].isalnum():
+                    start -=1
+            if end<len(snippet) and snippet[end-1].isalnum() and snippet[end].isalnum():
+                while end<len(snippet) and snippet[end].isalnum():
+                    end += 1
+            return (snippet,start,end)
+        assert isinstance(snippets,ArrayList)
+        assert isinstance(segspans,ArrayList)
+        assert isinstance(labels,ArrayList)
+        assert len(snippets)==len(segspans)==len(labels)
         for i,cls in enumerate(labels):
             if not cls in self._cls2snippets_segspans:
                 self._cls2snippets_segspans[cls] = []
             snippet,(start,end) = snippets[i],segspans[i]
-            self._cls2snippets_segspans[cls].append((snippet,start,end))
+            self._cls2snippets_segspans[cls].append(fixSpan(snippet,start,end))
 
     def _initialize(self):
         '''tokennize, initial abstraction and word count'''
@@ -137,7 +117,7 @@ class REDClassifier(IREDClassifier):
             idSeg2idSnips = {}
             tokenstrs = []
             wordpun2tfdf = {}
-            maxSpaceLen = maxNumberLen = maxWordLen = 1
+            maxSpaceLen = maxNumberLen = maxWordLen = 0
             for i,(snippet,start,end) in enumerate(self._cls2snippets_segspans[cls]):
                 seg = snippet[start:end].strip().lower()
                 tokens,ttypes = [],[]
@@ -275,13 +255,45 @@ class REDClassifier(IREDClassifier):
             i += 1
         return newTokens,newTypes
         
+    def _nLeftTrim(self,currTypes):
+        if currTypes[0]==12:
+            if len(currTypes)==1:
+                return 1
+            elif currTypes[1]==0:
+                return 2
+            else:
+                return 0
+        if currTypes[0]<=1 or currTypes[0]>10:
+            return 1
+        return 0
+            
+    def _nRightTrim(self,currTypes):
+        if currTypes[-1]==1 or currTypes[-1]>10:
+            return 1
+        if currTypes[-1]==0:
+            if len(currTypes)==1:
+                return 1
+            if currTypes[-2]==12:
+                return 2
+            if currTypes[-2]==2:
+                return 0
+            else:
+                return 1
+        return 0
+        
     def _getRegex(self,tokenstr):
         tokens,ttypes = tokenstr
         regex = ''.join(tokens)
-        if ttypes[0] in (1,2,12,14):
-            regex = r'\b'+regex
-        if ttypes[-1] in (1,2,12):
-            regex = regex+r'\b'
+        try:
+            if ttypes[0] in (1,2,12,14):
+                regex = r'\b'+regex
+        except IndexError:
+            print "ttypes does not have a 0 index"
+        try:
+            if ttypes[-1] in (1,2,12):
+                regex = regex+r'\b'
+        except IndexError:
+            print "ttypes does not hava a -1 index"
         return regex
         
     def _viewRegex(self,tokenstr):
@@ -291,20 +303,12 @@ class REDClassifier(IREDClassifier):
         return regex
     
     def _generalize0(self):
-        def matchOppOf(regex,acls,prntSnip=False):
+        def matchOppOf(regex,acls):
             for cls in self._cls2snippets_segspans:
                 if cls==acls:
                     continue
-                n = -1
                 for snippet,start,end in self._cls2snippets_segspans[cls]:
-                    n += 1
                     if re.search(regex,snippet,re.I):
-                        if prntSnip:
-                            print regex
-                            print n
-                            print '-'*30
-                            print snippet
-                            print '-'*30
                         return True
             return False
         for cls in self._cls2initTokenstrs:
@@ -334,54 +338,58 @@ class REDClassifier(IREDClassifier):
                 for w in self._cls2wordpunSorted[cls]:
                     if not w in words:
                         continue
-                    if cls==-1 and idx==151 and w=='menorrhagia':
-                        print w
-                        print currTokens
-                        print currTypes
                     newTokens,newTypes = self._abstract(w,currTokens,currTypes,maxSpaceLen,maxWordLen)
                     regex = self._getRegex((newTokens,newTypes))
-                    if matchOppOf(regex,cls,idx==151 and cls==-1):
+                    if matchOppOf(regex,cls):
                         actions.append(w+':F')
                         break
                     actions.append(w+':S')
                     currTokens,currTypes = newTokens,newTypes
-                    if not leftTrimStop and (currTypes[0]<=1 or currTypes[0]>=10):
-                        regex = self._getRegex((currTokens[1:],currTypes[1:]))
+                    nTokens = self._nLeftTrim(currTypes)
+                    if not leftTrimStop and nTokens>0:
+                        newTokens,newTypes = currTokens[nTokens:],currTypes[nTokens:]
+                        regex = self._getRegex((newTokens,newTypes))
                         leftTrimStop = matchOppOf(regex,cls)
                         if not leftTrimStop:
                             actions.append('left-trim:S')
-                            currTokens,currTypes = currTokens[1:],currTypes[1:]
+                            currTokens,currTypes = newTokens,newTypes
                         else:
                             actions.append('left-trim:F')
-                    if not rightTrimStop and (currTypes[-1]<=1 or currTypes[-1]>=10):
-                        regex = self._getRegex((currTokens[:-1],currTypes[:-1]))
+                    nTokens = self._nRightTrim(currTypes)
+                    if not rightTrimStop and nTokens>0:
+                        newTokens,newTypes = currTokens[:-nTokens],currTypes[:-nTokens]
+                        regex = self._getRegex((newTokens,newTypes))
                         rightTrimStop = matchOppOf(regex,cls)
                         if not rightTrimStop:
                             actions.append('right-trim:S')
-                            currTokens,currTypes = currTokens[:-1],currTypes[:-1]
+                            currTokens,currTypes = newTokens,newTypes
                         else:
                             actions.append('right-trim:F')
                 n = 0
                 while n<100 and not (leftTrimStop and rightTrimStop):
                     n += 1
                     if not leftTrimStop:
-                        leftTrimStop = not (currTypes[0]<=1 or currTypes[0]>=10)
+                        nTokens = self._nLeftTrim(currTypes)
+                        leftTrimStop = (nTokens==0)
                         if not leftTrimStop:
-                            regex = self._getRegex((currTokens[1:],currTypes[1:]))
+                            newTokens,newTypes = currTokens[nTokens:],currTypes[nTokens:]
+                            regex = self._getRegex((newTokens,newTypes))
                             leftTrimStop = matchOppOf(regex,cls)
                             if not leftTrimStop:
                                 actions.append('left-trim:S')
-                                currTokens,currTypes = currTokens[1:],currTypes[1:]
+                                currTokens,currTypes = newTokens,newTypes
                             else:
                                 actions.append('left-trim:F')
                     if not rightTrimStop:
-                        rightTrimStop = not (currTypes[-1]<=1 or currTypes[-1]>=10)
+                        nTokens = self._nRightTrim(currTypes)
+                        rightTrimStop = (nTokens==0)
                         if not rightTrimStop:
-                            regex = self._getRegex((currTokens[:-1],currTypes[:-1]))
+                            newTokens,newTypes = currTokens[:-nTokens],currTypes[:-nTokens]
+                            regex = self._getRegex((newTokens,newTypes))
                             rightTrimStop = matchOppOf(regex,cls)
                             if not rightTrimStop:
                                 actions.append('right-trim:S')
-                                currTokens,currTypes = currTokens[:-1],currTypes[:-1]
+                                currTokens,currTypes = newTokens,newTypes
                             else:
                                 actions.append('right-trim:F')
                 regex = self._getRegex((currTokens,currTypes))
@@ -408,8 +416,6 @@ class REDClassifier(IREDClassifier):
                     if re.search(ptn,snippet):
                         count += 1
                 counts.append(count)
-                if cls==1 and len(counts)==152:
-                    print counts[-1],regex
             self._cls2strictCounts[cls] = counts
             
     def _calcCountsForRejected(self):
@@ -465,19 +471,23 @@ class REDClassifier(IREDClassifier):
             currTokens,currTypes = newTokens,newTypes
             cls2idxsMatched = cls2idxsNewMatched
             actions.append(w+':S')
-            if currTypes[0]<=1 or currTypes[0]>=10:
-                regex = self._getRegex((currTokens[1:],currTypes[1:]))
+            nTokens = self._nLeftTrim(currTypes)
+            if nTokens>0:
+                newTokens,newTypes = currTokens[nTokens:],currTypes[nTokens:]
+                regex = self._getRegex((newTokens,newTypes))
                 cls2idxsNewMatched = self._calcMatches(regex)
                 if likelyhoodTest(cls2idxsNewMatched):
-                    currTokens,currTypes = currTokens[1:],currTypes[1:]
+                    currTokens,currTypes = newTokens,newTypes
                     cls2idxsMatched = cls2idxsNewMatched
                     actions.append('left-trim:S')
                 else: actions.append('left-trim:F')
-            if currTypes[-1]<=1 or currTypes[-1]>=10:
-                regex = self._getRegex((currTokens[:-1],currTypes[:-1]))
+            nTokens = self._nRightTrim(currTypes)
+            if nTokens>0:
+                newTokens,newTypes = currTokens[:-nTokens],currTypes[:-nTokens]
+                regex = self._getRegex((newTokens,newTypes))
                 cls2idxsNewMatched = self._calcMatches(regex)
                 if likelyhoodTest(cls2idxsNewMatched):
-                    currTokens,currTypes = currTokens[:-1],currTypes[:-1]
+                    currTokens,currTypes = newTokens,newTypes
                     cls2idxsMatched = cls2idxsNewMatched
                     actions.append('right-trim:S')
                 else: actions.append('right-trim:F')
@@ -485,25 +495,29 @@ class REDClassifier(IREDClassifier):
         leftTrimStop = rightTrimStop = False
         while n<100 and not (leftTrimStop and rightTrimStop):
             n += 1
-            if not leftTrimStop: 
-                leftTrimStop = not (currTypes[0]<=1 or currTypes[0]>=10)
+            if not leftTrimStop:
+                nTokens = self._nLeftTrim(currTypes)
+                leftTrimStop = (nTokens==0)
                 if not leftTrimStop:
-                    regex = self._getRegex((currTokens[1:],currTypes[1:]))
+                    newTokens,newTypes = currTokens[nTokens:],currTypes[nTokens:]
+                    regex = self._getRegex((newTokens,newTypes))
                     cls2idxsNewMatched = self._calcMatches(regex)
                     leftTrimStop = not likelyhoodTest(cls2idxsNewMatched)
                     if not leftTrimStop:
-                        currTokens,currTypes = currTokens[1:],currTypes[1:]
+                        currTokens,currTypes = newTokens,newTypes
                         cls2idxsMatched = cls2idxsNewMatched
                         actions.append('left-trim:S')
                     else: actions.append('left-trim:F')
             if not rightTrimStop:
-                rightTrimStop = not (currTypes[-1]<=1 or currTypes[-1]>=10)
+                nTokens = self._nRightTrim(currTypes)
+                rightTrimStop = (nTokens==0)
                 if not rightTrimStop:
-                    regex = self._getRegex((currTokens[:-1],currTypes[:-1]))
+                    newTokens,newTypes = currTokens[:-nTokens],currTypes[:-nTokens]
+                    regex = self._getRegex((newTokens,newTypes))
                     cls2idxsNewMatched = self._calcMatches(regex)
                     rightTrimStop = not likelyhoodTest(cls2idxsNewMatched)
                     if not rightTrimStop:
-                        currTokens,currTypes = currTokens[:-1],currTypes[:-1]
+                        currTokens,currTypes = newTokens,newTypes
                         cls2idxsMatched = cls2idxsNewMatched
                         actions.append('right-trim:S')
                     else: actions.append('right-trim:S')
@@ -529,9 +543,6 @@ class REDClassifier(IREDClassifier):
                     print
                 actions = []
                 strictRegex = self._getRegex(tokenstr)
-                if cls==-1 and idx==122:
-                    print tokenstr[0]
-                    print tokenstr[1]
                 overTokenstr,cls2count = self._abstractTrimTest(tokenstr,cls,alpha,actions)
                 strictActions.append(actions)
                 regex = self._getRegex(overTokenstr)
@@ -563,6 +574,9 @@ class REDClassifier(IREDClassifier):
                 likelyhood = cls2count[cls]*1.0/lenCls
                 likelyhoodOpp = sum(cls2count[c] for 
                             c in cls2snip_spans if c!=cls)*1.0/lenOpp
+                if sum(cls2count[c] for 
+                            c in cls2snip_spans if c!=cls)==0:
+                    print cls, i
                 if likelyhoodOpp==0.0:
                     print 'likelyhoodOpp == 0.0'
                 else:
@@ -685,20 +699,17 @@ class REDClassifier(IREDClassifier):
             lh = cls2count[cls]*1.0/lenCls
             lhOpp = sum(cls2count[c] for 
                             c in cls2snip_spans if c!=cls)*1.0/lenOpp
-            if (lhOpp == 0.0):
-                print 'lhOpp == 0.0'
-            else:
-                lhratio = lh/lhOpp
-                regex = self._getRegex(self._cls2overTokenstrs[cls][i])
-                ptn = re.compile(regex,re.I)
-                for j,snippet in enumerate(snippets):
-                    if j in idSnippet2cls2idOverSpanLR and cls in idSnippet2cls2idOverSpanLR[j]:
-                        continue
-                    m = re.search(ptn,snippet)
-                    if m:
-                        if not j in idSnippet2cls2idOverSpanLR:
-                            idSnippet2cls2idOverSpanLR[j] = {}
-                        idSnippet2cls2idOverSpanLR[j][cls] = (i,m.span(),lhratio)
+            lhratio = lh/lhOpp
+            regex = self._getRegex(self._cls2overTokenstrs[cls][i])
+            ptn = re.compile(regex,re.I)
+            for j,snippet in enumerate(snippets):
+                if j in idSnippet2cls2idOverSpanLR and cls in idSnippet2cls2idOverSpanLR[j]:
+                    continue
+                m = re.search(ptn,snippet)
+                if m:
+                    if not j in idSnippet2cls2idOverSpanLR:
+                        idSnippet2cls2idOverSpanLR[j] = {}
+                    idSnippet2cls2idOverSpanLR[j][cls] = (i,m.span(),lhratio)
         self._idTest2cls2idOverSpanLR = idSnippet2cls2idOverSpanLR
         preds1 = []
         for j in xrange(len(snippets)):
