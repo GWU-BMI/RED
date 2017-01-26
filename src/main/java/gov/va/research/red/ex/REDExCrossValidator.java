@@ -119,7 +119,7 @@ public class REDExCrossValidator implements CrossValidatable {
 				new ArrayList<>(0), true, false, shuffle, limit);
 	}
 
-	List<CVResult> crossValidate(List<File> vttFiles, String label, int folds,
+	public List<CVResult> crossValidate(List<File> vttFiles, String label, int folds,
 			Boolean allowOvermatches, Boolean caseInsensitive,
 			List<String> holdouts, Boolean useTier2,
 			Boolean stopAfterFirstFold, Boolean shuffle, int limit)

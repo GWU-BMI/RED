@@ -58,7 +58,18 @@ public class REDExCrossValidatorTest {
 			Assert.assertNotNull(vttFile);
 			Assert.assertTrue(vttFile.exists());
 			REDExCrossValidator rexcv = new REDExCrossValidator();
-			List<CVResult> results = rexcv.crossValidate(Arrays.asList(new File[] { vttFile }), "weight", 10, true, -1);
+			List<CVResult> results = rexcv.crossValidate(
+					Arrays.asList(new File[] { vttFile }),
+					Arrays.asList(new String[] { "weight" }),
+					10,
+					true,
+					true,
+					Arrays.asList(new String[0]),
+					true,
+					false,
+					true,
+					100
+					);
 			int i = 0;
 			for (CVResult result : results) {
 				LOG.info("--- Run " + (i++) + " ---");
