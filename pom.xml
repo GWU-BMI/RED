@@ -2,7 +2,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>edu.utah.bmi</groupId>
   <artifactId>RED</artifactId>
-  <version>2016.01.5-SNAPSHOT</version>
+  <version>2017.01.1-SNAPSHOT</version>
   <build>
     <plugins>
       <plugin>
