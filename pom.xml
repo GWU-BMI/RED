@@ -73,7 +73,7 @@
   	<dependency>
   		<groupId>gov.nih.nlm.nls</groupId>
   		<artifactId>vtt</artifactId>
-  		<version>2014.10.4-SNAPSHOT</version>
+  		<version>2017.01.0</version>
   	</dependency>
   	<dependency>
   		<groupId>junit</groupId>
