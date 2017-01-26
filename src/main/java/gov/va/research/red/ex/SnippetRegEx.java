@@ -22,6 +22,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.slf4j.Logger;
@@ -260,6 +261,24 @@ public class SnippetRegEx {
 		}
 		return changed;
 	}
+	
+	private static final Pattern LEFT_BRACKET = Pattern.compile("[\\(\\[\\{]");
+	private static final Pattern RIGHT_BRACKET = Pattern.compile("[\\)\\]\\}]");
+	private static final Pattern SECTION = Pattern.compile("([\\-=\\+~#])\1+");
+	private static final Pattern MARK = Pattern.compile("[\\+\\-\\*]");
+	private static final Pattern DIVIDER = Pattern.compile("[\\.,;]");
+	private static final Pattern VALUE_INDICATOR = Pattern.compile("[=:<>]");
+	private static final Pattern QUOTE = Pattern.compile("[\"'`]");
+	
+	private static final Pattern[] RANKED_PUNCT_CATEGORIES = new Pattern[] {
+			LEFT_BRACKET,
+			RIGHT_BRACKET,
+			SECTION,
+			MARK,
+			DIVIDER,
+			VALUE_INDICATOR, 
+			QUOTE
+	};
 
 	/**
 	 * Replaces all punctuation marks in the SnippetRegEx with corresponding generalized regex patterns.
@@ -273,37 +292,12 @@ public class SnippetRegEx {
 				Token t = lsIt.next();
 				if (TokenType.PUNCTUATION.equals(t.getType())) {
 					Token newToken = null;
-					switch (t.getString()) {
-					case "(":
-					case "[":
-					case "{":
-						newToken = new Token("[\\(\\[\\{]", TokenType.REGEX);
-						break;
-					case ")":
-					case "]":
-					case "}":
-						newToken = new Token("[\\)\\]\\}]", TokenType.REGEX);
-						break;
-					case ".":
-					case ",":
-					case ";":
-						newToken = new Token("[\\.,;]", TokenType.REGEX);
-						break;
-					case ":":
-					case "=":
-						newToken = new Token("[=:]", TokenType.REGEX);
-						break;
-					case "<":
-					case ">":
-						newToken = new Token("[<>]", TokenType.REGEX);
-						break;
-					case "\"":
-					case "'":
-					case "`":
-						newToken = new Token("[\"'`]", TokenType.REGEX);
-						break;
-					default:
-						newToken = null;
+					for (Pattern punctCatPattern : RANKED_PUNCT_CATEGORIES) {
+						Matcher m = punctCatPattern.matcher(t.getString());
+						if (m.matches()) {
+							newToken = new Token(punctCatPattern.pattern(), TokenType.REGEX);
+							break;
+						}
 					}
 					if (newToken != null) {
 						lsIt.set(newToken);

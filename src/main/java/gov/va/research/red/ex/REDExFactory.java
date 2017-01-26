@@ -1061,12 +1061,17 @@ public class REDExFactory {
 
 	public static void main(String[] args) throws ConfigurationException,
 			IOException, URISyntaxException {
-		if (args.length != 2) {
+		if (args.length != 3) {
 			System.out
-					.println("Arguments: [buildmodel|crossvalidate] <properties file>");
+					.println("Arguments: [buildmodel|crossvalidate] [pctproc=<percent of processors to use>] <properties file>");
 		} else {
 			String op = args[0];
-			String propFilename = args[1];
+			int pctproc = Integer.parseInt(args[1].split("=")[1]);
+			int processors = Runtime.getRuntime().availableProcessors();
+			int useProcessors = (int) Math.ceil(((float)pctproc/100f) * ((float)processors));
+			System.setProperty("java.util.concurrent.ForkJoinPool.common.parallelism", "" + useProcessors);
+			System.out.println("Using " + pctproc + "% of the available processors. Available = " + processors + ", using " + useProcessors);
+			String propFilename = args[2];
 			Configuration conf = new PropertiesConfiguration(propFilename);
 			List<Object> vttfileObjs = conf.getList("vtt.file");
 			List<File> vttfiles = new ArrayList<>(vttfileObjs.size());
