@@ -130,12 +130,13 @@ public class SnippetSplitter {
 	 * Extracts RED-style snippets from a VTT file having no VTT snippet tags.
 	 * @param vttFile A VTT file containing no snippet tags.
 	 * @param posLabels Array of tag labels that will be treated as positive labels. Everything else will be treated as negative.
+	 * @throws IOException if the and I/O error occurs while reading the file
 	 * @return A <code>SortedMap</code> of file offset positions to RED-style snippets
 	 */
 	public static SortedMap<Integer, Snippet> splitVTT(Path vttFile,
-			String[] labels) throws UnsupportedEncodingException, IOException {
+			String[] posLabels) throws IOException {
 		String fileContent = new String(Files.readAllBytes(vttFile), "UTF-8");
-		return splitVTT(ASCII.toASCII8(fileContent), labels);
+		return splitVTT(ASCII.toASCII8(fileContent), posLabels);
 	}
 
 }
