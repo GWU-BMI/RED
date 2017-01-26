@@ -16,9 +16,9 @@
  */
 package gov.va.research.red;
 
-import gov.nih.nlm.nls.vtt.Model.Markup;
-import gov.nih.nlm.nls.vtt.Model.Tags;
-import gov.nih.nlm.nls.vtt.Model.VttDocument;
+import gov.nih.nlm.nls.vtt.model.Markup;
+import gov.nih.nlm.nls.vtt.model.Tags;
+import gov.nih.nlm.nls.vtt.model.VttDocument;
 
 import java.io.File;
 import java.io.IOException;
@@ -52,7 +52,7 @@ public class VTTReader {
 	 */
 	public VttDocument read(final File vttFile) throws IOException {
 		VttDocument vttDoc = new VttDocument();
-		boolean valid = vttDoc.ReadFromFile(vttFile);
+		boolean valid = vttDoc.readFromFile(null, vttFile);
 		if (!valid) {
 			throw new IOException("Not a valid VTT file: " + vttFile);
 		}
@@ -105,17 +105,17 @@ public class VTTReader {
 	public Collection<Snippet> readSnippets(final File vttFile, final Collection<String> includeLabels, final boolean convertToLowercase)
 			throws IOException {
 		VttDocument vttDoc = read(vttFile);
-		String docText = vttDoc.GetText();
+		String docText = vttDoc.getText();
 		TreeMap<SnippetPosition, Snippet> pos2snips = findSnippetPositions(vttDoc, convertToLowercase);
 		Set<Snippet> snippets = new HashSet<>();
 
-		for (Markup markup : vttDoc.GetMarkups().GetMarkups()) {
+		for (Markup markup : vttDoc.getMarkups().getMarkups()) {
 			// Check if the markup has the requested label
-			if (CVUtils.containsCI(includeLabels, markup.GetTagName())) {
+			if (CVUtils.containsCI(includeLabels, markup.getTagName())) {
 
 				// Get the labeled text boundaries
-				int labeledOffset = markup.GetOffset();
-				int labeledLength = markup.GetLength();
+				int labeledOffset = markup.getOffset();
+				int labeledLength = markup.getLength();
 				int labeledEnd = labeledOffset + labeledLength;
 
 				// Find the snippet in which the labeled segment occurs
@@ -138,7 +138,7 @@ public class VTTReader {
 						labStr = labStr.substring(0, labStr.length() - 1);
 						labeledLength--;
 					}
-					LabeledSegment ls = new LabeledSegment(markup.GetTagName().toLowerCase(), labStr, labeledOffset - p2s.getKey().start, labeledLength);
+					LabeledSegment ls = new LabeledSegment(markup.getTagName().toLowerCase(), labStr, labeledOffset - p2s.getKey().start, labeledLength);
 					Snippet snippet = p2s.getValue();
 					List<LabeledSegment> labeledSegments = snippet.getPosLabeledSegments();
 					if (labeledSegments == null) {
@@ -163,13 +163,13 @@ public class VTTReader {
 	 */
 	private TreeMap<SnippetPosition, Snippet> findSnippetPositions(final VttDocument vttDoc, final boolean convertToLowercase) {
 		TreeMap<SnippetPosition, Snippet> pos2snips = new TreeMap<>();
-		String docText = vttDoc.GetText();
-		for (Markup markup : vttDoc.GetMarkups().GetMarkups()) {
-			if ("SnippetColumn".equals(markup.GetTagName())) {
-				String annotation = markup.GetAnnotation();
+		String docText = vttDoc.getText();
+		for (Markup markup : vttDoc.getMarkups().getMarkups()) {
+			if ("SnippetColumn".equals(markup.getTagName())) {
+				String annotation = markup.getAnnotation();
 				if (annotation != null && annotation.contains("<::>columnNumber=\"4\"<::>")) {
-					int snippetOffset = markup.GetOffset();
-					int snippetLength = markup.GetLength();
+					int snippetOffset = markup.getOffset();
+					int snippetLength = markup.getLength();
 					int snippetEnd = snippetOffset + snippetLength;
 					String snippet = docText.substring(snippetOffset, snippetEnd).toLowerCase();
 					SnippetPosition snipPos = new SnippetPosition(snippetOffset, snippetEnd);
@@ -192,14 +192,14 @@ public class VTTReader {
 		VttDocument vttDoc = read(vttFile);
 		TreeMap<SnippetPosition, Snippet> pos2snips = findSnippetPositions(vttDoc, convertToLowercase);
 
-		Tags tags = vttDoc.GetTags();
-		for (Markup markup : vttDoc.GetMarkups().GetMarkups()) {
+		Tags tags = vttDoc.getTags();
+		for (Markup markup : vttDoc.getMarkups().getMarkups()) {
 			// Check if the markup is not a SnippetColumn
-			if (!"SnippetColumn".equalsIgnoreCase(markup.GetTagName()) && tags.GetTagNames().contains(markup.GetTagName())) {
+			if (!"SnippetColumn".equalsIgnoreCase(markup.getTagName()) && tags.getTagNames().contains(markup.getTagName())) {
 
 				// Get the labeled text boundaries
-				int labeledOffset = markup.GetOffset();
-				int labeledLength = markup.GetLength();
+				int labeledOffset = markup.getOffset();
+				int labeledLength = markup.getLength();
 				int labeledEnd = labeledOffset + labeledLength;
 
 				// Find the snippet in which the labeled segment occurs
@@ -228,17 +228,17 @@ public class VTTReader {
 	public Collection<Snippet> readSnippetsAll(final File vttFile, final boolean convertToLowercase)
 			throws IOException {
 		VttDocument vttDoc = read(vttFile);
-		String docText = vttDoc.GetText();
+		String docText = vttDoc.getText();
 		TreeMap<SnippetPosition, Snippet> pos2snips = findSnippetPositions(vttDoc, convertToLowercase);
 		
-		Tags tags = vttDoc.GetTags();
-		for (Markup markup : vttDoc.GetMarkups().GetMarkups()) {
+		Tags tags = vttDoc.getTags();
+		for (Markup markup : vttDoc.getMarkups().getMarkups()) {
 			// Check if the markup is not a SnippetColumn
-			if (!"SnippetColumn".equalsIgnoreCase(markup.GetTagName()) && tags.GetTagNames().contains(markup.GetTagName())) {
+			if (!"SnippetColumn".equalsIgnoreCase(markup.getTagName()) && tags.getTagNames().contains(markup.getTagName())) {
 
 				// Get the labeled text boundaries
-				int labeledOffset = markup.GetOffset();
-				int labeledLength = markup.GetLength();
+				int labeledOffset = markup.getOffset();
+				int labeledLength = markup.getLength();
 				int labeledEnd = labeledOffset + labeledLength;
 
 				// Find the snippet in which the labeled segment occurs
@@ -261,7 +261,7 @@ public class VTTReader {
 						labStr = labStr.substring(0, labStr.length() - 1);
 						labeledLength--;
 					}
-					LabeledSegment ls = new LabeledSegment(markup.GetTagName(), labStr, labeledOffset - p2s.getKey().start, labeledLength);
+					LabeledSegment ls = new LabeledSegment(markup.getTagName(), labStr, labeledOffset - p2s.getKey().start, labeledLength);
 					Snippet snippet = p2s.getValue();
 					List<LabeledSegment> labeledSegments = snippet.getPosLabeledSegments();
 					if (labeledSegments == null) {
@@ -289,13 +289,13 @@ public class VTTReader {
 
 		TreeMap<SnippetPosition, Snippet> pos2snips = findSnippetPositions(vttDoc, convertToLowercase);
 		
-		String docText = vttDoc.GetText();
-		for (Markup markup : vttDoc.GetMarkups().GetMarkups()) {
+		String docText = vttDoc.getText();
+		for (Markup markup : vttDoc.getMarkups().getMarkups()) {
 			// Check if the markup is not a SnippetColumn
-			if (!"SnippetColumn".equalsIgnoreCase(markup.GetTagName())) {
+			if (!"SnippetColumn".equalsIgnoreCase(markup.getTagName())) {
 				// Get the labeled text boundaries
-				int labeledOffset = markup.GetOffset();
-				int labeledLength = markup.GetLength();
+				int labeledOffset = markup.getOffset();
+				int labeledLength = markup.getLength();
 				int labeledEnd = labeledOffset + labeledLength;
 
 				// Find the snippet in which the labeled segment occurs
@@ -318,10 +318,10 @@ public class VTTReader {
 						labStr = labStr.substring(0, labStr.length() - 1);
 						labeledLength--;
 					}
-					LabeledSegment ls = new LabeledSegment(markup.GetTagName(), labStr, labeledOffset - p2s.getKey().start, labeledLength);
+					LabeledSegment ls = new LabeledSegment(markup.getTagName(), labStr, labeledOffset - p2s.getKey().start, labeledLength);
 					Snippet snippet = p2s.getValue();
 					List<LabeledSegment> labeledSegments = null;
-					if (CVUtils.containsCI(labels, markup.GetTagName())) {
+					if (CVUtils.containsCI(labels, markup.getTagName())) {
 						labeledSegments = snippet.getPosLabeledSegments();
 						if (labeledSegments == null) {
 							labeledSegments = new ArrayList<LabeledSegment>();

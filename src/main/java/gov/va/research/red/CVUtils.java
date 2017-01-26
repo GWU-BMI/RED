@@ -35,6 +35,9 @@ public class CVUtils {
 	 */
 	public static List<List<Snippet>> partitionSnippets(int folds,
 			List<Snippet> snippets) {
+		if (folds > snippets.size()) {
+			throw new IllegalArgumentException("More folds than samples");
+		}
 		List<List<Snippet>> partitions = new ArrayList<>(folds);
 		for (int i = 0; i < folds; i++) {
 			partitions.add(new ArrayList<Snippet>());

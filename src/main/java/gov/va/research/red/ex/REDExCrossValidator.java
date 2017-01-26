@@ -326,6 +326,50 @@ public class REDExCrossValidator implements CrossValidatable {
 	}
 
 	/**
+	 * @param snippets
+	 *            List of snippets for training/testing.
+	 * @param labels
+	 *            The labels to train on. All labels in this list are treated as
+	 *            equivalent. Labels not in this list are ignored.
+	 * @param allowOverMatches
+	 *            If <code>false</code> then predicated and actual values must
+	 *            match exactly to be counted as a true positive. If
+	 *            <code>true</code> then if the predicted and actual values
+	 *            overlap but do not match exactly, it is still counted as a
+	 *            true positive.
+	 * @param caseInsensitive
+	 *            If <code>true</code> then all text is converted to lowercase
+	 *            (in order, for example, to make case-insensitive comparisons
+	 *            easier)
+	 * @param holdouts
+	 *            no members of this list will be generalized.
+	 * @param useTier2
+	 *            if <code>false</code> then tier 2 regular expressions will not
+	 *            be used, only tier 1.
+	 * @param stopAfterFirstFold
+	 *            If <code>true</code> then the cross validation quits after the
+	 *            first fold.
+	 * @param shuffle
+	 *            If <code>true</code> then the snippets will be shuffled before
+	 *            cross validation. This will make the cross-validation
+	 *            non-deterministic, having a different result each time.
+	 * @param limit
+	 *            Limit the number of snippets this value. A value &le; 0 means
+	 *            no limit.
+	 * @return The aggregated results of the cross validation, including scores
+	 *         and regular expressions.
+	 * @throws FileNotFoundException
+	 *             if the log files cannot be written to
+	 */
+	public List<CVResult> leaveOneOutValidateSnippets(List<Snippet> snippets,
+			Collection<String> labels, Boolean allowOverMatches,
+			Boolean caseInsensitive, List<String> holdouts, Boolean useTier2,
+			Boolean stopAfterFirstFold, Boolean shuffle, int limit)
+			throws FileNotFoundException {
+		return crossValidateSnippets(snippets, labels, snippets.size(), allowOverMatches, caseInsensitive, holdouts, useTier2, stopAfterFirstFold, shuffle, limit);
+	}
+
+	/**
 	 * @param labels
 	 *            only snippets with these labels will be used in the training.
 	 * @param training

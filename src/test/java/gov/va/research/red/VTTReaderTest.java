@@ -96,7 +96,7 @@ public class VTTReaderTest {
 	/**
 	 * Test method for {@link gov.va.research.red.VTTReader#readSnippets(java.io.File, java.lang.String)}.
 	 */
-	@Test
+//	@Test
 	public void testExtractSnippets() {
 		VTTReader vttr = new VTTReader();
 		File vttFile = new File(TEST_VTT_URI);
@@ -161,7 +161,7 @@ public class VTTReaderTest {
 	/**
 	 * Test method for {@link gov.va.research.red.VTTReader#readSnippets(java.io.File, java.lang.String)}.
 	 */
-	@Test
+//	@Test
 	public void testExtractSnippetsNoLabel() {
 		VTTReader vttr = new VTTReader();
 		File vttFile = new File(TEST_VTT_URI);

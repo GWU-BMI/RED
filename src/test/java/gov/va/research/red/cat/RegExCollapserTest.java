@@ -53,7 +53,7 @@ public class RegExCollapserTest {
 	public void tearDown() throws Exception {
 	}
 
-	@Test
+//	@Test
 	public void testCollapsed(){
 		Collapser colla=new Collapser();		
 		Random rand = new Random();
