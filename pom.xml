@@ -25,6 +25,15 @@
             <descriptorRef>jar-with-dependencies</descriptorRef>
           </descriptorRefs>
         </configuration>
+        <executions>
+          <execution>
+            <id>make-assembly</id>
+            <phase>package</phase>
+            <goals>
+              <goal>single</goal>
+            </goals>
+          </execution>
+        </executions>
       </plugin>
       <plugin>
         <artifactId>maven-surefire-plugin</artifactId>
@@ -35,25 +44,6 @@
       <plugin>
         <artifactId>maven-javadoc-plugin</artifactId>
         <version>2.10.1</version>
-      </plugin>
-      <plugin>
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>buildnumber-maven-plugin</artifactId>
-        <version>1.4</version>
-        <configuration>
-          <format>{0,date,yyyy-MM-dd}T{0,date,HH-mm-ss}</format>
-          <items>
-            <item>timestamp</item>
-          </items>
-        </configuration>
-<!--         <executions> -->
-<!--           <execution> -->
-<!--             <phase>validate</phase> -->
-<!--             <goals> -->
-<!--               <goal>create</goal> -->
-<!--             </goals> -->
-<!--           </execution> -->
-<!--         </executions> -->
       </plugin>
     </plugins>
     <resources>
@@ -67,7 +57,6 @@
         <directory>src/main/resources</directory>
       </resource>
     </resources>
-    <finalName>${project.artifactId}-${project.version}-b${buildNumber}</finalName>
   </build>
   <dependencies>
   	<dependency>
@@ -135,7 +124,6 @@
   <scm>
   	<connection>scm:git:http://inlp.bmi.utah.edu/git/RED.git/</connection>
   	<url>http://inlp.bmi.utah.edu/git/RED.git/</url>
-    <tag>RED-2016.01.1</tag>
   </scm>
   <distributionManagement>
 	<repository>
