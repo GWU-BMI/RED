@@ -43,10 +43,10 @@ public class SnippetRegEx {
 	private static final Logger LOG = LoggerFactory.getLogger(SnippetRegEx.class);
 
 	// Snippets are represented as a list of segments. Each segment is a list of tokens with a segment type.
-	private static final String DIGIT_TEXT = "zero|one|two|three|four|five|six|seven|eight|nine|ten";
+	private static final String DIGIT_TEXT = "zero|one|two|three|four|five|six|seven|eight|nine|ten|i|ii|iii|iv|v|vi|vii|viii|ix|x";
 	private static final Pattern DIGIT_TEXT_PATTERN = Pattern.compile(DIGIT_TEXT);
 	private List<Segment> segments;
-	private Pattern pattern;
+	private transient Pattern pattern;
 	private double sensitivity;
 	
 	/**
@@ -148,7 +148,7 @@ public class SnippetRegEx {
 			String segmentStr = segmentSB.toString();
 			if (segment.isLabeled()) {
 				// A capture group looking like ((?:whatever)) does not work, so remove the (?: piece
-				if (segmentStr.startsWith("(?:") && segmentStr.endsWith(")")) {
+				if (segmentStr.startsWith("(?:") && segmentStr.endsWith(")") && segment.getTokens().size() == 1) {
 					segmentStr = "(" + segmentStr.substring(3);
 				}
 				regex.append("(" + segmentStr + ")");
@@ -245,7 +245,9 @@ public class SnippetRegEx {
 
 	/**
 	 * Replaces all digits in the SnippetRegEx with a generalized regex pattern.
-	 * @return <code>true</code> if any changes were made, <code>false</code> otherwise.
+	 * 
+	 * @return <code>true</code> if any changes were made, <code>false</code>
+	 *         otherwise.
 	 */
 	public boolean replaceDigits() {
 		boolean changed = false;
@@ -254,7 +256,10 @@ public class SnippetRegEx {
 			while (lsIt.hasNext()) {
 				Token t = lsIt.next();
 				if (TokenType.INTEGER.equals(t.getType()) || DIGIT_TEXT_PATTERN.matcher(t.getString()).matches()) {
-					lsIt.set(new Token("(?:\\d+" + (segment.isLabeled() ? "|" : "?|") + DIGIT_TEXT + ")", TokenType.REGEX));
+					// if non-labeled segment, make the digit match reluctant
+					// (\d+?) rather than greedy (\d+).
+					String tokenRegex = "(?:\\d+" + (segment.isLabeled() ? "|" : "?|") + DIGIT_TEXT + ")";
+					lsIt.set(new Token(tokenRegex, TokenType.REGEX));
 					changed = true;
 				}
 			}
@@ -264,19 +269,19 @@ public class SnippetRegEx {
 	
 	private static final Pattern LEFT_BRACKET = Pattern.compile("[\\(\\[\\{]");
 	private static final Pattern RIGHT_BRACKET = Pattern.compile("[\\)\\]\\}]");
-	private static final Pattern SECTION = Pattern.compile("([\\-=\\+~#])\1+");
-	private static final Pattern MARK = Pattern.compile("[\\+\\-\\*]");
+	private static final Pattern SECTION = Pattern.compile("([\\-~#])\1+");
+//	private static final Pattern MARK = Pattern.compile("[\\+\\-\\*]");
 	private static final Pattern DIVIDER = Pattern.compile("[\\.,;]");
-	private static final Pattern VALUE_INDICATOR = Pattern.compile("[=:<>]");
+//	private static final Pattern VALUE_INDICATOR = Pattern.compile("[=:<>]");
 	private static final Pattern QUOTE = Pattern.compile("[\"'`]");
 	
 	private static final Pattern[] RANKED_PUNCT_CATEGORIES = new Pattern[] {
 			LEFT_BRACKET,
 			RIGHT_BRACKET,
 			SECTION,
-			MARK,
+//			MARK,
 			DIVIDER,
-			VALUE_INDICATOR, 
+//			VALUE_INDICATOR, 
 			QUOTE
 	};
 

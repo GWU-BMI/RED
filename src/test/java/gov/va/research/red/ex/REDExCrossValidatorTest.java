@@ -66,6 +66,7 @@ public class REDExCrossValidatorTest {
 					true,
 					Arrays.asList(new String[0]),
 					true,
+					true,
 					false,
 					true,
 					100

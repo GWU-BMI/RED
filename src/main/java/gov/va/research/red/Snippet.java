@@ -105,7 +105,7 @@ public class Snippet {
 	
 	@Override
 	public String toString() {
-		return "" + text + " " + posLabeledSegments;
+		return "text:" + text + ", posLabeledSegments: " + posLabeledSegments + ", negLabeledSegments: " + negLabeledSegments;
 	}
 
 }

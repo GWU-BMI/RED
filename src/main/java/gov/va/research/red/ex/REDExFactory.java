@@ -15,16 +15,19 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.net.URISyntaxException;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Date;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -33,11 +36,13 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ForkJoinPool;
 import java.util.regex.Matcher;
 
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
+import org.apache.commons.io.output.TeeOutputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -51,7 +56,7 @@ public class REDExFactory {
 	public REDExtractor train(final Collection<Snippet> snippets,
 			final boolean allowOverMatches, final String outputTag,
 			final boolean caseInsensitive, final boolean measureSensitivity,
-			final List<String> holdouts, final boolean useTier2)
+			final List<String> holdouts, final boolean useTier2, final boolean generalizeLabeledSegments)
 			throws IOException {
 		// Set up snippet-to-regex map and regex history stacks
 		Map<Snippet, Deque<SnippetRegEx>> snippet2regex = new HashMap<>(
@@ -90,6 +95,27 @@ public class REDExFactory {
 
 		NoFalsePositives noFalsePositives = new NoFalsePositives(this);
 
+		// Check for true and false positives. Each regex should have at least one true
+		// positive, matching the snippet it originated from. Any false positives
+		// indicate inconsistent annotation.
+		for (Deque<SnippetRegEx> sreStack : sreStacks) {
+			SnippetRegEx sre = sreStack.peek();
+			boolean tps = checkForTruePositives(snippets, new REDExtractor(sre,
+					caseInsensitive), allowOverMatches, caseInsensitive);
+			if (!tps) {
+				LOG.warn(outputTag
+						+ ": No tps for regex before generalizing, should be at least one: "
+						+ sre.toString());
+			}
+			boolean fps = (0 == noFalsePositives.score(snippets,
+					new REDExtractor(sre, caseInsensitive), allowOverMatches,
+					caseInsensitive));
+			if (fps) {
+				LOG.warn("Inconsistent annotataion? : fps for regex before generalizing: "
+						+ sre.toString());
+			}
+		}
+		
 		// replace the white space with regular expressions.
 		replaceWhiteSpace(sreStacks);
 		// Check for false positives. Each ls3 should have at least one true
@@ -142,7 +168,7 @@ public class REDExFactory {
 		String ot1 = (outputTag == null ? "t1" : outputTag + "_t1");
 		List<Deque<SnippetRegEx>> tier1 = abstractIteratively(snippets,
 				sreStacks, allowOverMatches, ot1, caseInsensitive, null,
-				noFalsePositives, holdouts, true);
+				noFalsePositives, holdouts, generalizeLabeledSegments);
 		outputSnippet2Regex(snippet2regex, ot1);
 		outputRegexHistory(sreStacks, ot1);
 
@@ -1012,6 +1038,9 @@ public class REDExFactory {
 						CVScore cvs = rexFactory.testREDExOnSnippet(ex,
 								allowOverMatches, caseInsensitive, null,
 								snippet);
+						if (cvs.getFp() > 0) {
+							LOG.debug("FP on snippet: " + snippet.toString());
+						}
 						return Boolean.valueOf(cvs.getFp() > 0);
 					}).anyMatch((fp) -> {
 						return fp;
@@ -1051,10 +1080,10 @@ public class REDExFactory {
 	public REDExtractor buildModel(final Collection<Snippet> snippets,
 			final Collection<String> labels, final boolean allowOverMatches,
 			String outputTag, Path outputModelPath, boolean caseInsensitive,
-			List<String> holdouts, boolean useTier2, final boolean debug)
+			List<String> holdouts, boolean useTier2, final boolean generalizeLabeledSegments, final boolean debug)
 			throws IOException {
 		REDExtractor rex = train(snippets, allowOverMatches, outputTag,
-				caseInsensitive, true, holdouts, useTier2);
+				caseInsensitive, true, holdouts, useTier2, generalizeLabeledSegments);
 		REDExtractor.dump(rex, outputModelPath);
 		return rex;
 	}
@@ -1064,131 +1093,150 @@ public class REDExFactory {
 		if (args.length != 3) {
 			System.out
 					.println("Arguments: [buildmodel|crossvalidate] [pctproc=<percent of processors to use>] <properties file>");
-		} else {
-			String op = args[0];
-			int pctproc = Integer.parseInt(args[1].split("=")[1]);
-			int processors = Runtime.getRuntime().availableProcessors();
-			int useProcessors = (int) Math.ceil(((float)pctproc/100f) * ((float)processors));
-			System.setProperty("java.util.concurrent.ForkJoinPool.common.parallelism", "" + useProcessors);
-			System.out.println("Using " + pctproc + "% of the available processors. Available = " + processors + ", using " + useProcessors);
-			String propFilename = args[2];
-			Configuration conf = new PropertiesConfiguration(propFilename);
-			List<Object> vttfileObjs = conf.getList("vtt.file");
-			List<File> vttfiles = new ArrayList<>(vttfileObjs.size());
-			for (Object vf : vttfileObjs) {
-				File f = new File((String) vf);
-				if (f.exists()) {
-					vttfiles.add(new File((String) vf));
-				} else {
-					throw new FileNotFoundException((String) vf);
-				}
-			}
-			List<Object> labelObjs = conf.getList("label");
-			List<String> labels = new ArrayList<>(labelObjs.size());
-			for (Object label : labelObjs) {
-				labels.add((String) label);
-			}
-			int folds = conf.getInt("folds");
-			Boolean allowOvermatches = conf.getBoolean("allow.overmatches",
-					Boolean.TRUE);
-			Boolean caseInsensitive = conf.getBoolean("case.insensitive",
-					Boolean.TRUE);
-			Boolean stopAfterFirstFold = conf.getBoolean(
-					"stop.after.first.fold", Boolean.FALSE);
-			Boolean shuffle = conf.getBoolean("shuffle", Boolean.TRUE);
-			int limit = conf.getInt("snippet.limit", -1);
-			String modelOutputFile = conf.getString("model.output.file");
-			List<Object> holdoutObjs = conf.getList("holdout");
-			List<String> holdouts = null;
-			if (holdoutObjs == null) {
-				holdouts = new ArrayList<>(0);
+			return;
+		}
+		String op = args[0];
+		int pctproc = Integer.parseInt(args[1].split("=")[1]);
+		int processors = Runtime.getRuntime().availableProcessors();
+		int useProcessors = (int) Math.ceil(((float)pctproc/100f) * ((float)processors));
+		System.setProperty("java.util.concurrent.ForkJoinPool.common.parallelism", "" + useProcessors);
+		System.out.println("Using " + pctproc + "% of the available processors. Available = " + processors + ", using " + useProcessors);
+		String propFilename = args[2];
+		Configuration conf = new PropertiesConfiguration(propFilename);
+		List<Object> vttfileObjs = conf.getList("vtt.file");
+		List<File> vttfiles = new ArrayList<>(vttfileObjs.size());
+		for (Object vf : vttfileObjs) {
+			File f = new File((String) vf);
+			if (f.exists()) {
+				vttfiles.add(new File((String) vf));
 			} else {
-				holdouts = new ArrayList<>(holdoutObjs.size());
-				for (Object hoo : holdoutObjs) {
-					holdouts.add(hoo.toString());
+				throw new FileNotFoundException((String) vf);
+			}
+		}
+		List<Object> labelObjs = conf.getList("label");
+		List<String> labels = new ArrayList<>(labelObjs.size());
+		for (Object label : labelObjs) {
+			labels.add((String) label);
+		}
+		int folds = conf.getInt("folds");
+		Boolean allowOvermatches = conf.getBoolean("allow.overmatches",
+				Boolean.TRUE);
+		Boolean caseInsensitive = conf.getBoolean("case.insensitive",
+				Boolean.TRUE);
+		Boolean stopAfterFirstFold = conf.getBoolean(
+				"stop.after.first.fold", Boolean.FALSE);
+		Boolean shuffle = conf.getBoolean("shuffle", Boolean.TRUE);
+		int limit = conf.getInt("snippet.limit", -1);
+		String modelOutputFile = conf.getString("model.output.file");
+		List<Object> holdoutObjs = conf.getList("holdout");
+		List<String> holdouts = null;
+		if (holdoutObjs == null) {
+			holdouts = new ArrayList<>(0);
+		} else {
+			holdouts = new ArrayList<>(holdoutObjs.size());
+			for (Object hoo : holdoutObjs) {
+				holdouts.add(hoo.toString());
+			}
+		}
+		Boolean useTier2 = conf.getBoolean("use.tier2", Boolean.TRUE);
+		Boolean generalizeCaptureGroups = conf.getBoolean("generalize.capture.groups", true);
+		
+		// Set up log file
+		String logFile = conf.getString("log.file");
+		PrintStream oldSystemOut = null;
+		if (logFile != null && logFile.trim().length() > 0) {
+			PrintStream ps = new PrintStream(logFile);
+			oldSystemOut = System.out;
+			PrintStream newOut = new PrintStream(new TeeOutputStream(System.out, ps));
+			System.setOut(newOut);
+		}
+
+		if ("crossvalidate".equalsIgnoreCase(op)) {
+			REDExCrossValidator rexcv = new REDExCrossValidator();
+			List<CVResult> results = rexcv.crossValidate(vttfiles, labels,
+					folds, allowOvermatches, caseInsensitive, holdouts,
+					useTier2, generalizeCaptureGroups, stopAfterFirstFold, shuffle, limit);
+
+			// Display results
+			int i = 0;
+			for (CVResult s : results) {
+				if (s != null) {
+					LOG.info("\n--- Run " + (i++) + " ---\n"
+							+ s.getScore().getEvaluation());
 				}
 			}
-			Boolean useTier2 = conf.getBoolean("use.tier2", Boolean.TRUE);
-
-			if ("crossvalidate".equalsIgnoreCase(op)) {
-				REDExCrossValidator rexcv = new REDExCrossValidator();
-				List<CVResult> results = rexcv.crossValidate(vttfiles, labels,
-						folds, allowOvermatches, caseInsensitive, holdouts,
-						useTier2, stopAfterFirstFold, shuffle, limit);
-
-				// Display results
-				int i = 0;
-				for (CVResult s : results) {
-					if (s != null) {
-						LOG.info("\n--- Run " + (i++) + " ---\n"
-								+ s.getScore().getEvaluation());
-					}
-				}
-				CVResult aggregate = CVResult.aggregate(results);
-				LOG.info("\n--- Aggregate ---\n"
-						+ aggregate.getScore().getEvaluation());
-				LOG.info("# Regexes Discovered: "
-						+ aggregate.getRegExes().size());
-				String regexOutputFile = conf.getString("regex.output.file");
-				if (regexOutputFile != null) {
-					try (FileWriter fw = new FileWriter(regexOutputFile)) {
-						try (PrintWriter pw = new PrintWriter(fw)) {
-							for (String regex : aggregate.getRegExes()) {
-								pw.println(regex);
-							}
+			CVResult aggregate = CVResult.aggregate(results);
+			LOG.info("\n--- Aggregate ---\n"
+					+ aggregate.getScore().getEvaluation());
+			LOG.info("# Regexes Discovered: "
+					+ aggregate.getRegExes().size());
+			String regexOutputFile = conf.getString("regex.output.file");
+			if (regexOutputFile != null) {
+				try (FileWriter fw = new FileWriter(regexOutputFile)) {
+					try (PrintWriter pw = new PrintWriter(fw)) {
+						for (String regex : aggregate.getRegExes()) {
+							pw.println(regex);
 						}
 					}
 				}
-			} else if ("buildmodel".equalsIgnoreCase(op)) {
-				VTTReader vttr = new VTTReader();
-				// get snippets
-				List<Snippet> snippets = new ArrayList<>();
-				for (File vttFile : vttfiles) {
-					Collection<Snippet> fileSnippets = vttr.findSnippets(
-							vttFile, labels, caseInsensitive);
-					snippets.addAll(fileSnippets);
-				}
-				LOG.info("Building model using " + snippets.size()
-						+ " snippets from " + vttfiles + " files.\n"
-						+ "\nallow.overmatches: " + allowOvermatches
-						+ "\ncase.insensitive: " + caseInsensitive
-						+ "\nshuffle: " + shuffle + "\nsnippet.limit: " + limit
-						+ "\nmodel.output.file: " + modelOutputFile);
-
-				// randomize the order of the snippets
-				if (shuffle) {
-					Collections.shuffle(snippets);
-				}
-
-				// limit the number of snippets
-				if (limit > 0 && limit < snippets.size()) {
-					List<Snippet> limited = new ArrayList<>(limit);
-					for (int i = 0; i < limit; i++) {
-						limited.add(snippets.get(i));
-					}
-					snippets = limited;
-				}
-
-				LOG.info("training ...");
-				REDExtractor rex = new REDExFactory().train(snippets,
-						allowOvermatches, "m", caseInsensitive, true, holdouts,
-						useTier2);
-				LOG.info("... done training.");
-				LOG.info("Writing model file ...");
-				Path modelFilePath = FileSystems.getDefault().getPath("",
-						modelOutputFile);
-				if (Files.exists(modelFilePath)) {
-					throw new IOException("Output model file already exists: "
-							+ modelOutputFile);
-				}
-				REDExtractor.dump(rex, modelFilePath);
-				LOG.info("... wrote model file to " + modelOutputFile);
-			} else {
-				System.out
-						.println("Operation "
-								+ op
-								+ " not recognized. Must be buildmodel or crossvalidate.");
 			}
+			LOG.debug("Done cross validating");
+		}
+		if ("buildmodel".equalsIgnoreCase(op) || (modelOutputFile != null && modelOutputFile.trim().length() > 0)) {
+			VTTReader vttr = new VTTReader();
+			// get snippets
+			List<Snippet> snippets = new ArrayList<>();
+			for (File vttFile : vttfiles) {
+				Collection<Snippet> fileSnippets = vttr.findSnippets(
+						vttFile, labels, caseInsensitive);
+				snippets.addAll(fileSnippets);
+			}
+			LOG.info("Building model using " + snippets.size()
+					+ " snippets from " + vttfiles + " files.\n"
+					+ "\nallow.overmatches: " + allowOvermatches
+					+ "\ncase.insensitive: " + caseInsensitive
+					+ "\nshuffle: " + shuffle + "\nsnippet.limit: " + limit
+					+ "\nmodel.output.file: " + modelOutputFile);
+
+			// randomize the order of the snippets
+			if (shuffle) {
+				Collections.shuffle(snippets);
+			}
+
+			// limit the number of snippets
+			if (limit > 0 && limit < snippets.size()) {
+				List<Snippet> limited = new ArrayList<>(limit);
+				for (int i = 0; i < limit; i++) {
+					limited.add(snippets.get(i));
+				}
+				snippets = limited;
+			}
+
+			LOG.info("training ...");
+			REDExtractor rex = new REDExFactory().train(snippets,
+					allowOvermatches, "m", caseInsensitive, true, holdouts,
+					useTier2, generalizeCaptureGroups);
+			LOG.info("... done training.");
+			LOG.info("Writing model file ...");
+			Path modelFilePath = FileSystems.getDefault().getPath("",
+					modelOutputFile);
+			if (Files.exists(modelFilePath)) {
+				Path oldModel = Paths.get(modelFilePath.toString() + "-" + System.currentTimeMillis());
+				Files.move(modelFilePath, oldModel);
+				LOG.info("Output model file already exists. Renaming old file to : "
+						+ oldModel);
+			}
+			REDExtractor.dump(rex, modelFilePath);
+			LOG.info("... wrote model file to " + modelOutputFile);
+		} else {
+			System.out
+					.println("Operation "
+							+ op
+							+ " not recognized. Must be buildmodel or crossvalidate.");
+		}
+		ForkJoinPool.commonPool().shutdown();
+		if (oldSystemOut != null) {
+			System.setOut(oldSystemOut);
 		}
 	}
 }

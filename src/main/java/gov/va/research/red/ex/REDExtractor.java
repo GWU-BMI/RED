@@ -40,7 +40,9 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.Future;
+import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Consumer;
@@ -78,33 +80,52 @@ public class REDExtractor implements Extractor {
 	private static final Set<MatchedElement> EMPTY_SET = Collections.unmodifiableSet(new HashSet<>());
 	private static final int TIMEOUT = 5;
 	private static final TimeUnit TIMEOUT_UNIT = TimeUnit.MINUTES;
-	private static final ExecutorService EXECUTOR = Executors.newFixedThreadPool(Integer.valueOf(System.getProperty("java.util.concurrent.ForkJoinPool.common.parallelism", "4")));
+	private static final float DEFAULT_FRACTION_OF_PROCESSORS = 0.7f;
+	private static final int PROCESSORS = Runtime.getRuntime().availableProcessors();
+	private static final int USE_PROCESSORS = (int) Math.ceil(DEFAULT_FRACTION_OF_PROCESSORS * ((float)PROCESSORS));
+	private static final ExecutorService EXECUTOR = Executors.newFixedThreadPool(USE_PROCESSORS, new ThreadFactory() {
+		@Override
+		public Thread newThread(Runnable r) {
+			Thread t = Executors.defaultThreadFactory().newThread(r);
+			t.setDaemon(true);
+			return t;
+		}
+	});
+
 
 	private List<Collection<SnippetRegEx>> rankedSnippetRegExs;
 	private String metadata;
 	private boolean caseInsensitive;
 	private boolean useTier2;
 
-	public REDExtractor(Collection<SnippetRegEx> sres, boolean caseInsensitive) {
-		this.rankedSnippetRegExs = new ArrayList<>(1);
-		this.rankedSnippetRegExs.add(sres);
-		this.caseInsensitive = caseInsensitive;
-		this.useTier2 = false;
+	@Override
+	public String toString() {
+		return super.toString() + " [metadata=" + metadata + "]";
 	}
 
+	public REDExtractor(Collection<SnippetRegEx> sres, boolean caseInsensitive) {
+		List<Collection<SnippetRegEx>> rankedSnippetRegExs = new ArrayList<>(1);
+		rankedSnippetRegExs.add(sres);
+		init(rankedSnippetRegExs, null, caseInsensitive, false);
+	}
+
+	public REDExtractor(SnippetRegEx snippetRegEx, boolean caseInsensitive) {
+		List<Collection<SnippetRegEx>> rankedSnippetRegExs = new ArrayList<>(1);
+		rankedSnippetRegExs.add(Arrays.asList(new SnippetRegEx[] { snippetRegEx }));
+		init(rankedSnippetRegExs, null, caseInsensitive, false);
+	}
+	
 	public REDExtractor(List<Collection<SnippetRegEx>> rankedSres, String metadata, boolean caseInsensitive,
+			boolean useTier2) {
+		init(rankedSres, metadata, caseInsensitive, useTier2);
+	}
+	
+	public void init(List<Collection<SnippetRegEx>> rankedSres, String metadata, boolean caseInsensitive,
 			boolean useTier2) {
 		this.rankedSnippetRegExs = rankedSres;
 		this.metadata = metadata;
 		this.caseInsensitive = caseInsensitive;
 		this.useTier2 = useTier2;
-	}
-
-	public REDExtractor(SnippetRegEx snippetRegEx, boolean caseInsensitive) {
-		this.rankedSnippetRegExs = new ArrayList<>(1);
-		this.rankedSnippetRegExs.add(Arrays.asList(new SnippetRegEx[] { snippetRegEx }));
-		this.caseInsensitive = caseInsensitive;
-		this.useTier2 = false;
 	}
 
 	@Override
@@ -115,6 +136,7 @@ public class REDExtractor implements Extractor {
 		ConcurrentMap<MatchedElement.MatchPos, MatchedElement.MatchData> returnMap = null;
 		boolean tier1 = true;
 		ConcurrentSkipListSet<SnippetRegEx> reject = new ConcurrentSkipListSet<>();
+		
 		for (Collection<SnippetRegEx> snippetREs : this.rankedSnippetRegExs) {
 			if ((useTier2 || tier1) && snippetREs != null && !snippetREs.isEmpty()) {
 				returnMap = snippetREs.parallelStream().flatMap((sre) -> {
@@ -166,6 +188,7 @@ public class REDExtractor implements Extractor {
 				break;
 			}
 		}
+
 		// Remove regexes that caused timeouts
 		this.rankedSnippetRegExs.removeAll(reject);
 		if (returnMap == null || returnMap.isEmpty()) {
@@ -320,15 +343,21 @@ public class REDExtractor implements Extractor {
 	/**
 	 * Main entry point for standalone execution of a REDExtractor
 	 * 
-	 * @param args
-	 *            program arguments: &lt;REDEx model file&gt; &lt;file dir&gt;
-	 *            [file glob | file ] ...
+	 * @param args see buildOption()
+	 *             -d,--file-directory &lt;arg&gt;
+	 *             -f,--file(s) &lt;arg&gt;
+	 *             -j,--jdbc-url &lt;arg&gt;
+	 *             -m,--model-file &lt;arg&gt;
+	 *             -o,--output-file &lt;arg&gt;
+	 *             -p,--precision-bias
+	 *             -q,--db-query &lt;arg&gt;
 	 * @throws IOException
 	 *             if any of the files cannot be accessed.
 	 * @throws XMLStreamException
 	 *             if a problem occurs with the output xml file.
+	 * @throws ParseException 
 	 */
-	public static void main(String[] args) throws IOException, XMLStreamException {
+	public static void main(String[] args) throws IOException, XMLStreamException, ParseException {
 		Options options = buildOptions();
 		CommandLineParser parser = new DefaultParser();
 		CommandLine cl = null;
@@ -340,7 +369,12 @@ public class REDExtractor implements Extractor {
 			hf.printHelp("REDExtractor", options);
 			return;
 		}
-		Path model = FileSystems.getDefault().getPath(cl.getOptionValue("m"));
+
+		String[] modelFiles = cl.getOptionValues("m");
+		Path[] models = new Path[modelFiles.length];
+		for (int i = 0; i < modelFiles.length; i++) {
+			models[i] = FileSystems.getDefault().getPath(modelFiles[i]);
+		}
 		Path outputFile = FileSystems.getDefault().getPath(cl.getOptionValue("o"));
 		boolean useTier2 = !cl.hasOption("p");
 
@@ -348,23 +382,25 @@ public class REDExtractor implements Extractor {
 		String jdbcURL = cl.getOptionValue("j");
 
 		if ((fileDirStr == null && jdbcURL == null) || (fileDirStr != null && jdbcURL != null)) {
-			LOG.error("Excacly one of the options 'd' or 'j' must be specified");
+			LOG.error("Exactly one of the options 'd' or 'j' must be specified");
 			HelpFormatter hf = new HelpFormatter();
 			hf.printHelp("REDExtractor", options);
 			return;
 		}
 		if (fileDirStr != null) {
 			String[] fileStrs = cl.getOptionValues("f");
-			extractFromFiles(model, outputFile, fileDirStr, fileStrs, useTier2);
+			extractFromFiles(models, outputFile, fileDirStr, fileStrs, useTier2);
 		} else {
 			String query = cl.getOptionValue('q');
-			extractFromDB(model, jdbcURL, query, outputFile, useTier2);
+			extractFromDB(models, jdbcURL, query, outputFile, useTier2);
 		}
 	}
 
-	static void extractFromDB(Path model, String jdbcURLStr, String query, Path outputFile, boolean useTier2) throws IOException, XMLStreamException {
-		if (!Files.exists(model)) {
-			throw new RuntimeException("Model file '" + model + "' was not found");
+	static void extractFromDB(Path[] models, String jdbcURLStr, String query, Path outputFile, boolean useTier2) throws IOException, XMLStreamException {
+		for (Path model : models) {
+			if (!Files.exists(model)) {
+				throw new RuntimeException("Model file '" + model + "' was not found");
+			}
 		}
 //		URL loginConfURL = REDExtractor.class.getClassLoader().getResource("login.conf");
 //		URL krb5IniURL = REDExtractor.class.getClassLoader().getResource("krb5.ini");
@@ -382,10 +418,20 @@ public class REDExtractor implements Extractor {
 		} catch (LoginException | IOException | SQLException e) {
 			throw new RuntimeException(e);
 		}
-		REDExtractor redex = REDExtractor.load(model);
-		redex.setUseTier2(useTier2);
+		List<REDExtractor> redexs = new ArrayList<>(models.length);
+		for (Path model : models) {
+			REDExtractor redex = REDExtractor.load(model);
+			redex.setUseTier2(useTier2);
+			redexs.add(redex);
+		}
 		Map<String, Collection<MatchedElement>> docMatches = docId2Text.entrySet().parallelStream().map((entry) -> {
-			DocMatches dm = new DocMatches(entry.getKey(), redex.extract(entry.getValue()));
+			DocMatches dm = new DocMatches(entry.getKey(), new HashSet<MatchedElement>());
+			for (REDExtractor redex : redexs) {
+				Set<MatchedElement> mes = redex.extract(entry.getValue());
+				if (mes != null && mes.size() > 0) {
+					dm.getMatchedElements().addAll(mes);
+				}
+			}
 			return dm;
 		}).collect(Collectors.toMap((dm) -> dm.getDocumentId(), (dm) -> dm.getMatchedElements()));
 		// allow memory to be reclaimed
@@ -472,57 +518,69 @@ public class REDExtractor implements Extractor {
 	 * @throws IOException
 	 * @throws XMLStreamException
 	 */
-	static void extractFromFiles(Path model, Path outputFile, String fileDirStr, String[] fileStrs, boolean useTier2)
+	static void extractFromFiles(Path[] models, Path outputFile, String fileDirStr, String[] fileStrs, boolean useTier2)
 			throws IOException, XMLStreamException {
 		Path fileDir = FileSystems.getDefault().getPath(fileDirStr);
-		if (!Files.exists(model)) {
-			throw new IllegalArgumentException("REDEx model file not found: " + model);
+		for (Path model : models) {
+			if (!Files.exists(model)) {
+				throw new IllegalArgumentException("REDEx model file not found: " + model);
+			}			
+		}
+		if (!Files.exists(fileDir)) {
+			throw new IllegalArgumentException("file directory not found: " + fileDir);
 		} else {
-			if (!Files.exists(fileDir)) {
-				throw new IllegalArgumentException("file directory not found: " + fileDir);
-			} else {
-				if (fileStrs == null) {
-					fileStrs = new String[] { "*" };
+			if (fileStrs == null) {
+				fileStrs = new String[] { "*" };
+			}
+			List<Path> files = new ArrayList<>(fileStrs.length);
+			for (int i = 0; i < fileStrs.length; i++) {
+				if (fileStrs[i].startsWith("\"") && fileStrs[i].endsWith("\"")) {
+					fileStrs[i] = fileStrs[i].substring(1, fileStrs[i].length() - 1);
 				}
-				List<Path> files = new ArrayList<>(fileStrs.length);
-				for (int i = 0; i < fileStrs.length; i++) {
-					if (fileStrs[i].startsWith("\"") && fileStrs[i].endsWith("\"")) {
-						fileStrs[i] = fileStrs[i].substring(1, fileStrs[i].length() - 1);
+				Files.newDirectoryStream(fileDir, fileStrs[i]).forEach(new Consumer<Path>() {
+					@Override
+					public void accept(Path t) {
+						files.add(t);
 					}
-					Files.newDirectoryStream(fileDir, fileStrs[i]).forEach(new Consumer<Path>() {
-						@Override
-						public void accept(Path t) {
-							files.add(t);
-						}
-					});
+				});
+			}
+			if (files == null || files.size() == 0) {
+				throw new IllegalArgumentException("No input files");
+			}
+			System.err.println("REDExtractor running using:" + LS + "\tmodel file: " + Arrays.asList(models) + LS
+					+ "\tinput files: " + files.toString() + LS + "\toutput: "
+					+ (outputFile == null ? "<stdout>" : outputFile));
+			List<REDExtractor> redexs = new ArrayList<>(models.length);
+			for (Path model : models) {
+				REDExtractor redex = REDExtractor.load(model);
+				redex.setUseTier2(useTier2);
+				if (redex.getMetadata() == null) {
+					redex.setMetadata(model.getFileName().toString());
+				} else {
+					redex.setMetadata(redex.getMetadata() + " [ filename = " + model.getFileName().toFile() + "]");
 				}
-				if (files == null || files.size() == 0) {
-					throw new IllegalArgumentException("No input files");
-				}
-				System.err.println("REDExtractor running using:" + LS + "\tmodel file: " + model.toString() + LS
-						+ "\tinput files: " + files.toString() + LS + "\toutput: "
-						+ (outputFile == null ? "<stdout>" : outputFile));
-				REDExtractor rex = REDExtractor.load(model);
-				rex.setUseTier2(useTier2);
-				BioCCollection biocColl = new BioCCollection();
-				biocColl.setDate(new SimpleDateFormat("yyyy-MM-dd'T'HH:mm'Z'").format(new Date()));
-				int annId = 0;
-				for (Path file : files) {
-					String contents = new String(Files.readAllBytes(file));
-					BioCDocument biocDoc = new BioCDocument();
-					biocColl.addDocument(biocDoc);
-					biocDoc.setID(file.toString());
-					BioCPassage biocPass = new BioCPassage();
-					biocDoc.addPassage(biocPass);
-					if (file.toString().toLowerCase().endsWith(".csv")) {
-						Collection<SnippetData> sdColl = CSVReader.readSnippetData(contents, true);
-						for (SnippetData sd : sdColl) {
+				redexs.add(redex);
+			}
+			BioCCollection biocColl = new BioCCollection();
+			biocColl.setDate(new SimpleDateFormat("yyyy-MM-dd'T'HH:mm'Z'").format(new Date()));
+			int annId = 0;
+			for (Path file : files) {
+				String contents = new String(Files.readAllBytes(file));
+				BioCDocument biocDoc = new BioCDocument();
+				biocColl.addDocument(biocDoc);
+				biocDoc.setID(file.toString());
+				BioCPassage biocPass = new BioCPassage();
+				biocDoc.addPassage(biocPass);
+				if (file.toString().toLowerCase().endsWith(".csv")) {
+					Collection<SnippetData> sdColl = CSVReader.readSnippetData(contents, true);
+					for (SnippetData sd : sdColl) {
+						for (REDExtractor rex : redexs) {
 							Set<MatchedElement> mes = rex.extract(sd.getSnippetText());
 							for (MatchedElement me : mes) {
 								BioCAnnotation biocAnn = new BioCAnnotation();
 								biocAnn.setID(String.valueOf(annId++));
 								biocAnn.setLocation(sd.getOffset() + me.getStartPos(),
-										sd.getOffset() + (me.getEndPos() - me.getStartPos()));
+										me.getEndPos() - me.getStartPos());
 								biocAnn.setText(me.getMatch());
 								biocAnn.getInfons().put("Patient ID", sd.getPatientID());
 								biocAnn.getInfons().put("Document ID", sd.getDocumentID());
@@ -530,7 +588,9 @@ public class REDExtractor implements Extractor {
 								biocPass.addAnnotation(biocAnn);
 							}
 						}
-					} else {
+					}
+				} else {
+					for (REDExtractor rex : redexs) {
 						Set<MatchedElement> mes = rex.extract(contents);
 						for (MatchedElement me : mes) {
 							BioCAnnotation biocAnn = new BioCAnnotation();
@@ -541,22 +601,22 @@ public class REDExtractor implements Extractor {
 						}
 					}
 				}
-				BioCFactory factory = BioCFactory.newFactory(BioCFactory.STANDARD);
-				try (Writer w = new StringWriter()) {
-					BioCCollectionWriter collWriter = factory.createBioCCollectionWriter(w);
-					try {
-						collWriter.writeCollection(biocColl);
-					} finally {
-						if (collWriter != null) {
-							collWriter.close();
-						}
+			}
+			BioCFactory factory = BioCFactory.newFactory(BioCFactory.STANDARD);
+			try (Writer w = new StringWriter()) {
+				BioCCollectionWriter collWriter = factory.createBioCCollectionWriter(w);
+				try {
+					collWriter.writeCollection(biocColl);
+				} finally {
+					if (collWriter != null) {
+						collWriter.close();
 					}
-					w.flush();
-					if (outputFile == null) {
-						System.out.println(w.toString());
-					} else {
-						Files.write(outputFile, w.toString().getBytes());
-					}
+				}
+				w.flush();
+				if (outputFile == null) {
+					System.out.println(w.toString());
+				} else {
+					Files.write(outputFile, w.toString().getBytes());
 				}
 			}
 		}
@@ -566,8 +626,9 @@ public class REDExtractor implements Extractor {
 	 * @return
 	 */
 	private static Options buildOptions() {
-		Option model = new Option("m", "model-file", true, "REDEx model file");
+		Option model = new Option("m", "model-file", true, "REDEx model file. May be specified multiple times in order to use multiple models, in which case order is important. Priority decreases for each model listed. For example, if two models are given, the second one will only be used if there is no result from the first model.");
 		model.setRequired(true);
+		model.setArgs(Option.UNLIMITED_VALUES);
 		Option outFile = new Option("o", "output-file", true, "File where output will be written");
 		outFile.setRequired(true);
 
@@ -591,6 +652,10 @@ public class REDExtractor implements Extractor {
 				+ " If this option is set then tier 2 will not be used and the result will be biased for precision."
 				+ " If this option is not set then tier 2 will be used, resulting in a bias for recall."
 				+ " Note that the model may have been trained without a tier 2, in which case this option has no effect.");
+		
+		Option fractionOfProcessors = new Option("z", "fraction-of-processors", true, "Floating point number specifying the Fraction of processors to use. Defaults to " + DEFAULT_FRACTION_OF_PROCESSORS);
+		fractionOfProcessors.setType(Float.class);
+		
 		Options options = new Options();
 		options.addOption(model);
 		options.addOption(outFile);
@@ -599,6 +664,7 @@ public class REDExtractor implements Extractor {
 		options.addOption(jdbcURL);
 		options.addOption(query);
 		options.addOption(precisionBias);
+		options.addOption(fractionOfProcessors);
 		return options;
 	}
 

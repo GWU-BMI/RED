@@ -308,6 +308,10 @@ public class VTTReader {
 				} else {
 					String labStr = docText.substring(labeledOffset, labeledEnd);
 					// Adjust the labeled string boundaries so that it does not have any whitespace prefix or suffix
+					if (labStr.trim().isEmpty()) {
+						LOG.warn("Empty labeled string: " + markup.toString());
+						continue;
+					}
 					while (Character.isWhitespace(labStr.charAt(0))) {
 						labeledOffset++;
 						labStr = labStr.substring(1);

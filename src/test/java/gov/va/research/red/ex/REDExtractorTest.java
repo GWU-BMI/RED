@@ -102,7 +102,7 @@ public class REDExtractorTest {
 		REDExFactory regExt = new REDExFactory();
 		try {
 			Collection<Snippet> snippets = vttr.readSnippets(new File(TEST_VTT_URI), "weight", true);
-			regExt.train(snippets, true, "test", true, true, new ArrayList<>(0), Boolean.TRUE);
+			regExt.train(snippets, true, "test", true, true, new ArrayList<>(0), Boolean.TRUE, Boolean.TRUE);
 		} catch (IOException e) {
 			throw new AssertionError("Failed extract 'weight' labeled regular expressions from VTT file: " + TEST_VTT_URI, e);
 		}
@@ -152,7 +152,7 @@ public class REDExtractorTest {
 		File vttFile = new File(TEST_VTT_URI);
 		snippets.addAll(vttr.readSnippets(vttFile, "weight", true));
 		REDExFactory regExt = new REDExFactory();
-		REDExtractor ex = regExt.train(snippets, true, "test", true, true, new ArrayList<>(0), Boolean.TRUE);
+		REDExtractor ex = regExt.train(snippets, true, "test", true, true, new ArrayList<>(0), Boolean.TRUE, Boolean.TRUE);
 		List<Collection<SnippetRegEx>> snippetRegExs = ex.getRankedSnippetRegExs();
 		List<RegEx> yesRegExs = null;
 		if(snippetRegExs != null) {
@@ -199,7 +199,7 @@ public class REDExtractorTest {
 		REDExFactory ref = new REDExFactory();
 		
 		try {
-			REDExtractor re = ref.train(snippets, true, "test", true, true, new ArrayList<String>(0), true);
+			REDExtractor re = ref.train(snippets, true, "test", true, true, new ArrayList<String>(0), true, true);
 			CVScore cv = ref.testREDExOnSnippet(re, true, true, null, snippets.iterator().next());
 			Assert.assertNotNull(cv);
 			Assert.assertEquals(2, cv.getTp());
