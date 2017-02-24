@@ -16,17 +16,6 @@
  */
 package gov.va.research.red.ex;
 
-import static org.junit.Assert.fail;
-import gov.va.research.red.CVScore;
-import gov.va.research.red.Confidence;
-import gov.va.research.red.ConfidenceMeasurer;
-import gov.va.research.red.ConfidenceSnippet;
-import gov.va.research.red.LabeledSegment;
-import gov.va.research.red.MatchedElement;
-import gov.va.research.red.RegEx;
-import gov.va.research.red.Snippet;
-import gov.va.research.red.VTTReader;
-
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
@@ -36,15 +25,20 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Set;
-
-import junit.framework.Assert;
 
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+
+import gov.va.research.red.CVScore;
+import gov.va.research.red.ConfidenceMeasurer;
+import gov.va.research.red.LabeledSegment;
+import gov.va.research.red.RegEx;
+import gov.va.research.red.Snippet;
+import gov.va.research.red.VTTReader;
+import junit.framework.Assert;
 
 
 /**
@@ -118,9 +112,9 @@ public class REDExtractorTest {
 		lsList.add(new LabeledSegment("four", "4", 25, 1));
 		String snipText = "one 1 two 2 three 3 four 4 five 5 six 6 seven 7";
 		Snippet s = new Snippet(snipText, lsList, null);
-		SnippetRegEx sre = new SnippetRegEx(s);
+		SnippetRegEx sre = new SnippetRegEx(s, true);
 		Assert.assertTrue(sre.replaceDigits());
-		Assert.assertTrue(sre.getPattern(true).matcher(snipText).find());
+		Assert.assertTrue(sre.getPattern().matcher(snipText).find());
 		Assert.assertTrue(sre.toString().split("\\d").length == 1);
 	}
 
@@ -134,9 +128,9 @@ public class REDExtractorTest {
 		lsList.add(new LabeledSegment("four", "4", 25, 1));
 		String snipText = "one 1 two 2 three 3 four 4 five 5 six 6 seven 7";
 		Snippet s = new Snippet(snipText, lsList, null);
-		SnippetRegEx sre = new SnippetRegEx(s);
+		SnippetRegEx sre = new SnippetRegEx(s, true);
 		Assert.assertTrue(sre.replaceWhiteSpace());
-		Assert.assertTrue(sre.getPattern(true).matcher(snipText).find());
+		Assert.assertTrue(sre.getPattern().matcher(snipText).find());
 		Assert.assertTrue(sre.toString().split("\\s").length == 1);
 	}
 	
@@ -152,13 +146,13 @@ public class REDExtractorTest {
 		File vttFile = new File(TEST_VTT_URI);
 		snippets.addAll(vttr.readSnippets(vttFile, "weight", true));
 		REDExFactory regExt = new REDExFactory();
-		REDExtractor ex = regExt.train(snippets, true, "test", true, true, new ArrayList<>(0), Boolean.TRUE, Boolean.TRUE);
-		List<Collection<SnippetRegEx>> snippetRegExs = ex.getRankedSnippetRegExs();
+		REDExModel ex = regExt.train(snippets, true, "test", true, true, new ArrayList<>(0), Boolean.TRUE, Boolean.TRUE);
+		List<Collection<WeightedRegEx>> snippetRegExs = ex.getRegexTiers();
 		List<RegEx> yesRegExs = null;
 		if(snippetRegExs != null) {
 			yesRegExs = new ArrayList<RegEx>();
-			for (Collection<SnippetRegEx> sres : ex.getRankedSnippetRegExs()) {
-				for(SnippetRegEx snippetRegEx : sres) {
+			for (Collection<WeightedRegEx> sres : ex.getRegexTiers()) {
+				for(WeightedRegEx snippetRegEx : sres) {
 					yesRegExs.add(new RegEx(snippetRegEx.toString()));
 				}
 			}
@@ -176,12 +170,12 @@ public class REDExtractorTest {
 		
 		// test dump and load
 		Path tempFile = Files.createTempFile(null, null);
-		REDExtractor.dump(ex, tempFile);
+		REDExModel.dump(ex, tempFile);
 		Assert.assertTrue(Files.exists(tempFile));
-		REDExtractor ex2 = REDExtractor.load(tempFile);
-		Assert.assertEquals(ex.getRankedSnippetRegExs().size(), ex2.getRankedSnippetRegExs().size());
-		for (int i = 0; i < ex.getRankedSnippetRegExs().size(); i++) {
-			Assert.assertEquals(ex.getRankedSnippetRegExs().get(i).size(), ex2.getRankedSnippetRegExs().get(i).size());
+		REDExModel ex2 = REDExModel.load(tempFile);
+		Assert.assertEquals(ex.getRegexTiers().size(), ex2.getRegexTiers().size());
+		for (int i = 0; i < ex.getRegexTiers().size(); i++) {
+			Assert.assertEquals(ex.getRegexTiers().get(i).size(), ex2.getRegexTiers().get(i).size());
 		}
 	}
 	
@@ -199,8 +193,8 @@ public class REDExtractorTest {
 		REDExFactory ref = new REDExFactory();
 		
 		try {
-			REDExtractor re = ref.train(snippets, true, "test", true, true, new ArrayList<String>(0), true, true);
-			CVScore cv = ref.testREDExOnSnippet(re, true, true, null, snippets.iterator().next());
+			REDExModel re = ref.train(snippets, true, "test", true, true, new ArrayList<String>(0), true, true);
+			CVScore cv = ref.testREDExOnSnippet(re, true, true, null, snippets.iterator().next(), true);
 			Assert.assertNotNull(cv);
 			Assert.assertEquals(2, cv.getTp());
 			Assert.assertEquals(0, cv.getFp());

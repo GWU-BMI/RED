@@ -1,16 +1,5 @@
 package gov.va.research.red.ex;
 
-import gov.va.research.red.CVResult;
-import gov.va.research.red.CVScore;
-import gov.va.research.red.CVUtils;
-import gov.va.research.red.LabeledSegment;
-import gov.va.research.red.MatchedElement;
-import gov.va.research.red.Snippet;
-import gov.va.research.red.Token;
-import gov.va.research.red.TokenType;
-import gov.va.research.red.VTTReader;
-import gov.va.research.red.ex.SnippetRegEx.TokenFreq;
-
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
@@ -25,9 +14,9 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Date;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -46,6 +35,17 @@ import org.apache.commons.io.output.TeeOutputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import gov.va.research.red.CVResult;
+import gov.va.research.red.CVScore;
+import gov.va.research.red.CVUtils;
+import gov.va.research.red.LabeledSegment;
+import gov.va.research.red.MatchedElement;
+import gov.va.research.red.Snippet;
+import gov.va.research.red.Token;
+import gov.va.research.red.TokenType;
+import gov.va.research.red.VTTReader;
+import gov.va.research.red.ex.SnippetRegEx.TokenFreq;
+
 public class REDExFactory {
 
 	private static final Logger LOG = LoggerFactory
@@ -53,10 +53,11 @@ public class REDExFactory {
 	private static final boolean DEBUG = Boolean.valueOf(System.getProperty(
 			"debug", String.valueOf(false)));
 
-	public REDExtractor train(final Collection<Snippet> snippets,
+	public REDExModel train(final Collection<Snippet> snippets,
 			final boolean allowOverMatches, final String outputTag,
 			final boolean caseInsensitive, final boolean measureSensitivity,
-			final List<String> holdouts, final boolean useTier2, final boolean generalizeLabeledSegments)
+			final List<String> holdouts, final boolean useTier2,
+			final boolean generalizeLabeledSegments)
 			throws IOException {
 		// Set up snippet-to-regex map and regex history stacks
 		Map<Snippet, Deque<SnippetRegEx>> snippet2regex = new HashMap<>(
@@ -79,7 +80,7 @@ public class REDExFactory {
 						Deque<SnippetRegEx> snipStack = new ArrayDeque<>();
 						snippet = new Snippet(snippet.getText(), plslist,
 								snippet.getNegLabeledSegments());
-						snipStack.push(new SnippetRegEx(snippet));
+						snipStack.push(new SnippetRegEx(snippet, caseInsensitive));
 						sreStacks.add(snipStack);
 						snippet2regex.put(snippet, snipStack);
 					} else {
@@ -98,18 +99,24 @@ public class REDExFactory {
 		// Check for true and false positives. Each regex should have at least one true
 		// positive, matching the snippet it originated from. Any false positives
 		// indicate inconsistent annotation.
+		
+		List<WeightedRegEx> singleWeightedRegex = new ArrayList<>(1);
+		singleWeightedRegex.add(null);
+		List<Collection<WeightedRegEx>> singleTierWeightedRegex = new ArrayList<>(1);
+		singleTierWeightedRegex.add(singleWeightedRegex);
 		for (Deque<SnippetRegEx> sreStack : sreStacks) {
 			SnippetRegEx sre = sreStack.peek();
 			boolean tps = checkForTruePositives(snippets, new REDExtractor(sre,
-					caseInsensitive), allowOverMatches, caseInsensitive);
+					caseInsensitive), allowOverMatches, caseInsensitive, useTier2);
 			if (!tps) {
 				LOG.warn(outputTag
 						+ ": No tps for regex before generalizing, should be at least one: "
 						+ sre.toString());
 			}
+			singleWeightedRegex.set(0, sre);
 			boolean fps = (0 == noFalsePositives.score(snippets,
-					new REDExtractor(sre, caseInsensitive), allowOverMatches,
-					caseInsensitive));
+					new REDExModel(singleTierWeightedRegex), allowOverMatches,
+					caseInsensitive, useTier2));
 			if (fps) {
 				LOG.warn("Inconsistent annotataion? : fps for regex before generalizing: "
 						+ sre.toString());
@@ -117,21 +124,22 @@ public class REDExFactory {
 		}
 		
 		// replace the white space with regular expressions.
-		replaceWhiteSpace(sreStacks);
+		replaceWhiteSpace(sreStacks, caseInsensitive);
 		// Check for false positives. Each ls3 should have at least one true
 		// positive, matching the snippet it originated from.
 		for (Deque<SnippetRegEx> sreStack : sreStacks) {
 			SnippetRegEx sre = sreStack.peek();
 			boolean tps = checkForTruePositives(snippets, new REDExtractor(sre,
-					caseInsensitive), allowOverMatches, caseInsensitive);
+					caseInsensitive), allowOverMatches, caseInsensitive, useTier2);
 			if (!tps) {
 				LOG.warn(outputTag
 						+ ": No tps for regex, should be at least one: "
 						+ sre.toString());
 			}
+			singleWeightedRegex.set(0, sre);
 			boolean fps = (0 == noFalsePositives.score(snippets,
-					new REDExtractor(sre, caseInsensitive), allowOverMatches,
-					caseInsensitive));
+					new REDExModel(singleTierWeightedRegex), allowOverMatches,
+					caseInsensitive, useTier2));
 			if (fps) {
 				LOG.warn("Inconsistent annotataion? : fps for regex: "
 						+ sre.toString());
@@ -139,23 +147,24 @@ public class REDExFactory {
 		}
 
 		// replace all the digits with their regular expressions.
-		replaceDigits(sreStacks);
+		replaceDigits(sreStacks, caseInsensitive);
 		// replace puncuation
-		replacePunct(sreStacks);
+		replacePunct(sreStacks, caseInsensitive);
 
 		// Check for false positives. Each ls3 should have at least one true
 		// positive, matching the snippet it originated from.
 		for (Deque<SnippetRegEx> sreStack : sreStacks) {
 			SnippetRegEx sre = sreStack.peek();
 			boolean tps = checkForTruePositives(snippets, new REDExtractor(sre,
-					caseInsensitive), allowOverMatches, caseInsensitive);
+					caseInsensitive), allowOverMatches, caseInsensitive, useTier2);
 			if (!tps) {
 				LOG.warn("No tps for regex, should be at least one: "
 						+ sre.toString());
 			}
+			singleWeightedRegex.set(0, sre);
 			boolean fps = (0 == noFalsePositives.score(snippets,
-					new REDExtractor(sre, caseInsensitive), allowOverMatches,
-					caseInsensitive));
+					new REDExModel(singleTierWeightedRegex), allowOverMatches,
+					caseInsensitive, useTier2));
 			if (fps) {
 				LOG.warn("Inconsistent annotataion? : fps for regex: "
 						+ sre.toString());
@@ -168,7 +177,7 @@ public class REDExFactory {
 		String ot1 = (outputTag == null ? "t1" : outputTag + "_t1");
 		List<Deque<SnippetRegEx>> tier1 = abstractIteratively(snippets,
 				sreStacks, allowOverMatches, ot1, caseInsensitive, null,
-				noFalsePositives, holdouts, generalizeLabeledSegments);
+				noFalsePositives, holdouts, generalizeLabeledSegments, useTier2);
 		outputSnippet2Regex(snippet2regex, ot1);
 		outputRegexHistory(sreStacks, ot1);
 
@@ -180,18 +189,18 @@ public class REDExFactory {
 			Iterator<SnippetRegEx> t2sIt = t1stack.descendingIterator();
 			while (t2sIt.hasNext()) {
 				SnippetRegEx sre = t2sIt.next();
-				SnippetRegEx sreCopy = new SnippetRegEx(sre);
+				SnippetRegEx sreCopy = new SnippetRegEx(sre, caseInsensitive);
 				t1stackCopy.push(sreCopy);
 			}
 		}
 
-		List<Collection<SnippetRegEx>> returnList = new ArrayList<>();
+		List<Collection<WeightedRegEx>> returnList = new ArrayList<>();
 		returnList.add(new ArrayList<>(tier1.size()));
 		for (Deque<SnippetRegEx> stack : tier1) {
-			SnippetRegEx sre = stack.peek();
+			WeightedRegEx sre = stack.peek();
 			boolean add = true;
-			for (SnippetRegEx sreAdded : returnList.get(0)) {
-				if (sreAdded.toString().equals(sre.toString())) {
+			for (WeightedRegEx wrxAdded : returnList.get(0)) {
+				if (wrxAdded.toString().equals(sre.toString())) {
 					add = false;
 					break;
 				}
@@ -208,7 +217,7 @@ public class REDExFactory {
 			String ot2 = (outputTag == null ? "t2" : outputTag + "_t2");
 			List<Deque<SnippetRegEx>> tier2 = abstractIteratively(snippets,
 					tier1Copy, allowOverMatches, ot2, caseInsensitive, sf, sf,
-					holdouts, false);
+					holdouts, false, useTier2);
 			outputSnippet2Regex(snippet2regex, ot2);
 			outputRegexHistory(sreStacks, ot2);
 
@@ -217,7 +226,7 @@ public class REDExFactory {
 			for (Deque<SnippetRegEx> stack : tier2) {
 				SnippetRegEx sre = stack.peek();
 				boolean add = true;
-				for (SnippetRegEx sreAdded : returnList.get(1)) {
+				for (WeightedRegEx sreAdded : returnList.get(1)) {
 					if (sreAdded.toString().equals(sre.toString())) {
 						add = false;
 						break;
@@ -231,12 +240,14 @@ public class REDExFactory {
 
 		if (measureSensitivity) {
 			LOG.info(outputTag + ": measuring sensitivity ...");
-			measureSensitivity(snippets, returnList, caseInsensitive);
+			measureSensitivity(snippets, returnList);
 			LOG.info(outputTag + ": ... done measuring sensitivity");
 		}
-		return new REDExtractor(returnList, "# snippets = " + snippets.size()
-				+ "\nallowOverMatches = " + allowOverMatches, caseInsensitive,
-				useTier2);
+		return new REDExModel(returnList);
+//				
+//				new REDExtractor(returnList, "# snippets = " + snippets.size()
+//				+ "\nallowOverMatches = " + allowOverMatches, caseInsensitive,
+//				useTier2);
 	}
 
 	private List<Deque<SnippetRegEx>> abstractIteratively(
@@ -246,19 +257,20 @@ public class REDExFactory {
 			final boolean caseInsensitive,
 			final ScoreFunction beforeChangeScoreFunction,
 			final ScoreFunction afterChangeScoreFunction,
-			final List<String> holdouts, final boolean generalizeLS)
+			final List<String> holdouts, final boolean generalizeLS,
+			final boolean useTier2)
 			throws IOException {
 		String ot = outputTag == null ? "" : outputTag;
 		LOG.info(ot + ": trimming regexes ...");
 		trimRegEx(snippets, sreStacks, allowOverMatches, caseInsensitive,
-				beforeChangeScoreFunction, afterChangeScoreFunction, holdouts);
+				beforeChangeScoreFunction, afterChangeScoreFunction, holdouts, useTier2);
 		LOG.info(ot + ": ... done trimming regexes");
 		List<Deque<SnippetRegEx>> newSreStacks = removeDuplicates(sreStacks);
 
 		LOG.info(ot + ": generalizing LF to MF ...");
 		newSreStacks = generalizeLFtoMF(snippets, sreStacks, allowOverMatches,
 				caseInsensitive, beforeChangeScoreFunction,
-				afterChangeScoreFunction, holdouts);
+				afterChangeScoreFunction, holdouts, useTier2);
 		newSreStacks = removeDuplicates(sreStacks);
 		LOG.info(ot + ": ... done generalizing LF to MF");
 
@@ -266,7 +278,7 @@ public class REDExFactory {
 			LOG.info(ot + ": generalizing LSs ...");
 			newSreStacks = generalizeLS(snippets, sreStacks, allowOverMatches,
 					caseInsensitive, beforeChangeScoreFunction,
-					afterChangeScoreFunction, holdouts);
+					afterChangeScoreFunction, holdouts, useTier2);
 			LOG.info(ot + ": ... done generalizing LSs");
 		}
 
@@ -285,7 +297,8 @@ public class REDExFactory {
 			List<Deque<SnippetRegEx>> snippetRegExStacks,
 			boolean allowOverMatches, boolean caseInsensitive,
 			ScoreFunction beforeChangeScoreFunction,
-			ScoreFunction afterChangeScoreFunction, List<String> holdouts) {
+			ScoreFunction afterChangeScoreFunction, List<String> holdouts,
+			boolean useTier2) {
 		// build term frequency list
 		Map<Token, TokenFreq> tokenFreqs = new HashMap<>();
 		for (Deque<SnippetRegEx> snippetRegExStack : snippetRegExStacks) {
@@ -319,14 +332,18 @@ public class REDExFactory {
 							(sreStack) -> {
 								boolean replaced = false;
 								SnippetRegEx newSre = new SnippetRegEx(sreStack
-										.peek());
+										.peek(), caseInsensitive);
 								for (Segment newUnlabeledSegment : newSre
 										.getUnlabeledSegments()) {
 									ListIterator<Token> newUlsIt = newUnlabeledSegment
 											.getTokens().listIterator();
+									List<WeightedRegEx> singleWeightedRegex = new ArrayList<>(1);
+									singleWeightedRegex.add(null);
+									List<Collection<WeightedRegEx>> singleTierWeightedRegex = new ArrayList<>(1);
+									singleTierWeightedRegex.add(singleWeightedRegex);
 									while (newUlsIt.hasNext()) {
 										SnippetRegEx saveSre = new SnippetRegEx(
-												newSre);
+												newSre, caseInsensitive);
 										Token newUlsToken = newUlsIt.next();
 										if (newUlsToken.equals(token)) {
 											boolean changed = false;
@@ -358,22 +375,23 @@ public class REDExFactory {
 												changed = true;
 											}
 											if (changed) {
+												singleWeightedRegex.set(0, saveSre);
 												float beforeScore = (beforeChangeScoreFunction == null ? 1
 														: beforeChangeScoreFunction
 																.score(snippets,
-																		new REDExtractor(
-																				saveSre,
-																				caseInsensitive),
+																		new REDExModel(
+																				singleTierWeightedRegex),
 																		allowOverMatches,
-																		caseInsensitive));
+																		caseInsensitive,
+																		useTier2));
+												singleWeightedRegex.set(0, newSre);
 												float afterScore = (afterChangeScoreFunction == null ? 0
 														: afterChangeScoreFunction
 																.score(snippets,
-																		new REDExtractor(
-																				newSre,
-																				caseInsensitive),
+																		new REDExModel(singleTierWeightedRegex),
 																		allowOverMatches,
-																		caseInsensitive));
+																		caseInsensitive,
+																		useTier2));
 												if (afterScore < beforeScore) {
 													// revert
 													newSre = saveSre;
@@ -461,7 +479,8 @@ public class REDExFactory {
 			final List<Deque<SnippetRegEx>> snippetRegExStacks,
 			final boolean allowOverMatches, final boolean caseInsensitive,
 			ScoreFunction beforeChangeScoreFunction,
-			ScoreFunction afterChangeScoreFunction, final List<String> holdouts) {
+			ScoreFunction afterChangeScoreFunction, final List<String> holdouts,
+			final boolean useTier2) {
 		Set<Segment> lsSet = new HashSet<>();
 		for (Deque<SnippetRegEx> sreStack : snippetRegExStacks) {
 			SnippetRegEx sre = sreStack.peek();
@@ -484,18 +503,24 @@ public class REDExFactory {
 			}
 			genLS.addAll(ls.getTokens());
 		}
+		List<WeightedRegEx> singleWeightedRegex = new ArrayList<>(1);
+		singleWeightedRegex.add(null);
+		List<Collection<WeightedRegEx>> singleTierWeightedRegex = new ArrayList<>(1);
+		singleTierWeightedRegex.add(singleWeightedRegex);
 		for (Deque<SnippetRegEx> ls3stack : snippetRegExStacks) {
 			SnippetRegEx beforeSre = ls3stack.peek();
-			SnippetRegEx sreCopy = new SnippetRegEx(beforeSre);
+			SnippetRegEx sreCopy = new SnippetRegEx(beforeSre, caseInsensitive);
 			sreCopy.setLabeledSegments(new Segment(new ArrayList<>(genLS), true));
+			singleWeightedRegex.set(0, beforeSre);
 			float beforeScore = (beforeChangeScoreFunction == null ? 1
 					: beforeChangeScoreFunction.score(snippets,
-							new REDExtractor(beforeSre, caseInsensitive),
-							allowOverMatches, caseInsensitive));
+							new REDExModel(singleTierWeightedRegex),
+							allowOverMatches, caseInsensitive, useTier2));
+			singleWeightedRegex.set(0, beforeSre);
 			float afterScore = (afterChangeScoreFunction == null ? 0
 					: afterChangeScoreFunction.score(snippets,
-							new REDExtractor(sreCopy, caseInsensitive),
-							allowOverMatches, caseInsensitive));
+							new REDExModel(singleTierWeightedRegex),
+							allowOverMatches, caseInsensitive, useTier2));
 			if (beforeScore <= afterScore) {
 				if (!DEBUG) {
 					ls3stack.clear();
@@ -527,23 +552,22 @@ public class REDExFactory {
 	}
 
 	private void measureSensitivity(Collection<Snippet> snippets,
-			List<Collection<SnippetRegEx>> rankedRegExLists,
-			boolean caseInsensitive) {
-		for (Collection<SnippetRegEx> regexs : rankedRegExLists) {
-			for (SnippetRegEx regEx : regexs) {
-				int count = sensitivityCount(regEx, snippets, caseInsensitive);
+			List<Collection<WeightedRegEx>> rankedRegExLists) {
+		for (Collection<? extends WeightedRegEx> regexs : rankedRegExLists) {
+			for (WeightedRegEx regEx : regexs) {
+				int count = sensitivityCount(regEx, snippets);
 				double sensitivity = ((double) count)
 						/ ((double) snippets.size());
-				regEx.setSensitivity(sensitivity);
+				regEx.setWeight(sensitivity);
 			}
 		}
 	}
 
-	private int sensitivityCount(SnippetRegEx regEx,
-			Collection<Snippet> snippets, boolean caseInsensitive) {
+	private int sensitivityCount(WeightedRegEx regEx,
+			Collection<Snippet> snippets) {
 		int count = 0;
 		for (Snippet snippt : snippets) {
-			Matcher matcher = regEx.getPattern(caseInsensitive).matcher(
+			Matcher matcher = regEx.getPattern().matcher(
 					snippt.getText());
 			while (matcher.find()) {
 				count++;
@@ -553,10 +577,10 @@ public class REDExFactory {
 	}
 
 	private List<Deque<SnippetRegEx>> replaceDigits(
-			List<Deque<SnippetRegEx>> snippetRegExStacks) {
+			List<Deque<SnippetRegEx>> snippetRegExStacks, boolean caseInsentitive) {
 		snippetRegExStacks.parallelStream().forEach((sreStack) -> {
 			SnippetRegEx sre = sreStack.peek();
-			SnippetRegEx newSre = new SnippetRegEx(sre);
+			SnippetRegEx newSre = new SnippetRegEx(sre, caseInsentitive);
 			boolean changed = newSre.replaceDigits();
 			if (changed) {
 				if (!DEBUG) {
@@ -569,10 +593,10 @@ public class REDExFactory {
 	}
 
 	private List<Deque<SnippetRegEx>> replacePunct(
-			List<Deque<SnippetRegEx>> snippetRegExStacks) {
+			List<Deque<SnippetRegEx>> snippetRegExStacks, boolean caseInsensitive) {
 		snippetRegExStacks.parallelStream().forEach((sreStack) -> {
 			SnippetRegEx sre = sreStack.peek();
-			SnippetRegEx newSre = new SnippetRegEx(sre);
+			SnippetRegEx newSre = new SnippetRegEx(sre, caseInsensitive);
 			boolean changed = newSre.replacePunct();
 			if (changed) {
 				if (!DEBUG) {
@@ -585,10 +609,10 @@ public class REDExFactory {
 	}
 
 	protected List<Deque<SnippetRegEx>> replaceWhiteSpace(
-			List<Deque<SnippetRegEx>> snippetRegExStacks) {
+			List<Deque<SnippetRegEx>> snippetRegExStacks, boolean caseInsensitive) {
 		snippetRegExStacks.parallelStream().forEach((ls3stack) -> {
 			SnippetRegEx sre = ls3stack.peek();
-			SnippetRegEx newSre = new SnippetRegEx(sre);
+			SnippetRegEx newSre = new SnippetRegEx(sre, caseInsensitive);
 			boolean changed = newSre.replaceWhiteSpace();
 			if (changed) {
 				if (!DEBUG) {
@@ -611,18 +635,23 @@ public class REDExFactory {
 			List<Deque<SnippetRegEx>> snippetRegExStacks,
 			boolean allowOverMatches, boolean caseInsensitive,
 			ScoreFunction beforeChangeScoreFunction,
-			ScoreFunction afterChangeScoreFunction, List<String> holdouts) {
+			ScoreFunction afterChangeScoreFunction, List<String> holdouts,
+			boolean useTier2) {
 		// trim from the front and back, repeat while progress is being made
 		snippetRegExStacks
 				.parallelStream()
 				.forEach(sreStack -> {
 					boolean beginningProgress = false;
 					boolean endProgress = false;
+					List<WeightedRegEx> singleWeightedRegex = new ArrayList<>(1);
+					singleWeightedRegex.add(null);
+					List<Collection<WeightedRegEx>> singleTierWeightedRegex = new ArrayList<>(1);
+					singleTierWeightedRegex.add(singleWeightedRegex);
 					do {
 						beginningProgress = false;
 						endProgress = false;
 						SnippetRegEx beforeSre = sreStack.peek();
-						SnippetRegEx sreTrim = new SnippetRegEx(beforeSre);
+						SnippetRegEx sreTrim = new SnippetRegEx(beforeSre, caseInsensitive);
 						// Trim from the front or the back, whichever is longer
 						// or is not terminated by a holdout word
 						Token headToken = sreTrim.getBeginningToken();
@@ -635,20 +664,18 @@ public class REDExFactory {
 										.getLastSegmentLength()) {
 							Token removed = sreTrim.trimFromBeginning();
 							if (removed != null) {
+								singleWeightedRegex.set(0, beforeSre);
 								float beforeScore = (beforeChangeScoreFunction == null ? 1
 										: beforeChangeScoreFunction.score(
-												snippets, new REDExtractor(
-														beforeSre,
-														caseInsensitive),
+												snippets, new REDExModel(singleTierWeightedRegex),
 												allowOverMatches,
-												caseInsensitive));
+												caseInsensitive, useTier2));
+								singleWeightedRegex.set(0, sreTrim);
 								float afterScore = (afterChangeScoreFunction == null ? 0
 										: afterChangeScoreFunction.score(
-												snippets, new REDExtractor(
-														sreTrim,
-														caseInsensitive),
+												snippets, new REDExModel(singleTierWeightedRegex),
 												allowOverMatches,
-												caseInsensitive));
+												caseInsensitive, useTier2));
 								if (afterScore < beforeScore) {
 									sreTrim.addToBeginning(removed);
 									beginningProgress = false;
@@ -667,20 +694,20 @@ public class REDExFactory {
 											.getLastSegmentLength()) {
 								Token removed = sreTrim.trimFromEnd();
 								if (removed != null) {
+									singleWeightedRegex.set(0, beforeSre);
 									float beforeScore = (beforeChangeScoreFunction == null ? 1
 											: beforeChangeScoreFunction.score(
-													snippets, new REDExtractor(
-															beforeSre,
-															caseInsensitive),
+													snippets, new REDExModel(
+															singleTierWeightedRegex),
 													allowOverMatches,
-													caseInsensitive));
+													caseInsensitive, useTier2));
+									singleWeightedRegex.set(0, sreTrim);
 									float afterScore = (afterChangeScoreFunction == null ? 0
 											: afterChangeScoreFunction.score(
-													snippets, new REDExtractor(
-															sreTrim,
-															caseInsensitive),
+													snippets, new REDExModel(
+															singleTierWeightedRegex),
 													allowOverMatches,
-													caseInsensitive));
+													caseInsensitive, useTier2));
 									if (afterScore < beforeScore) {
 										sreTrim.addToEnd(removed);
 										endProgress = false;
@@ -722,8 +749,8 @@ public class REDExFactory {
 	 *            A PrintWriter for recording output. May be <code>null</code>.
 	 * @return The cross-validation score.
 	 */
-	public CVScore test(Collection<Snippet> testing, REDExtractor ex,
-			boolean allowOverMatches, boolean caseInsensitive, PrintWriter pw) {
+	public CVScore test(Collection<Snippet> testing, REDExModel ex,
+			boolean allowOverMatches, boolean caseInsensitive, PrintWriter pw, boolean useTier2) {
 		PrintWriter tempLocalPW = null;
 		StringWriter sw = null;
 		if (pw != null) {
@@ -735,7 +762,7 @@ public class REDExFactory {
 				.parallelStream()
 				.map((snippet) -> {
 					return testREDExOnSnippet(ex, allowOverMatches,
-							caseInsensitive, localPW, snippet);
+							caseInsensitive, localPW, snippet, useTier2);
 				}).reduce(new CVScore(), (s, r) -> {
 					s.add(r);
 					return s;
@@ -758,9 +785,9 @@ public class REDExFactory {
 		return score;
 	}
 
-	CVScore testREDExOnSnippet(REDExtractor ex, boolean allowOverMatches,
-			boolean caseInsensitive, final PrintWriter localPW, Snippet snippet) {
-		Set<MatchedElement> predictions = ex.extract(snippet.getText());
+	CVScore testREDExOnSnippet(REDExModel ex, boolean allowOverMatches,
+			boolean caseInsensitive, final PrintWriter localPW, Snippet snippet, boolean useTier2) {
+		Set<MatchedElement> predictions = REDExtractor.extract(ex.getRegexTiers(), snippet.getText(), useTier2);
 		List<String> actual = snippet.getPosLabeledStrings();
 
 		// if case insensitive, convert all predictions to lower case
@@ -924,12 +951,12 @@ public class REDExFactory {
 	}
 
 	private boolean checkForTruePositives(Collection<Snippet> testing,
-			REDExtractor ex, boolean allowOverMatches, boolean caseInsensitive) {
+			REDExtractor ex, boolean allowOverMatches, boolean caseInsensitive, boolean useTier2) {
 		return testing
 				.parallelStream()
 				.map((snippet) -> {
-					Set<MatchedElement> candidates = ex.extract(snippet
-							.getText());
+					Set<MatchedElement> candidates = REDExtractor.extract(ex.getRankedSnippetRegExs(), snippet
+							.getText(), useTier2);
 					List<String> actual = snippet.getPosLabeledStrings();
 
 					if (candidates == null || candidates.size() == 0) {
@@ -1013,8 +1040,8 @@ public class REDExFactory {
 	// }
 
 	interface ScoreFunction {
-		float score(Collection<Snippet> testing, REDExtractor ex,
-				boolean allowOverMatches, boolean caseInsensitive);
+		float score(Collection<Snippet> testing, REDExModel ex,
+				boolean allowOverMatches, boolean caseInsensitive, boolean useTier2);
 	}
 
 	static class NoFalsePositives implements ScoreFunction {
@@ -1030,14 +1057,14 @@ public class REDExFactory {
 		 * condition failed).
 		 */
 		@Override
-		public float score(Collection<Snippet> testing, REDExtractor ex,
-				boolean allowOverMatches, boolean caseInsensitive) {
+		public float score(Collection<Snippet> testing, REDExModel ex,
+				boolean allowOverMatches, boolean caseInsensitive, boolean useTier2) {
 			boolean anyFalsePositives = testing
 					.parallelStream()
 					.map((snippet) -> {
 						CVScore cvs = rexFactory.testREDExOnSnippet(ex,
 								allowOverMatches, caseInsensitive, null,
-								snippet);
+								snippet, useTier2);
 						if (cvs.getFp() > 0) {
 							LOG.debug("FP on snippet: " + snippet.toString());
 						}
@@ -1054,10 +1081,10 @@ public class REDExFactory {
 		 * Returns tp - fp.
 		 */
 		@Override
-		public float score(Collection<Snippet> testing, REDExtractor ex,
-				boolean allowOverMatches, boolean caseInsensitive) {
+		public float score(Collection<Snippet> testing, REDExModel ex,
+				boolean allowOverMatches, boolean caseInsensitive, boolean useTier2) {
 			CVScore score = test(testing, ex, allowOverMatches,
-					caseInsensitive, null);
+					caseInsensitive, null, useTier2);
 			return (float) (score.getTp() - score.getFp());
 		}
 	}
@@ -1067,25 +1094,25 @@ public class REDExFactory {
 		 * Returns the f1 score.
 		 */
 		@Override
-		public float score(Collection<Snippet> testing, REDExtractor ex,
-				boolean allowOverMatches, boolean caseInsensitive) {
+		public float score(Collection<Snippet> testing, REDExModel ex,
+				boolean allowOverMatches, boolean caseInsensitive, boolean useTier2) {
 			CVScore cvs = test(testing, ex, allowOverMatches, caseInsensitive,
-					null);
+					null, useTier2);
 			float f1 = ((float) (2 * cvs.getTp()))
 					/ ((2 * cvs.getTp()) + cvs.getFp() + cvs.getFn());
 			return f1;
 		}
 	}
 
-	public REDExtractor buildModel(final Collection<Snippet> snippets,
+	public REDExModel buildModel(final Collection<Snippet> snippets,
 			final Collection<String> labels, final boolean allowOverMatches,
 			String outputTag, Path outputModelPath, boolean caseInsensitive,
 			List<String> holdouts, boolean useTier2, final boolean generalizeLabeledSegments, final boolean debug)
 			throws IOException {
-		REDExtractor rex = train(snippets, allowOverMatches, outputTag,
+		REDExModel model = train(snippets, allowOverMatches, outputTag,
 				caseInsensitive, true, holdouts, useTier2, generalizeLabeledSegments);
-		REDExtractor.dump(rex, outputModelPath);
-		return rex;
+		REDExModel.dump(model, outputModelPath);
+		return model;
 	}
 
 	public static void main(String[] args) throws ConfigurationException,
@@ -1174,8 +1201,8 @@ public class REDExFactory {
 			if (regexOutputFile != null) {
 				try (FileWriter fw = new FileWriter(regexOutputFile)) {
 					try (PrintWriter pw = new PrintWriter(fw)) {
-						for (String regex : aggregate.getRegExes()) {
-							pw.println(regex);
+						for (WeightedRegEx regex : aggregate.getRegExes()) {
+							pw.println(regex.getRegEx());
 						}
 					}
 				}
@@ -1213,7 +1240,7 @@ public class REDExFactory {
 			}
 
 			LOG.info("training ...");
-			REDExtractor rex = new REDExFactory().train(snippets,
+			REDExModel rex = new REDExFactory().train(snippets,
 					allowOvermatches, "m", caseInsensitive, true, holdouts,
 					useTier2, generalizeCaptureGroups);
 			LOG.info("... done training.");
@@ -1226,7 +1253,7 @@ public class REDExFactory {
 				LOG.info("Output model file already exists. Renaming old file to : "
 						+ oldModel);
 			}
-			REDExtractor.dump(rex, modelFilePath);
+			REDExModel.dump(rex, modelFilePath);
 			LOG.info("... wrote model file to " + modelOutputFile);
 		} else {
 			System.out

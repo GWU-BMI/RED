@@ -21,22 +21,24 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import gov.va.research.red.ex.WeightedRegEx;
+
 /**
  * @author doug
  */
 public class CVResult {
 
 	private CVScore score;
-	private Collection<String> regExes;
+	private Collection<WeightedRegEx> regExes;
 	
-	public CVResult (CVScore score, Collection<String> regExes) {
+	public CVResult (CVScore score, Collection<WeightedRegEx> regExes) {
 		this.score = score;
 		this.regExes = regExes;
 	}
 
 	public static CVResult aggregate(List<CVResult> foldResults) {
 		CVScore aggregateScore = new CVScore();
-		Set<String> regExes = new HashSet<>();
+		Set<WeightedRegEx> regExes = new HashSet<>();
 		for (CVResult fr : foldResults) {
 			if (fr != null) {
 				if (fr.getScore() != null) {			
@@ -59,10 +61,10 @@ public class CVResult {
 	public void setScore(CVScore score) {
 		this.score = score;
 	}
-	public Collection<String> getRegExes() {
+	public Collection<WeightedRegEx> getRegExes() {
 		return regExes;
 	}
-	public void setRegExes(List<String> regExes) {
+	public void setRegExes(List<WeightedRegEx> regExes) {
 		this.regExes = regExes;
 	}
 

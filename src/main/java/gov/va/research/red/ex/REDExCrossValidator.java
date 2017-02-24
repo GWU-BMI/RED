@@ -98,8 +98,8 @@ public class REDExCrossValidator implements CrossValidatable {
 			if (regexOutputFile != null) {
 				try (FileWriter fw = new FileWriter(regexOutputFile)) {
 					try (PrintWriter pw = new PrintWriter(fw)) {
-						for (String regex : aggregate.getRegExes()) {
-							pw.println(regex);
+						for (WeightedRegEx regex : aggregate.getRegExes()) {
+							pw.println(regex.getRegEx());
 						}
 					}
 				}
@@ -267,7 +267,7 @@ public class REDExCrossValidator implements CrossValidatable {
 			AtomicInteger fold = new AtomicInteger(0);
 			for (List<Snippet> partition : partitions) {
 				CVScore score = null;
-				List<String> regExes = null;
+				Collection<WeightedRegEx> regExes = null;
 				try (StringWriter sw = new StringWriter()) {
 					try (PrintWriter pw = new PrintWriter(sw)) {
 						int newFold = fold.addAndGet(1);
@@ -286,7 +286,7 @@ public class REDExCrossValidator implements CrossValidatable {
 						}
 
 						// Train
-						REDExtractor ex = null;
+						REDExModel ex = null;
 						try {
 							ex = trainExtractor(training, allowOverMatches,
 									caseInsensitive, holdouts, useTier2,
@@ -301,10 +301,10 @@ public class REDExCrossValidator implements CrossValidatable {
 							// Test
 							REDExFactory rexe = new REDExFactory();
 							score = rexe.test(testing, ex, allowOverMatches,
-									caseInsensitive, pw);
-							List<List<String>> tieredRegexes = ex.getRegularExpressions();
+									caseInsensitive, pw, useTier2);
+							List<Collection<WeightedRegEx>> tieredRegexes = ex.getRegexTiers();
 							regExes = new ArrayList<>();
-							for (List<String> tierRegexs : tieredRegexes) {
+							for (Collection<WeightedRegEx> tierRegexs : tieredRegexes) {
 								regExes.addAll(tierRegexs);
 							}
 						}
@@ -385,12 +385,12 @@ public class REDExCrossValidator implements CrossValidatable {
 	 * @return an extractor containing regexes discovered during training.
 	 * @throws IOException
 	 */
-	private REDExtractor trainExtractor(List<Snippet> training,
+	private REDExModel trainExtractor(List<Snippet> training,
 			Boolean allowOverMatches, Boolean caseInsensitive,
 			List<String> holdouts, Boolean useTier2, Boolean generalizeLabeledSegments,
 			PrintWriter pw, String outputTag) throws IOException {
 		REDExFactory rexe = new REDExFactory();
-		REDExtractor ex = rexe.train(training, allowOverMatches, outputTag,
+		REDExModel redexModel = rexe.train(training, allowOverMatches, outputTag,
 				caseInsensitive, false, holdouts, useTier2, generalizeLabeledSegments);
 		if (pw != null) {
 			List<Snippet> labelled = new ArrayList<>();
@@ -416,13 +416,12 @@ public class REDExCrossValidator implements CrossValidatable {
 			pw.println();
 			pw.println("--- Trained Regexes:");
 			int rank = 1;
-			if (ex == null) {
-				pw.println("null REDExtractor");
+			if (redexModel == null) {
+				pw.println("null REDExModel");
 			} else {
-				for (Collection<SnippetRegEx> sres : ex
-						.getRankedSnippetRegExs()) {
+				for (Collection<WeightedRegEx> tier : redexModel.getRegexTiers()) {
 					pw.println("--- Rank " + rank);
-					for (SnippetRegEx trainedSre : sres) {
+					for (WeightedRegEx trainedSre : tier) {
 						pw.println(trainedSre.toString());
 						pw.println("----------");
 					}
@@ -430,7 +429,7 @@ public class REDExCrossValidator implements CrossValidatable {
 				}
 			}
 		}
-		return ex;
+		return redexModel;
 	}
 
 }

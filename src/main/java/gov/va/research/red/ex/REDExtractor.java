@@ -1,20 +1,13 @@
 package gov.va.research.red.ex;
 
-import gov.va.research.red.CSVReader;
-import gov.va.research.red.MatchedElement;
-import gov.va.research.red.SnippetData;
-import gov.va.vinci.krb.KrbConnectionFactory;
-
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.Reader;
 import java.io.StringWriter;
 import java.io.Writer;
-import java.net.URL;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -37,10 +30,8 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.Future;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
@@ -61,9 +52,10 @@ import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
-import org.python.google.common.collect.Sets;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.google.gson.Gson;
 
 import bioc.BioCAnnotation;
 import bioc.BioCCollection;
@@ -71,10 +63,12 @@ import bioc.BioCDocument;
 import bioc.BioCPassage;
 import bioc.io.BioCCollectionWriter;
 import bioc.io.BioCFactory;
+import gov.va.research.red.CSVReader;
+import gov.va.research.red.MatchedElement;
+import gov.va.research.red.SnippetData;
+import gov.va.vinci.krb.KrbConnectionFactory;
 
-import com.google.gson.Gson;
-
-public class REDExtractor implements Extractor {
+public class REDExtractor implements Extractor, RegexTiers {
 	private static transient final Logger LOG = LoggerFactory.getLogger(REDExtractor.class);
 	private static final String LS = System.getProperty("line.separator");
 	private static final Set<MatchedElement> EMPTY_SET = Collections.unmodifiableSet(new HashSet<>());
@@ -92,8 +86,7 @@ public class REDExtractor implements Extractor {
 		}
 	});
 
-
-	private List<Collection<SnippetRegEx>> rankedSnippetRegExs;
+	private List<Collection<WeightedRegEx/*SnippetRegEx*/>> rankedSnippetRegExs;
 	private String metadata;
 	private boolean caseInsensitive;
 	private boolean useTier2;
@@ -103,24 +96,24 @@ public class REDExtractor implements Extractor {
 		return super.toString() + " [metadata=" + metadata + "]";
 	}
 
-	public REDExtractor(Collection<SnippetRegEx> sres, boolean caseInsensitive) {
-		List<Collection<SnippetRegEx>> rankedSnippetRegExs = new ArrayList<>(1);
+	public REDExtractor(Collection<WeightedRegEx> sres, boolean caseInsensitive) {
+		List<Collection<WeightedRegEx>> rankedSnippetRegExs = new ArrayList<>(1);
 		rankedSnippetRegExs.add(sres);
 		init(rankedSnippetRegExs, null, caseInsensitive, false);
 	}
 
 	public REDExtractor(SnippetRegEx snippetRegEx, boolean caseInsensitive) {
-		List<Collection<SnippetRegEx>> rankedSnippetRegExs = new ArrayList<>(1);
+		List<Collection<WeightedRegEx>> rankedSnippetRegExs = new ArrayList<>(1);
 		rankedSnippetRegExs.add(Arrays.asList(new SnippetRegEx[] { snippetRegEx }));
 		init(rankedSnippetRegExs, null, caseInsensitive, false);
 	}
 	
-	public REDExtractor(List<Collection<SnippetRegEx>> rankedSres, String metadata, boolean caseInsensitive,
+	public REDExtractor(List<Collection<WeightedRegEx>> rankedSres, String metadata, boolean caseInsensitive,
 			boolean useTier2) {
 		init(rankedSres, metadata, caseInsensitive, useTier2);
 	}
 	
-	public void init(List<Collection<SnippetRegEx>> rankedSres, String metadata, boolean caseInsensitive,
+	public void init(List<Collection<WeightedRegEx>> rankedSres, String metadata, boolean caseInsensitive,
 			boolean useTier2) {
 		this.rankedSnippetRegExs = rankedSres;
 		this.metadata = metadata;
@@ -128,26 +121,71 @@ public class REDExtractor implements Extractor {
 		this.useTier2 = useTier2;
 	}
 
-	@Override
-	public Set<MatchedElement> extract(String target) {
+	public static Set<MatchedElement> extract(List<Collection<WeightedRegEx>> regexeTierList, String target, boolean useTier2) {
 		if (target == null || target.length() == 0) {
 			return null;
 		}
 		ConcurrentMap<MatchedElement.MatchPos, MatchedElement.MatchData> returnMap = null;
 		boolean tier1 = true;
-		ConcurrentSkipListSet<SnippetRegEx> reject = new ConcurrentSkipListSet<>();
-		
-		for (Collection<SnippetRegEx> snippetREs : this.rankedSnippetRegExs) {
-			if ((useTier2 || tier1) && snippetREs != null && !snippetREs.isEmpty()) {
-				returnMap = snippetREs.parallelStream().flatMap((sre) -> {
-					MatchFinder mf = new MatchFinder(sre, target, caseInsensitive);
+		ConcurrentSkipListSet<WeightedRegEx> reject = new ConcurrentSkipListSet<>();
+
+		for (Collection<WeightedRegEx> regexTier : regexeTierList) {
+			if ((useTier2 || tier1) && regexTier != null && !regexTier.isEmpty()) {
+				returnMap = regexTier.parallelStream().flatMap((wrx) -> {
+					MatchFinder mf = new MatchFinder(wrx, target);
 					Future<Set<MatchedElement>> future = EXECUTOR.submit(mf);
 					Set<MatchedElement> mes = EMPTY_SET;
 					try {
 						mes = future.get(TIMEOUT, TIMEOUT_UNIT);
 					} catch (TimeoutException e) {
-						LOG.warn("MatchFinder timed out after " + TIMEOUT + " " + TIMEOUT_UNIT + " on snippet regular expression '" + sre + "' applied to target '" + target + "'");
-						reject.add(sre);
+						LOG.warn("MatchFinder timed out after " + TIMEOUT + " " + TIMEOUT_UNIT + " on regular expression '" + wrx.getRegEx() + "' applied to target '" + target + "'");
+						reject.add(wrx);
+					} catch (InterruptedException | ExecutionException e) {
+						try (	StringWriter sw = new StringWriter();
+								PrintWriter pw = new PrintWriter(sw)) {
+							e.printStackTrace(pw);
+							pw.flush();
+							sw.flush();
+							LOG.error(sw.toString());
+						} catch (IOException e1) {
+							e1.printStackTrace();
+						}
+					} finally {
+						future.cancel(true);
+					}
+					return mes.parallelStream();
+				}).collect(Collectors.toConcurrentMap(
+						// MatchedElement.MatchData::getMatchPos
+						new Function<MatchedElement, MatchedElement.MatchPos>() {
+							public MatchedElement.MatchPos apply(MatchedElement me) {
+								return me.getMatchPos();
+							};
+						},
+						// MatchedElement.MatchData::getMatchData
+						new Function<MatchedElement, MatchedElement.MatchData>() {
+							public MatchedElement.MatchData apply(MatchedElement me) {
+								return me.getMatchData();
+							};
+						}, new java.util.function.BinaryOperator<MatchedElement.MatchData>() {
+							public MatchedElement.MatchData apply(MatchedElement.MatchData md1,
+									MatchedElement.MatchData md2) {
+								md1.combine(md2);
+								return md1;
+							};
+						}));
+			}
+		}
+		for (Collection<WeightedRegEx> wregexs : regexeTierList) {
+			if ((useTier2 || tier1) && wregexs != null && !wregexs.isEmpty()) {
+				returnMap = wregexs.parallelStream().flatMap((wrx) -> {
+					MatchFinder mf = new MatchFinder(wrx, target);
+					Future<Set<MatchedElement>> future = EXECUTOR.submit(mf);
+					Set<MatchedElement> mes = EMPTY_SET;
+					try {
+						mes = future.get(TIMEOUT, TIMEOUT_UNIT);
+					} catch (TimeoutException e) {
+						LOG.warn("MatchFinder timed out after " + TIMEOUT + " " + TIMEOUT_UNIT + " on regular expression '" + wrx.getRegEx() + "' applied to target '" + target + "'");
+						reject.add(wrx);
 					} catch (InterruptedException | ExecutionException e) {
 						try (	StringWriter sw = new StringWriter();
 								PrintWriter pw = new PrintWriter(sw)) {
@@ -189,8 +227,6 @@ public class REDExtractor implements Extractor {
 			}
 		}
 
-		// Remove regexes that caused timeouts
-		this.rankedSnippetRegExs.removeAll(reject);
 		if (returnMap == null || returnMap.isEmpty()) {
 			return new HashSet<>(0);
 		}
@@ -225,11 +261,11 @@ public class REDExtractor implements Extractor {
 
 	}
 
-	public List<Collection<SnippetRegEx>> getRankedSnippetRegExs() {
+	public List<Collection<WeightedRegEx>> getRankedSnippetRegExs() {
 		return this.rankedSnippetRegExs;
 	}
 
-	public void setRankedSnippetRegExs(List<Collection<SnippetRegEx>> rankedSnippetRegExs) {
+	public void setRankedSnippetRegExs(List<Collection<WeightedRegEx>> rankedSnippetRegExs) {
 		this.rankedSnippetRegExs = rankedSnippetRegExs;
 	}
 
@@ -241,33 +277,39 @@ public class REDExtractor implements Extractor {
 		this.metadata = metadata;
 	}
 
-	public List<List<String>> getRegularExpressions() {
-		List<List<String>> tierRegexs = new ArrayList<>(this.rankedSnippetRegExs.size());
-		for (Collection<SnippetRegEx> sres : this.rankedSnippetRegExs) {
-			List<String> regexs = new ArrayList<>(sres.size());
-			tierRegexs.add(regexs);
-			for (SnippetRegEx sre : sres) {
-				regexs.add(sre.toString());
-			}
-		}
-		return tierRegexs;
-	}
+//	public List<List<WeightedRegex>> getWeightedRegularExpressions() {
+//		List<List<WeightedRegex>> tierRegexs = new ArrayList<>(this.rankedSnippetRegExs.size());
+//		for (Collection<SnippetRegEx> sres : this.rankedSnippetRegExs) {
+//			List<WeightedRegex> regexs = new ArrayList<>(sres.size());
+//			tierRegexs.add(regexs);
+//			for (SnippetRegEx sre : sres) {
+//				regexs.add(sre.toWeightedRegex(this.caseInsensitive));
+//			}
+//		}
+//		return tierRegexs;
+//	}
+	
+//	public REDExModel toREDExModel() {
+//		return new REDExModel(getWeightedRegularExpressions());
+//	}
 
-	private class MatchFinder implements Callable<Set<MatchedElement>> {
-		SnippetRegEx sre;
+	private static class MatchFinder implements Callable<Set<MatchedElement>> {
+		WeightedRegEx weightedRegex;
 		String target;
-		boolean caseInsensitive;
 
-		public MatchFinder(SnippetRegEx sre, String target, boolean caseInsensitive) {
-			this.sre = sre;
+		public MatchFinder(WeightedRegEx weightedRegex, String target) {
+			this.weightedRegex = weightedRegex;
 			this.target = target;
-			this.caseInsensitive = caseInsensitive;
 		}
+
+//		public MatchFinder(SnippetRegEx sre, String target, boolean caseInsensitive) {
+//			this(sre.toWeightedRegex(caseInsensitive), target);
+//		}
 
 		@Override
 		public Set<MatchedElement> call() {
 			Set<MatchedElement> matchedElements = new HashSet<>();
-			Pattern p = sre.getPattern(caseInsensitive);
+			Pattern p = weightedRegex.getPattern();
 			Matcher matcher = p.matcher(target);
 			if (matcher.find()) {
 				if (matcher.groupCount() < 1) {
@@ -279,9 +321,9 @@ public class REDExtractor implements Extractor {
 						int startPos = matcher.start(1);
 						int endPos = matcher.end(1);
 						Set<String> matchingRegexes = new HashSet<>(1);
-						matchingRegexes.add(sre.toString());
+						matchingRegexes.add(p.pattern());
 						matchedElements.add(new MatchedElement(startPos, endPos, candidateLS, matchingRegexes,
-								sre.getSensitivity()));
+								weightedRegex.getWeight()));
 					}
 				}
 			}
@@ -289,56 +331,56 @@ public class REDExtractor implements Extractor {
 		}
 	}
 
-	/**
-	 * Dumps (serializes) the REDExtractor to a file.
-	 * 
-	 * @param rex
-	 *            The REDExtractor to dump.
-	 * @param path
-	 *            The path of the file to receive the dumped REDExtractor.
-	 * @throws IOException
-	 *             if the output file cannot be written.
-	 */
-	public static void dump(REDExtractor rex, Path path) throws IOException {
-		Gson gson = new Gson();
-		String json = gson.toJson(rex);
-		Files.write(path, json.getBytes(), StandardOpenOption.WRITE, StandardOpenOption.CREATE);
-	}
-
-	/**
-	 * Loads (deserializes) a REDExtractor from a file.
-	 * 
-	 * @param path
-	 *            The path of the file containing the dumped REDExtractor.
-	 * @return a REDExtractor represented in the file.
-	 * @throws IOException
-	 *             if the input file cannot be read.
-	 */
-	public static REDExtractor load(Path path) throws IOException {
-		Gson gson = new Gson();
-		String json = new String(Files.readAllBytes(path));
-		REDExtractor rex = gson.fromJson(json, REDExtractor.class);
-		return rex;
-	}
-
-	/**
-	 * Loads (deserializes) a REDExtractor from a reader.
-	 * 
-	 * @param reader
-	 *            The reader for the dumped REDExtractor.
-	 * @return a REDExtractor represented by the reader.
-	 * @throws IOException
-	 *             if the input file cannot be read.
-	 */
-	public static REDExtractor load(Reader reader) throws IOException {
-		try (Scanner s = new Scanner(reader)) {
-			s.useDelimiter("\\Z");
-			String json = s.next();
-			Gson gson = new Gson();
-			REDExtractor rex = gson.fromJson(json, REDExtractor.class);
-			return rex;
-		}
-	}
+//	/**
+//	 * Dumps (serializes) the REDExtractor to a file.
+//	 * 
+//	 * @param rex
+//	 *            The REDExtractor to dump.
+//	 * @param path
+//	 *            The path of the file to receive the dumped REDExtractor.
+//	 * @throws IOException
+//	 *             if the output file cannot be written.
+//	 */
+//	public static void dump(REDExtractor rex, Path path) throws IOException {
+//		Gson gson = new Gson();
+//		String json = gson.toJson(rex);
+//		Files.write(path, json.getBytes(), StandardOpenOption.WRITE, StandardOpenOption.CREATE);
+//	}
+//
+//	/**
+//	 * Loads (deserializes) a REDExtractor from a file.
+//	 * 
+//	 * @param path
+//	 *            The path of the file containing the dumped REDExtractor.
+//	 * @return a REDExtractor represented in the file.
+//	 * @throws IOException
+//	 *             if the input file cannot be read.
+//	 */
+//	public static REDExtractor load(Path path) throws IOException {
+//		Gson gson = new Gson();
+//		String json = new String(Files.readAllBytes(path));
+//		REDExtractor rex = gson.fromJson(json, REDExtractor.class);
+//		return rex;
+//	}
+//
+//	/**
+//	 * Loads (deserializes) a REDExtractor from a reader.
+//	 * 
+//	 * @param reader
+//	 *            The reader for the dumped REDExtractor.
+//	 * @return a REDExtractor represented by the reader.
+//	 * @throws IOException
+//	 *             if the input file cannot be read.
+//	 */
+//	public static REDExtractor load(Reader reader) throws IOException {
+//		try (Scanner s = new Scanner(reader)) {
+//			s.useDelimiter("\\Z");
+//			String json = s.next();
+//			Gson gson = new Gson();
+//			REDExtractor rex = gson.fromJson(json, REDExtractor.class);
+//			return rex;
+//		}
+//	}
 
 	/**
 	 * Main entry point for standalone execution of a REDExtractor
@@ -418,16 +460,15 @@ public class REDExtractor implements Extractor {
 		} catch (LoginException | IOException | SQLException e) {
 			throw new RuntimeException(e);
 		}
-		List<REDExtractor> redexs = new ArrayList<>(models.length);
+		List<REDExModel> redexs = new ArrayList<>(models.length);
 		for (Path model : models) {
-			REDExtractor redex = REDExtractor.load(model);
-			redex.setUseTier2(useTier2);
-			redexs.add(redex);
+			REDExModel redexModel = REDExModel.load(model);
+			redexs.add(redexModel);
 		}
 		Map<String, Collection<MatchedElement>> docMatches = docId2Text.entrySet().parallelStream().map((entry) -> {
 			DocMatches dm = new DocMatches(entry.getKey(), new HashSet<MatchedElement>());
-			for (REDExtractor redex : redexs) {
-				Set<MatchedElement> mes = redex.extract(entry.getValue());
+			for (REDExModel redex : redexs) {
+				Set<MatchedElement> mes = REDExtractor.extract(redex.getRegexTiers(), entry.getValue(), useTier2);
 				if (mes != null && mes.size() > 0) {
 					dm.getMatchedElements().addAll(mes);
 				}
@@ -550,10 +591,9 @@ public class REDExtractor implements Extractor {
 			System.err.println("REDExtractor running using:" + LS + "\tmodel file: " + Arrays.asList(models) + LS
 					+ "\tinput files: " + files.toString() + LS + "\toutput: "
 					+ (outputFile == null ? "<stdout>" : outputFile));
-			List<REDExtractor> redexs = new ArrayList<>(models.length);
+			List<REDExModel> redexs = new ArrayList<>(models.length);
 			for (Path model : models) {
-				REDExtractor redex = REDExtractor.load(model);
-				redex.setUseTier2(useTier2);
+				REDExModel redex = REDExModel.load(model);
 				if (redex.getMetadata() == null) {
 					redex.setMetadata(model.getFileName().toString());
 				} else {
@@ -574,8 +614,8 @@ public class REDExtractor implements Extractor {
 				if (file.toString().toLowerCase().endsWith(".csv")) {
 					Collection<SnippetData> sdColl = CSVReader.readSnippetData(contents, true);
 					for (SnippetData sd : sdColl) {
-						for (REDExtractor rex : redexs) {
-							Set<MatchedElement> mes = rex.extract(sd.getSnippetText());
+						for (REDExModel rex : redexs) {
+							Set<MatchedElement> mes = REDExtractor.extract(rex.getRegexTiers(), sd.getSnippetText(), useTier2);
 							for (MatchedElement me : mes) {
 								BioCAnnotation biocAnn = new BioCAnnotation();
 								biocAnn.setID(String.valueOf(annId++));
@@ -590,8 +630,8 @@ public class REDExtractor implements Extractor {
 						}
 					}
 				} else {
-					for (REDExtractor rex : redexs) {
-						Set<MatchedElement> mes = rex.extract(contents);
+					for (REDExModel rex : redexs) {
+						Set<MatchedElement> mes = REDExtractor.extract(rex.getRegexTiers(), contents, useTier2);
 						for (MatchedElement me : mes) {
 							BioCAnnotation biocAnn = new BioCAnnotation();
 							biocAnn.setID(String.valueOf(annId++));
@@ -682,5 +722,10 @@ public class REDExtractor implements Extractor {
 
 	public void setUseTier2(boolean useTier2) {
 		this.useTier2 = useTier2;
+	}
+
+	@Override
+	public List<Collection<WeightedRegEx>> getRegexTiers() {
+		return this.rankedSnippetRegExs;
 	}
 }

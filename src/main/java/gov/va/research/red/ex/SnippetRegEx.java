@@ -18,6 +18,7 @@ package gov.va.research.red.ex;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.ListIterator;
@@ -38,7 +39,7 @@ import gov.va.research.red.Tokenizer;
  * @author doug
  *
  */
-public class SnippetRegEx {
+public class SnippetRegEx implements WeightedRegEx {
 
 	private static final Logger LOG = LoggerFactory.getLogger(SnippetRegEx.class);
 
@@ -47,13 +48,16 @@ public class SnippetRegEx {
 	private static final Pattern DIGIT_TEXT_PATTERN = Pattern.compile(DIGIT_TEXT);
 	private List<Segment> segments;
 	private transient Pattern pattern;
-	private double sensitivity;
+	private String regEx;
+	private double weight;
+	private boolean caseInsensitive;
 	
 	/**
 	 * Snippet constructor
 	 * @param snippet The Snippet to use for the construction.
 	 */
-	public SnippetRegEx(Snippet snippet) {
+	public SnippetRegEx(Snippet snippet, boolean caseInsensitive) {
+		this.caseInsensitive = caseInsensitive;
 		segments = new ArrayList<Segment>(snippet.getPosLabeledSegments().size() + 2);
 		int prevEnd = 0;
 		for (LabeledSegment ls : snippet.getPosLabeledSegments()) {
@@ -82,7 +86,8 @@ public class SnippetRegEx {
 	 * Copy constructor
 	 * @param snippetRegEx The SnippetRegEx to copy.
 	 */
-	public SnippetRegEx(SnippetRegEx snippetRegEx) {
+	public SnippetRegEx(SnippetRegEx snippetRegEx, boolean caseInsensitive) {
+		this.caseInsensitive = caseInsensitive;
 		segments = new ArrayList<Segment>(snippetRegEx.segments.size());
 		for (Segment segment : snippetRegEx.segments) {
 			List<Token> newTokens = new ArrayList<Token>(segments.size());
@@ -128,44 +133,46 @@ public class SnippetRegEx {
 
 	@Override
 	public String toString() {
-		if (pattern == null) {
-			pattern = getPattern(true);
+		if (regEx == null) {
+			regEx = getRegEx();
 		}
-		return pattern.toString();
+		return regEx;
 	}
 
 	/**
 	 * @return The java.lang.String representation of the regular expression.
 	 */
-	private String getRegEx(boolean caseInsensitive) {
-		StringBuilder regex = new StringBuilder(caseInsensitive ? "(?i)" : "");
-		StringBuilder segmentSB = new StringBuilder();
-		for (Segment segment : segments) {
-			segmentSB.setLength(0);
-			for (Token token : segment.getTokens()) {
-				segmentSB.append(token.toRegEx());
-			}
-			String segmentStr = segmentSB.toString();
-			if (segment.isLabeled()) {
-				// A capture group looking like ((?:whatever)) does not work, so remove the (?: piece
-				if (segmentStr.startsWith("(?:") && segmentStr.endsWith(")") && segment.getTokens().size() == 1) {
-					segmentStr = "(" + segmentStr.substring(3);
+	public String getRegEx() {
+		if (this.regEx == null) {
+			StringBuilder regexSB = new StringBuilder(caseInsensitive ? "(?i)" : "");
+			StringBuilder segmentSB = new StringBuilder();
+			for (Segment segment : segments) {
+				segmentSB.setLength(0);
+				for (Token token : segment.getTokens()) {
+					segmentSB.append(token.toRegEx());
 				}
-				regex.append("(" + segmentStr + ")");
-			} else {
-				regex.append(segmentStr);
+				String segmentStr = segmentSB.toString();
+				if (segment.isLabeled()) {
+					// A capture group looking like ((?:whatever)) does not work, so remove the (?: piece
+					if (segmentStr.startsWith("(?:") && segmentStr.endsWith(")") && segment.getTokens().size() == 1) {
+						segmentStr = "(" + segmentStr.substring(3);
+					}
+					regexSB.append("(" + segmentStr + ")");
+				} else {
+					regexSB.append(segmentStr);
+				}
 			}
+			this.regEx = regexSB.toString();
 		}
-		return regex.toString();
+		return this.regEx;
 	}
 	
 	/**
-	 * @param caseInsensitive if <code>true</code> then the pattern is case-insensitive.
 	 * @return The java.util.regex.Pattern representation of the regular expression.
 	 */
-	public Pattern getPattern(boolean caseInsensitive) {
+	public Pattern getPattern() {
 		if (pattern == null) {
-			String regex = getRegEx(caseInsensitive);
+			String regex = getRegEx();
 			pattern = Pattern.compile(regex);
 		}
 		return pattern;
@@ -181,7 +188,7 @@ public class SnippetRegEx {
 				if (segment.isLabeled())
 				lsList.add(segment);
 			}
-			return lsList;
+			return Collections.unmodifiableList(lsList);
 		}
 		return null;
 	}
@@ -191,6 +198,7 @@ public class SnippetRegEx {
 	 * @param labeledSegment The segment with which to replace all labeled segments.
 	 */
 	public void setLabeledSegments(Segment labeledSegment) {
+		dirty();
 		if (segments != null && segments.size() > 0) {
 			ListIterator<Segment> segInt = segments.listIterator();
 			while (segInt.hasNext()) {
@@ -204,7 +212,7 @@ public class SnippetRegEx {
 			segments.add(labeledSegment);
 		}
 	}
-	
+
 	/**
 	 * @return A list of all unlabeled segments.
 	 */
@@ -216,7 +224,7 @@ public class SnippetRegEx {
 					ulsList.add(segment);
 				}
 			}
-			return ulsList;
+			return Collections.unmodifiableList(ulsList);
 		}
 		return null;
 	}
@@ -261,6 +269,7 @@ public class SnippetRegEx {
 					String tokenRegex = "(?:\\d+" + (segment.isLabeled() ? "|" : "?|") + DIGIT_TEXT + ")";
 					lsIt.set(new Token(tokenRegex, TokenType.REGEX));
 					changed = true;
+					dirty();
 				}
 			}
 		}
@@ -307,6 +316,7 @@ public class SnippetRegEx {
 					if (newToken != null) {
 						lsIt.set(newToken);
 						changed = true;
+						dirty();
 					}
 				}
 			}
@@ -327,6 +337,7 @@ public class SnippetRegEx {
 				if (TokenType.WHITESPACE.equals(t.getType())) {
 					lsIt.set(new Token("\\s{1," + ((int)Math.ceil(t.getString().length() * 2.1)) + "}?", TokenType.REGEX));
 					changed = true;
+					dirty();
 				}
 			}
 		}
@@ -334,10 +345,12 @@ public class SnippetRegEx {
 	}
 
 	public Token trimFromBeginning() {
+		dirty();
 		return getBeginningToken(true);
 	}
 	
 	public Token trimFromEnd() {
+		dirty();
 		return getEndToken(true);
 	}
 	
@@ -402,6 +415,7 @@ public class SnippetRegEx {
 	 * @param token The token to add.
 	 */
 	public void addToBeginning(Token token) {
+		dirty();
 		if (segments != null) {
 			if (segments.size() > 0) {
 				if (segments.get(0) == null) {
@@ -422,6 +436,7 @@ public class SnippetRegEx {
 	 * @param token The token to add.
 	 */
 	public void addToEnd(Token token) {
+		dirty();
 		if (segments != null) {
 			if (segments.size() > 0) {
 				int lastSegIdx = segments.size() - 1;
@@ -511,19 +526,18 @@ public class SnippetRegEx {
 		}
 	}
 
-	/**
-	 * Sets the sensitivity of this regular expression.
-	 * @param sensitivity The sensitivity of this regular expression.
-	 */
-	public void setSensitivity(double sensitivity) {
-		this.sensitivity = sensitivity;
+	public void setWeight(double weight) {
+		this.weight = weight;
 	}
 	
-	/**
-	 * @return The sensitivity of this regular expression.
-	 */
-	public double getSensitivity() {
-		return this.sensitivity;
+	@Override
+	public double getWeight() {
+		return this.weight;
+	}
+	
+	private void dirty() {
+		this.regEx = null;
+		this.pattern = null;
 	}
 
 }
