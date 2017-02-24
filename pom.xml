@@ -124,7 +124,6 @@
   <scm>
   	<connection>scm:git:http://inlp.bmi.utah.edu/git/RED.git/</connection>
   	<url>http://inlp.bmi.utah.edu/git/RED.git/</url>
-    <tag>RED-2017.01.3</tag>
   </scm>
   <distributionManagement>
 	<repository>
