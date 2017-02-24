@@ -55,6 +55,10 @@ public class SnippetRegEx implements WeightedRegEx {
 	/**
 	 * Snippet constructor
 	 * @param snippet The Snippet to use for the construction.
+	 * @param caseInsensitive If <code>true</code> then all
+	 *     text is converted to lowercase (in order, for
+	 *     example, to make case-insensitive comparisons
+	 *     easier)
 	 */
 	public SnippetRegEx(Snippet snippet, boolean caseInsensitive) {
 		this.caseInsensitive = caseInsensitive;
@@ -85,6 +89,10 @@ public class SnippetRegEx implements WeightedRegEx {
 	/**
 	 * Copy constructor
 	 * @param snippetRegEx The SnippetRegEx to copy.
+	 * @param caseInsensitive If <code>true</code> then all
+	 *     text is converted to lowercase (in order, for
+	 *     example, to make case-insensitive comparisons
+	 *     easier)
 	 */
 	public SnippetRegEx(SnippetRegEx snippetRegEx, boolean caseInsensitive) {
 		this.caseInsensitive = caseInsensitive;

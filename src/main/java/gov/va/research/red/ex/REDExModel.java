@@ -39,7 +39,7 @@ public class REDExModel implements RegexTiers {
 
 	/**
 	 * Copy Constructor
-	 * @param regexModel Model to use to construct this new REDExModel.
+	 * @param redexModel Model to use to construct this new REDExModel.
 	 */
 	public REDExModel(REDExModel redexModel) {
 		this(redexModel.regexTiers);

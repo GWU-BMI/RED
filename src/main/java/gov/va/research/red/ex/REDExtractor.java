@@ -397,7 +397,8 @@ public class REDExtractor implements Extractor, RegexTiers {
 	 *             if any of the files cannot be accessed.
 	 * @throws XMLStreamException
 	 *             if a problem occurs with the output xml file.
-	 * @throws ParseException 
+	 * @throws ParseException
+	 *             if command line options could not be parsed.
 	 */
 	public static void main(String[] args) throws IOException, XMLStreamException, ParseException {
 		Options options = buildOptions();

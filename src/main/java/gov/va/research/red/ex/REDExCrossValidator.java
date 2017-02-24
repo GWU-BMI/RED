@@ -215,6 +215,9 @@ public class REDExCrossValidator implements CrossValidatable {
 	 * @param useTier2
 	 *            if <code>false</code> then tier 2 regular expressions will not
 	 *            be used, only tier 1.
+	 * @param generalizeLabeledSegments
+	 *            if <code>true</code> then the labeled segments (i.e. capture
+	 *            groups) will be generalized. Default is <code>true</code>.
 	 * @param stopAfterFirstFold
 	 *            If <code>true</code> then the cross validation quits after the
 	 *            first fold.
@@ -350,6 +353,9 @@ public class REDExCrossValidator implements CrossValidatable {
 	 * @param useTier2
 	 *            if <code>false</code> then tier 2 regular expressions will not
 	 *            be used, only tier 1.
+	 * @param generalizeLabeledSegments
+	 *            if <code>true</code> then the labeled segments (i.e. capture
+	 *            groups) will be generalized. Default is <code>true</code>.
 	 * @param stopAfterFirstFold
 	 *            If <code>true</code> then the cross validation quits after the
 	 *            first fold.

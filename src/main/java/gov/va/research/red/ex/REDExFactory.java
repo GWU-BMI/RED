@@ -747,6 +747,9 @@ public class REDExFactory {
 	 *            case-insensitive manner.
 	 * @param pw
 	 *            A PrintWriter for recording output. May be <code>null</code>.
+	 * @param useTier2
+	 *            if <code>false</code> then tier 2 regular expressions will not
+	 *            be used, only tier 1.
 	 * @return The cross-validation score.
 	 */
 	public CVScore test(Collection<Snippet> testing, REDExModel ex,
