@@ -20,12 +20,14 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
+import gov.va.research.red.regex.PatternAdapter;
+
 /**
  * @author vhaislreddd
  *
  */
 public interface CrossValidatable {
 
-	public List<CVResult> crossValidate(List<File> vttFiles, String label, int folds, boolean shuffle, int limit) throws IOException;
+	public List<CVResult> crossValidate(List<File> vttFiles, String label, int folds, boolean shuffle, int limit, Class<? extends PatternAdapter> patternAdapterClass) throws IOException;
 
 }

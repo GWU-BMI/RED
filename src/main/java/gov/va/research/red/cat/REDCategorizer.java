@@ -5,6 +5,7 @@ import gov.va.research.red.LabeledSegment;
 import gov.va.research.red.RegEx;
 import gov.va.research.red.Snippet;
 import gov.va.research.red.VTTReader;
+import gov.va.research.red.VTTSnippetParser;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -35,8 +36,6 @@ public class REDCategorizer {
 	static final Map<RegEx, Pattern> patternCache = new HashMap<RegEx, Pattern>();
 	private static final boolean PERFORM_TRIMMING = false;
 	private static final boolean PERFORM_TRIMMING_OVERALL = true;
-	//private static final boolean PERFORM_USELESS_REMOVAL = true;
-	private static final boolean FILE_TRANSFER = false;
 	private static final String COLLAPSE_PATTERN = "\\(\\?:\\[A-Z\\]\\{1,\\d+\\}\\(\\?:\\\\s\\{1,\\d+\\}\\|\\\\p\\{Punct\\}\\\\s\\{1,\\d+\\}\\)\\)\\{1,\\d+\\}";
 	private static final Pattern STARTS_WITH_COLLAPSE_PATTERN = Pattern.compile("^"+COLLAPSE_PATTERN);
 	private static final Pattern ENDS_WITH_COLLAPSE_PATTERN = Pattern.compile(COLLAPSE_PATTERN+"$");
@@ -55,22 +54,14 @@ public class REDCategorizer {
 		VTTReader vttr = new VTTReader();
 		List<Snippet> snippetsYes = new ArrayList<>();
 		for (String yesLabel : yesLabels) {
-			snippetsYes.addAll(vttr.readSnippets(vttFile, yesLabel, true));
+			snippetsYes.addAll(vttr.readSnippets(vttFile, yesLabel, new VTTSnippetParser()));
 		}
-		//check if there is a labeled segment starting with "MPRESSION" (missing "I" from "IMPRESSION")
-		/*for (Snippet s: snippetsYes) {
-			LabeledSegment ls = s.getLabeledSegment("yes");
-			if (ls!=null){
-				String segment = ls.getLabeledString();
-				System.out.println(segment); 
-			}
-		}*/
 		List<Snippet> snippetsNo = new ArrayList<>();
 		for (String noLabel : noLabels) {
-			snippetsNo.addAll(vttr.readSnippets(vttFile, noLabel, true));
+			snippetsNo.addAll(vttr.readSnippets(vttFile, noLabel, new VTTSnippetParser()));
 		}
 		List<Snippet> snippetsNoLabel = new ArrayList<Snippet>();
-		snippetsNoLabel.addAll(vttr.readSnippets(vttFile, true));
+		snippetsNoLabel.addAll(vttr.readSnippets(vttFile, new VTTSnippetParser()));
 		System.out.println("snippetsYes.size = "+snippetsYes.size());
 		System.out.println("snippetsNo.size = "+snippetsNo.size());
 		System.out.println("snippetsNoLabel.size = "+snippetsNoLabel.size());
@@ -81,26 +72,7 @@ public class REDCategorizer {
 		snippetsNoAndUnlabeled.addAll(snippetsNo);
 		snippetsNoAndUnlabeled.addAll(snippetsNoLabel);
 		Map<String, Collection<RegEx>> rtMap =  generateRegexClassifications(snippetsYes, snippetsNo, snippetsNoLabel, yesLabels, noLabels);
-		/*if (FILE_TRANSFER) {
-			printSnippetsFile(snippetsYes, yesLabels, "Positive");
-			printSnippetsFile(snippetsNo, noLabels, "Negative");
-			Map<String,Integer> wordFreqMapPos = new HashMap<>();
-			Map<String,Integer> wordFreqMapNeg = new HashMap<>();
-			freqPrinter(wordFreqMapPos, "Positive");
-			freqPrinter(wordFreqMapNeg, "Negative");
-		}
-		
-		List<Snippet> snippetsYesNo = new ArrayList<>();
-		snippetsYesNo.addAll(snippetsYes);
-		snippetsYesNo.addAll(snippetsNo);
-		PrintWriter pw = new PrintWriter(new File("CategorizerError.txt"));
-		CVScore testScore = testClassifier(snippetsYesNo, rtMap.get("true"), rtMap.get("false"), null, yesLabels, noLabels,pw);
-		pw.close();
-		System.out.println("--- Test on the original dataset ---");
-		System.out.println(testScore.getEvaluation()); //*/
-		/*testScore = testClassifier2(snippetsYesNo, rtMap.get("true"), rtMap.get("false"), null, yesLabels, noLabels);
-		System.out.println("--- Test on the original dataset ---");
-		System.out.println(testScore.getEvaluation()); //*/
+
 		return rtMap;
 	}
 	
@@ -132,8 +104,8 @@ public class REDCategorizer {
 		snippetsAll.addAll(snippetsNo);
 		snippetsAll.addAll(snippetsNoLabel);
 		
-		List<String> segs = new ArrayList();
-		List<String> inits = new ArrayList();
+		List<String> segs = new ArrayList<>();
+		List<String> inits = new ArrayList<>();
 		Collection<RegEx> initialPositiveRegExs = initialize(snippetsYes, yesLabels, segs, inits);
 		Collection<RegEx> initialNegativeRegExs = initialize(snippetsNo, noLabels, null, null);
 		Map<String, List<Integer>> init2orig = new HashMap<String, List<Integer>>();
@@ -283,6 +255,7 @@ public class REDCategorizer {
 	}
 
 
+	@SuppressWarnings("unused")
 	private void printSnippetsFile(Collection<Snippet> snippets, Collection<String> labels, String baseFilename) throws IOException {
 		File file = new File(baseFilename + "_Snippets");
 		File fileLS = new File(baseFilename + "_Labeled_Segments");
@@ -314,6 +287,7 @@ public class REDCategorizer {
 		lsWriter.close();
 	}
 	
+	@SuppressWarnings("unused")
 	private void freqPrinter(Map<String,Integer> wordFreqMap, String baseFilename) throws IOException {
 		File file = new File(baseFilename + "_Labeled_Segment_freq");
 		if (!file.exists()) {
@@ -372,6 +346,7 @@ public class REDCategorizer {
 		return initialRegExs;
 	}
 		
+	@SuppressWarnings("unused")
 	private void removeLeastFrequent(Collection<RegEx> initialPositiveRegExs, Collection<Snippet> negSnippets, Collection<String> posLabels, Map<String,Integer> wordFreqMapPos) {
 		Set<Entry<String, Integer>> entries = wordFreqMapPos.entrySet();
 		List<Entry<String, Integer>> sortedEntryList = new ArrayList<Map.Entry<String,Integer>>(entries);
@@ -429,6 +404,7 @@ public class REDCategorizer {
 		}
 	}
 	
+	@SuppressWarnings("unused")
 	private void removeLeastFrequent2(Collection<RegEx> initialPositiveRegExs, Collection<Snippet> negSnippets, Collection<String> posLabels, Map<String,Integer> wordFreqMapPos) {
 		Set<Entry<String, Integer>> entries = wordFreqMapPos.entrySet();
 		List<Entry<String, Integer>> sortedEntryList = new ArrayList<Map.Entry<String,Integer>>(entries);
@@ -484,6 +460,7 @@ public class REDCategorizer {
 		}
 	}
 	
+	@SuppressWarnings("unused")
 	private void removeLeastFrequent3(Collection<RegEx> initialPositiveRegExs, Collection<Snippet> negSnippets, Collection<String> posLabels, Map<String,Integer> wordFreqMapPos) {
 		Set<Entry<String, Integer>> entries = wordFreqMapPos.entrySet();
 		List<Entry<String, Integer>> sortedEntryList = new ArrayList<Map.Entry<String,Integer>>(entries);

@@ -30,6 +30,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeMap;
 //import java.util.regex.Pattern;
+import java.util.function.Function;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -63,12 +64,11 @@ public class VTTReader {
 	 * Reads labeled segment triplets from a VTT file
 	 * @param vttFile The VTT file to extract triplets from.
 	 * @param label The label of the segments to extract.
- 	 * @param convertToLowercase If <code>true</code> then all text is converted to lowercase (in order, for example, to make case-insensitive comparisons easier)
 	 * @return Labeled segment triplets (before labeled segment, labeled segment, after labeled segment)
 	 * @throws IOException when a problem occurs reading <code>vttFile</code>.
 	 */
-	public List<LSTriplet> readLSTriplets(final File vttFile, final String label, final boolean convertToLowercase) throws IOException {
-		Collection<Snippet> snippets = readSnippets(vttFile, label, convertToLowercase);
+	public List<LSTriplet> readLSTriplets(final File vttFile, final String label, Function<VttDocument, TreeMap<SnippetPosition, Snippet>> snippetParser) throws IOException {
+		Collection<Snippet> snippets = readSnippets(vttFile, label, snippetParser);
 		List<LSTriplet> ls3list = new ArrayList<>(snippets.size());
 		for (Snippet snippet : snippets) {
 			for (LabeledSegment ls : snippet.getPosLabeledSegments()) {
@@ -84,29 +84,28 @@ public class VTTReader {
 	 * Reads snippets from a vtt file.
 	 * @param vttFile The VTT file to extract triplets from.
 	 * @param includeLabel The label of the segments to extract.
- 	 * @param convertToLowercase If <code>true</code> then all text is converted to lowercase (in order, for example, to make case-insensitive comparisons easier)
 	 * @return Snippets containing labeled segments for the specified label.
 	 * @throws IOException when a problem occurs reading <code>vttFile</code>.
 	 */
-	public Collection<Snippet> readSnippets(final File vttFile, final String includeLabel, final boolean convertToLowercase) throws IOException {
+	public Collection<Snippet> readSnippets(final File vttFile, final String includeLabel, Function<VttDocument, TreeMap<SnippetPosition, Snippet>> snippetParser) throws IOException {
 		Collection<String> includeLabels = new ArrayList<>(1);
 		includeLabels.add(includeLabel);
-		return readSnippets(vttFile, includeLabels, convertToLowercase);
+		return readSnippets(vttFile, includeLabels, snippetParser);
 	}
 
 	/**
 	 * Reads snippets from a vtt file.
 	 * @param vttFile The VTT file to extract triplets from.
 	 * @param includeLabels A collection of the labels of the segments to extract.
- 	 * @param convertToLowercase If <code>true</code> then all text is converted to lowercase (in order, for example, to make case-insensitive comparisons easier)
 	 * @return Snippets containing labeled segments for the specified label.
 	 * @throws IOException when a problem occurs reading <code>vttFile</code>.
 	 */
-	public Collection<Snippet> readSnippets(final File vttFile, final Collection<String> includeLabels, final boolean convertToLowercase)
+	public Collection<Snippet> readSnippets(final File vttFile, final Collection<String> includeLabels,
+			final Function<VttDocument, TreeMap<SnippetPosition, Snippet>> snippetParser)
 			throws IOException {
 		VttDocument vttDoc = read(vttFile);
 		String docText = vttDoc.getText();
-		TreeMap<SnippetPosition, Snippet> pos2snips = findSnippetPositions(vttDoc, convertToLowercase);
+		TreeMap<SnippetPosition, Snippet> pos2snips = snippetParser.apply(vttDoc);// findSnippetPositions(vttDoc);
 		Set<Snippet> snippets = new HashSet<>();
 
 		for (Markup markup : vttDoc.getMarkups().getMarkups()) {
@@ -156,46 +155,19 @@ public class VTTReader {
 	}
 
 	/**
-	 * @param vttDoc
-	 * @param docText
-	 * @param convertToLowercase If <code>true</code> then all text is converted to lowercase (in order, for example, to make case-insensitive comparisons easier)
-	 * @return
-	 */
-	private TreeMap<SnippetPosition, Snippet> findSnippetPositions(final VttDocument vttDoc, final boolean convertToLowercase) {
-		TreeMap<SnippetPosition, Snippet> pos2snips = new TreeMap<>();
-		String docText = vttDoc.getText();
-		for (Markup markup : vttDoc.getMarkups().getMarkups()) {
-			if ("SnippetColumn".equals(markup.getTagName())) {
-				String annotation = markup.getAnnotation();
-				if (annotation != null && annotation.contains("<::>columnNumber=\"4\"<::>")) {
-					int snippetOffset = markup.getOffset();
-					int snippetLength = markup.getLength();
-					int snippetEnd = snippetOffset + snippetLength;
-					String snippet = docText.substring(snippetOffset, snippetEnd).toLowerCase();
-					SnippetPosition snipPos = new SnippetPosition(snippetOffset, snippetEnd);
-					pos2snips.put(snipPos, new Snippet(snippet, null, null));
-				}
-			}
-		}
-		return pos2snips;
-	}
-
-	/**
 	 * Reads snippets from a vtt file
 	 * @param vttFile The VTT file to extract triplets from.
-	 * @param convertToLowercase If <code>true</code> then all text is converted to lowercase (in order, for example, to make case-insensitive comparisons easier)
 	 * @return All snippets in the vtt file.
 	 * @throws IOException when a problem occurs reading <code>vttFile</code>.
 	 */
-	public Collection<Snippet> readSnippets(final File vttFile, final boolean convertToLowercase)
+	public Collection<Snippet> readSnippets(final File vttFile, Function<VttDocument, TreeMap<SnippetPosition, Snippet>> snippetParser)
 			throws IOException {
 		VttDocument vttDoc = read(vttFile);
-		TreeMap<SnippetPosition, Snippet> pos2snips = findSnippetPositions(vttDoc, convertToLowercase);
+		TreeMap<SnippetPosition, Snippet> pos2snips = snippetParser.apply(vttDoc);
 
-		Tags tags = vttDoc.getTags();
 		for (Markup markup : vttDoc.getMarkups().getMarkups()) {
 			// Check if the markup is not a SnippetColumn
-			if (!"SnippetColumn".equalsIgnoreCase(markup.getTagName()) && tags.getTagNames().contains(markup.getTagName())) {
+			if (!"SnippetColumn".equalsIgnoreCase(markup.getTagName())) {
 
 				// Get the labeled text boundaries
 				int labeledOffset = markup.getOffset();
@@ -221,15 +193,14 @@ public class VTTReader {
 	/**
 	 * Reads snippets from a vtt file
 	 * @param vttFile The VTT file to extract triplets from.
-	 * @param convertToLowercase If <code>true</code> then all text is converted to lowercase (in order, for example, to make case-insensitive comparisons easier)
 	 * @return All snippets in the vtt file.
 	 * @throws IOException when a problem occurs reading <code>vttFile</code>.
 	 */
-	public Collection<Snippet> readSnippetsAll(final File vttFile, final boolean convertToLowercase)
+	public Collection<Snippet> readSnippetsAll(final File vttFile, Function<VttDocument, TreeMap<SnippetPosition, Snippet>> snippetParser)
 			throws IOException {
 		VttDocument vttDoc = read(vttFile);
 		String docText = vttDoc.getText();
-		TreeMap<SnippetPosition, Snippet> pos2snips = findSnippetPositions(vttDoc, convertToLowercase);
+		TreeMap<SnippetPosition, Snippet> pos2snips = snippetParser.apply(vttDoc);
 		
 		Tags tags = vttDoc.getTags();
 		for (Markup markup : vttDoc.getMarkups().getMarkups()) {
@@ -279,15 +250,14 @@ public class VTTReader {
 	 * Finds all snippets in a vtt file, adding positive labeled segments for tags those with matching labels, and negative labeled segments for tags without matching labels.
 	 * @param vttFile The VTT file to extract triplets from.
 	 * @param labels Labeled segments with any of these labels will be included with the snippets.
- 	 * @param convertToLowercase If <code>true</code> then all text is converted to lowercase (in order, for example, to make case-insensitive comparisons easier)
 	 * @return All snippets in the vtt file, including labeled segments matching the collection of labels.
 	 * @throws IOException when a problem occurs reading <code>vttFile</code>.
 	 */
-	public Collection<Snippet> findSnippets(final File vttFile, final Collection<String> labels, final boolean convertToLowercase)
+	public Collection<Snippet> findSnippets(final File vttFile, final Collection<String> labels, Function<VttDocument, TreeMap<SnippetPosition, Snippet>> snippetParser)
 			throws IOException {
 		VttDocument vttDoc = read(vttFile);
 
-		TreeMap<SnippetPosition, Snippet> pos2snips = findSnippetPositions(vttDoc, convertToLowercase);
+		TreeMap<SnippetPosition, Snippet> pos2snips = snippetParser.apply(vttDoc);
 		
 		String docText = vttDoc.getText();
 		for (Markup markup : vttDoc.getMarkups().getMarkups()) {
@@ -353,48 +323,4 @@ public class VTTReader {
 		return ls3listWithoutDuplicates;
 	}
 	
-	private class SnippetPosition implements Comparable<SnippetPosition> {
-		public final int start;
-		public final int end;
-		public SnippetPosition(final int start, final int end) {
-			this.start = start;
-			this.end = end;
-		}
-		@Override
-		public int hashCode() {
-			int result = 17;
-			result = 31 * result + start;
-			result = 31 * result + end;
-			return result;
-		}
-		@Override
-		public boolean equals(Object obj) {
-			if (!(obj instanceof SnippetPosition)) {
-				return false;
-			}
-			SnippetPosition sp = (SnippetPosition)obj;
-			return sp.start == start && sp.end == end;
-		}
-		@Override
-		public String toString() {
-			return "" + start + "-" + end;
-		}
-		@Override
-		public int compareTo(SnippetPosition o) {
-			if (start < o.start) {
-				return -1;
-			}
-			if (start > o.start){
-				return 1;
-			}
-//			if (end < o.end) {
-//				return -1;
-//			}
-//			if (end > o.end) {
-//				return 1;
-//			}
-			return 0;
-		}
-		
-	}
 }

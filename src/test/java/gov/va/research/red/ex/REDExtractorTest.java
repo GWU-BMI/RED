@@ -38,6 +38,9 @@ import gov.va.research.red.LabeledSegment;
 import gov.va.research.red.RegEx;
 import gov.va.research.red.Snippet;
 import gov.va.research.red.VTTReader;
+import gov.va.research.red.VTTSnippetParser;
+import gov.va.research.red.regex.PatternAdapter;
+import gov.va.research.red.regex.JSEPatternAdapter;
 import junit.framework.Assert;
 
 
@@ -47,6 +50,7 @@ import junit.framework.Assert;
  */
 public class REDExtractorTest {
 
+	private static Class<? extends PatternAdapter> PATTERN_ADAPTER_CLASS = JSEPatternAdapter.class;
 	private static final String TEST_VTT_FILENAME = "weight1000.vtt";
 	private static final URI TEST_VTT_URI;
 	private static final String YES = "yes";
@@ -95,8 +99,8 @@ public class REDExtractorTest {
 		VTTReader vttr = new VTTReader();
 		REDExFactory regExt = new REDExFactory();
 		try {
-			Collection<Snippet> snippets = vttr.readSnippets(new File(TEST_VTT_URI), "weight", true);
-			regExt.train(snippets, true, "test", true, true, new ArrayList<>(0), Boolean.TRUE, Boolean.TRUE);
+			Collection<Snippet> snippets = vttr.readSnippets(new File(TEST_VTT_URI), "weight", new VTTSnippetParser());
+			regExt.train(snippets, true, "test", true, true, new ArrayList<>(0), Boolean.TRUE, Boolean.TRUE, PATTERN_ADAPTER_CLASS);
 		} catch (IOException e) {
 			throw new AssertionError("Failed extract 'weight' labeled regular expressions from VTT file: " + TEST_VTT_URI, e);
 		}
@@ -114,7 +118,7 @@ public class REDExtractorTest {
 		Snippet s = new Snippet(snipText, lsList, null);
 		SnippetRegEx sre = new SnippetRegEx(s, true);
 		Assert.assertTrue(sre.replaceDigits());
-		Assert.assertTrue(sre.getPattern().matcher(snipText).find());
+		Assert.assertTrue(sre.getPattern(PATTERN_ADAPTER_CLASS).matcher(snipText).find());
 		Assert.assertTrue(sre.toString().split("\\d").length == 1);
 	}
 
@@ -130,7 +134,7 @@ public class REDExtractorTest {
 		Snippet s = new Snippet(snipText, lsList, null);
 		SnippetRegEx sre = new SnippetRegEx(s, true);
 		Assert.assertTrue(sre.replaceWhiteSpace());
-		Assert.assertTrue(sre.getPattern().matcher(snipText).find());
+		Assert.assertTrue(sre.getPattern(PATTERN_ADAPTER_CLASS).matcher(snipText).find());
 		Assert.assertTrue(sre.toString().split("\\s").length == 1);
 	}
 	
@@ -144,9 +148,9 @@ public class REDExtractorTest {
 		List<Snippet> snippets = new ArrayList<Snippet>();
 		VTTReader vttr = new VTTReader();
 		File vttFile = new File(TEST_VTT_URI);
-		snippets.addAll(vttr.readSnippets(vttFile, "weight", true));
+		snippets.addAll(vttr.readSnippets(vttFile, "weight", new VTTSnippetParser()));
 		REDExFactory regExt = new REDExFactory();
-		REDExModel ex = regExt.train(snippets, true, "test", true, true, new ArrayList<>(0), Boolean.TRUE, Boolean.TRUE);
+		REDExModel ex = regExt.train(snippets, true, "test", true, true, new ArrayList<>(0), Boolean.TRUE, Boolean.TRUE, PATTERN_ADAPTER_CLASS);
 		List<Collection<WeightedRegEx>> snippetRegExs = ex.getRegexTiers();
 		List<RegEx> yesRegExs = null;
 		if(snippetRegExs != null) {
@@ -193,8 +197,8 @@ public class REDExtractorTest {
 		REDExFactory ref = new REDExFactory();
 		
 		try {
-			REDExModel re = ref.train(snippets, true, "test", true, true, new ArrayList<String>(0), true, true);
-			CVScore cv = ref.testREDExOnSnippet(re, true, true, null, snippets.iterator().next(), true);
+			REDExModel re = ref.train(snippets, true, "test", true, true, new ArrayList<String>(0), true, true, PATTERN_ADAPTER_CLASS);
+			CVScore cv = ref.testREDExOnSnippet(re, true, true, null, snippets.iterator().next(), true, PATTERN_ADAPTER_CLASS);
 			Assert.assertNotNull(cv);
 			Assert.assertEquals(2, cv.getTp());
 			Assert.assertEquals(0, cv.getFp());

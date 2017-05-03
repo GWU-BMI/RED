@@ -1,6 +1,6 @@
 package gov.va.research.red;
 
-public class LabeledSegment {
+public class LabeledSegment implements Comparable<LabeledSegment> {
 	private String label;
 	private String labeledString;
 	private int start;
@@ -91,6 +91,14 @@ public class LabeledSegment {
 		int thisEnd = this.start + this.length;
 		int lsEnd = ls.start + ls.length;
 		return (this.start >= ls.start && this.start <= lsEnd) || (thisEnd >= ls.start && thisEnd <= lsEnd);
+	}
+
+	@Override
+	public int compareTo(LabeledSegment o) {
+		if (this.start != o.start) {
+			return this.start - o.start;
+		}
+		return this.length - o.length;
 	}
 	
 }

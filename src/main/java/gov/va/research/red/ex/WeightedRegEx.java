@@ -1,12 +1,12 @@
 package gov.va.research.red.ex;
 
-import java.util.regex.Pattern;
+import gov.va.research.red.regex.PatternAdapter;
 
 public interface WeightedRegEx {
 	
 	public String getRegEx();
 	public double getWeight();
 	public void setWeight(double weight);
-	public Pattern getPattern();
+	public PatternAdapter getPattern(Class<? extends PatternAdapter> patternAdapterClass);
 
 }

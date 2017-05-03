@@ -34,6 +34,9 @@ import gov.va.research.red.Snippet;
 import gov.va.research.red.Token;
 import gov.va.research.red.TokenType;
 import gov.va.research.red.Tokenizer;
+import gov.va.research.red.regex.PatternAdapter;
+import gov.va.research.red.regex.RE2JPatternAdapter;
+import gov.va.research.red.regex.JSEPatternAdapter;
 
 /**
  * @author doug
@@ -47,7 +50,7 @@ public class SnippetRegEx implements WeightedRegEx {
 	private static final String DIGIT_TEXT = "zero|one|two|three|four|five|six|seven|eight|nine|ten|i|ii|iii|iv|v|vi|vii|viii|ix|x";
 	private static final Pattern DIGIT_TEXT_PATTERN = Pattern.compile(DIGIT_TEXT);
 	private List<Segment> segments;
-	private transient Pattern pattern;
+	private transient PatternAdapter pattern;
 	private String regEx;
 	private double weight;
 	private boolean caseInsensitive;
@@ -178,10 +181,16 @@ public class SnippetRegEx implements WeightedRegEx {
 	/**
 	 * @return The java.util.regex.Pattern representation of the regular expression.
 	 */
-	public Pattern getPattern() {
+	public PatternAdapter getPattern(Class<? extends PatternAdapter> patternAdapterClass) {
 		if (pattern == null) {
 			String regex = getRegEx();
-			pattern = Pattern.compile(regex);
+			if (patternAdapterClass.equals(JSEPatternAdapter.class)) {
+				this.pattern = new JSEPatternAdapter(regex);
+			} else if (patternAdapterClass.equals(RE2JPatternAdapter.class)) {
+				this.pattern = new RE2JPatternAdapter(regex);
+			} else {
+				throw new IllegalArgumentException(patternAdapterClass.toString());
+			}
 		}
 		return pattern;
 	}

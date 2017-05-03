@@ -1,17 +1,11 @@
 package gov.va.research.red.ex;
 
-import gov.va.research.red.CVResult;
-import gov.va.research.red.CVScore;
-import gov.va.research.red.ex.REDExCrossValidator;
-
 import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.Arrays;
 import java.util.List;
-
-import junit.framework.Assert;
 
 import org.junit.After;
 import org.junit.AfterClass;
@@ -20,6 +14,10 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import gov.va.research.red.CVResult;
+import gov.va.research.red.VTTSnippetParser;
+import junit.framework.Assert;
 
 public class REDExCrossValidatorTest {
 
@@ -60,17 +58,7 @@ public class REDExCrossValidatorTest {
 			REDExCrossValidator rexcv = new REDExCrossValidator();
 			List<CVResult> results = rexcv.crossValidate(
 					Arrays.asList(new File[] { vttFile }),
-					Arrays.asList(new String[] { "weight" }),
-					10,
-					true,
-					true,
-					Arrays.asList(new String[0]),
-					true,
-					true,
-					false,
-					true,
-					100
-					);
+					Arrays.asList(new String[] { "weight" }), new VTTSnippetParser());
 			int i = 0;
 			for (CVResult result : results) {
 				LOG.info("--- Run " + (i++) + " ---");

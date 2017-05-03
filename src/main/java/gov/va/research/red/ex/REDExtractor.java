@@ -66,6 +66,10 @@ import bioc.io.BioCFactory;
 import gov.va.research.red.CSVReader;
 import gov.va.research.red.MatchedElement;
 import gov.va.research.red.SnippetData;
+import gov.va.research.red.regex.MatcherAdapter;
+import gov.va.research.red.regex.PatternAdapter;
+import gov.va.research.red.regex.RE2JPatternAdapter;
+import gov.va.research.red.regex.JSEPatternAdapter;
 import gov.va.vinci.krb.KrbConnectionFactory;
 
 public class REDExtractor implements Extractor, RegexTiers {
@@ -121,7 +125,7 @@ public class REDExtractor implements Extractor, RegexTiers {
 		this.useTier2 = useTier2;
 	}
 
-	public static Set<MatchedElement> extract(List<Collection<WeightedRegEx>> regexeTierList, String target, boolean useTier2) {
+	public static Set<MatchedElement> extract(List<Collection<WeightedRegEx>> regexeTierList, String target, boolean useTier2, Class<? extends PatternAdapter> patternAdapterClass) {
 		if (target == null || target.length() == 0) {
 			return null;
 		}
@@ -132,7 +136,7 @@ public class REDExtractor implements Extractor, RegexTiers {
 		for (Collection<WeightedRegEx> regexTier : regexeTierList) {
 			if ((useTier2 || tier1) && regexTier != null && !regexTier.isEmpty()) {
 				returnMap = regexTier.parallelStream().flatMap((wrx) -> {
-					MatchFinder mf = new MatchFinder(wrx, target);
+					MatchFinder mf = new MatchFinder(wrx, target, patternAdapterClass);
 					Future<Set<MatchedElement>> future = EXECUTOR.submit(mf);
 					Set<MatchedElement> mes = EMPTY_SET;
 					try {
@@ -178,7 +182,7 @@ public class REDExtractor implements Extractor, RegexTiers {
 		for (Collection<WeightedRegEx> wregexs : regexeTierList) {
 			if ((useTier2 || tier1) && wregexs != null && !wregexs.isEmpty()) {
 				returnMap = wregexs.parallelStream().flatMap((wrx) -> {
-					MatchFinder mf = new MatchFinder(wrx, target);
+					MatchFinder mf = new MatchFinder(wrx, target, patternAdapterClass);
 					Future<Set<MatchedElement>> future = EXECUTOR.submit(mf);
 					Set<MatchedElement> mes = EMPTY_SET;
 					try {
@@ -296,10 +300,12 @@ public class REDExtractor implements Extractor, RegexTiers {
 	private static class MatchFinder implements Callable<Set<MatchedElement>> {
 		WeightedRegEx weightedRegex;
 		String target;
+		Class<? extends PatternAdapter> patternAdapterClass;
 
-		public MatchFinder(WeightedRegEx weightedRegex, String target) {
+		public MatchFinder(WeightedRegEx weightedRegex, String target, Class<? extends PatternAdapter> patternAdapterClass) {
 			this.weightedRegex = weightedRegex;
 			this.target = target;
+			this.patternAdapterClass = patternAdapterClass;
 		}
 
 //		public MatchFinder(SnippetRegEx sre, String target, boolean caseInsensitive) {
@@ -309,8 +315,8 @@ public class REDExtractor implements Extractor, RegexTiers {
 		@Override
 		public Set<MatchedElement> call() {
 			Set<MatchedElement> matchedElements = new HashSet<>();
-			Pattern p = weightedRegex.getPattern();
-			Matcher matcher = p.matcher(target);
+			PatternAdapter p = weightedRegex.getPattern(this.patternAdapterClass);
+			MatcherAdapter matcher = p.matcher(target);
 			if (matcher.find()) {
 				if (matcher.groupCount() < 1) {
 					// LOG.debug("No capturing group match.\nTarget = " + target
@@ -330,7 +336,7 @@ public class REDExtractor implements Extractor, RegexTiers {
 			return matchedElements;
 		}
 	}
-
+	
 //	/**
 //	 * Dumps (serializes) the REDExtractor to a file.
 //	 * 
@@ -393,6 +399,7 @@ public class REDExtractor implements Extractor, RegexTiers {
 	 *             -o,--output-file &lt;arg&gt;
 	 *             -p,--precision-bias
 	 *             -q,--db-query &lt;arg&gt;
+	 *             -r,--re2j
 	 * @throws IOException
 	 *             if any of the files cannot be accessed.
 	 * @throws XMLStreamException
@@ -423,6 +430,8 @@ public class REDExtractor implements Extractor, RegexTiers {
 
 		String fileDirStr = cl.getOptionValue("d");
 		String jdbcURL = cl.getOptionValue("j");
+		boolean re2j = cl.hasOption("r");
+		Class<? extends PatternAdapter> patternAdapterClass = re2j ? JSEPatternAdapter.class : RE2JPatternAdapter.class;
 
 		if ((fileDirStr == null && jdbcURL == null) || (fileDirStr != null && jdbcURL != null)) {
 			LOG.error("Exactly one of the options 'd' or 'j' must be specified");
@@ -432,14 +441,14 @@ public class REDExtractor implements Extractor, RegexTiers {
 		}
 		if (fileDirStr != null) {
 			String[] fileStrs = cl.getOptionValues("f");
-			extractFromFiles(models, outputFile, fileDirStr, fileStrs, useTier2);
+			extractFromFiles(models, outputFile, fileDirStr, fileStrs, useTier2, patternAdapterClass);
 		} else {
 			String query = cl.getOptionValue('q');
-			extractFromDB(models, jdbcURL, query, outputFile, useTier2);
+			extractFromDB(models, jdbcURL, query, outputFile, useTier2, patternAdapterClass);
 		}
 	}
 
-	static void extractFromDB(Path[] models, String jdbcURLStr, String query, Path outputFile, boolean useTier2) throws IOException, XMLStreamException {
+	static void extractFromDB(Path[] models, String jdbcURLStr, String query, Path outputFile, boolean useTier2, Class<? extends PatternAdapter> patternAdapterClass) throws IOException, XMLStreamException {
 		for (Path model : models) {
 			if (!Files.exists(model)) {
 				throw new RuntimeException("Model file '" + model + "' was not found");
@@ -469,7 +478,7 @@ public class REDExtractor implements Extractor, RegexTiers {
 		Map<String, Collection<MatchedElement>> docMatches = docId2Text.entrySet().parallelStream().map((entry) -> {
 			DocMatches dm = new DocMatches(entry.getKey(), new HashSet<MatchedElement>());
 			for (REDExModel redex : redexs) {
-				Set<MatchedElement> mes = REDExtractor.extract(redex.getRegexTiers(), entry.getValue(), useTier2);
+				Set<MatchedElement> mes = REDExtractor.extract(redex.getRegexTiers(), entry.getValue(), useTier2, patternAdapterClass);
 				if (mes != null && mes.size() > 0) {
 					dm.getMatchedElements().addAll(mes);
 				}
@@ -560,7 +569,7 @@ public class REDExtractor implements Extractor, RegexTiers {
 	 * @throws IOException
 	 * @throws XMLStreamException
 	 */
-	static void extractFromFiles(Path[] models, Path outputFile, String fileDirStr, String[] fileStrs, boolean useTier2)
+	static void extractFromFiles(Path[] models, Path outputFile, String fileDirStr, String[] fileStrs, boolean useTier2, Class<? extends PatternAdapter> patternAdapterClass)
 			throws IOException, XMLStreamException {
 		Path fileDir = FileSystems.getDefault().getPath(fileDirStr);
 		for (Path model : models) {
@@ -616,7 +625,7 @@ public class REDExtractor implements Extractor, RegexTiers {
 					Collection<SnippetData> sdColl = CSVReader.readSnippetData(contents, true);
 					for (SnippetData sd : sdColl) {
 						for (REDExModel rex : redexs) {
-							Set<MatchedElement> mes = REDExtractor.extract(rex.getRegexTiers(), sd.getSnippetText(), useTier2);
+							Set<MatchedElement> mes = REDExtractor.extract(rex.getRegexTiers(), sd.getSnippetText(), useTier2, patternAdapterClass);
 							for (MatchedElement me : mes) {
 								BioCAnnotation biocAnn = new BioCAnnotation();
 								biocAnn.setID(String.valueOf(annId++));
@@ -632,7 +641,7 @@ public class REDExtractor implements Extractor, RegexTiers {
 					}
 				} else {
 					for (REDExModel rex : redexs) {
-						Set<MatchedElement> mes = REDExtractor.extract(rex.getRegexTiers(), contents, useTier2);
+						Set<MatchedElement> mes = REDExtractor.extract(rex.getRegexTiers(), contents, useTier2, patternAdapterClass);
 						for (MatchedElement me : mes) {
 							BioCAnnotation biocAnn = new BioCAnnotation();
 							biocAnn.setID(String.valueOf(annId++));
@@ -696,7 +705,9 @@ public class REDExtractor implements Extractor, RegexTiers {
 		
 		Option fractionOfProcessors = new Option("z", "fraction-of-processors", true, "Floating point number specifying the Fraction of processors to use. Defaults to " + DEFAULT_FRACTION_OF_PROCESSORS);
 		fractionOfProcessors.setType(Float.class);
-		
+
+		Option regexLib = new Option("r", "re2j", false, "Use the com.google.re2j RegEx engine instead of the java.util.regex library");
+
 		Options options = new Options();
 		options.addOption(model);
 		options.addOption(outFile);
@@ -706,6 +717,7 @@ public class REDExtractor implements Extractor, RegexTiers {
 		options.addOption(query);
 		options.addOption(precisionBias);
 		options.addOption(fractionOfProcessors);
+		options.addOption(regexLib);
 		return options;
 	}
 

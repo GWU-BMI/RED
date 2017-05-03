@@ -16,12 +16,6 @@
  */
 package gov.va.research.red.cat;
 
-import gov.va.research.red.CVScore;
-import gov.va.research.red.RegEx;
-import gov.va.research.red.Snippet;
-import gov.va.research.red.VTTReader;
-import gov.va.research.red.VTTReaderTest;
-
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
@@ -36,7 +30,13 @@ import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.Test;
+
+import gov.va.research.red.CVScore;
+import gov.va.research.red.RegEx;
+import gov.va.research.red.Snippet;
+import gov.va.research.red.VTTReader;
+import gov.va.research.red.VTTReaderTest;
+import gov.va.research.red.VTTSnippetParser;
 
 /**
  * @author vhaislreddd
@@ -143,7 +143,7 @@ public class RegExCategorizerTest {
 		List<Snippet> snippets = new ArrayList<Snippet>();
 		VTTReader vttr = new VTTReader();
 		File vttFile = new File(CLASSIFIER_TEST_URI);
-		snippets.addAll(vttr.readSnippets(vttFile, "", true));
+		snippets.addAll(vttr.readSnippets(vttFile, "", new VTTSnippetParser()));
 		REDCategorizer regExCategorizer = new REDCategorizer();
 		regExCategorizer.findRegexesAndOutputResults(vttFile, yesLabels, noLabels);
 	}

@@ -1,11 +1,13 @@
 package gov.va.research.red.ex;
 
-import java.util.regex.Pattern;
+import gov.va.research.red.regex.PatternAdapter;
+import gov.va.research.red.regex.RE2JPatternAdapter;
+import gov.va.research.red.regex.JSEPatternAdapter;
 
 public class WeightedRegExImpl implements WeightedRegEx {
 	private String regEx;
 	private double weight;
-	private transient Pattern pattern;
+	private transient PatternAdapter pattern;
 	
 	public WeightedRegExImpl(String regex, double weight) {
 		this.regEx = regex;
@@ -29,10 +31,16 @@ public class WeightedRegExImpl implements WeightedRegEx {
 		this.weight = weight;
 	}
 
-	public Pattern getPattern() {
+	public PatternAdapter getPattern(Class<? extends PatternAdapter> patternAdapterClass) {
 		if (pattern == null) {
-			pattern = Pattern.compile(regEx);
+			if (patternAdapterClass.equals(JSEPatternAdapter.class)) {
+				this.pattern = new JSEPatternAdapter(regEx);
+			} else if (patternAdapterClass.equals(RE2JPatternAdapter.class)) {
+				this.pattern = new RE2JPatternAdapter(regEx);
+			} else {
+				throw new java.lang.IllegalArgumentException(patternAdapterClass.getName());
+			}
 		}
-		return pattern;
+		return this.pattern;
 	}
 }

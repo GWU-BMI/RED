@@ -69,6 +69,9 @@ public class CVUtils {
 	 */
 	public static boolean containsCI(final Collection<String> strings,
 			final String string) {
+		if (strings == null) {
+			return false;
+		}
 		for (String s : strings) {
 			if (s.equalsIgnoreCase(string)) {
 				return true;

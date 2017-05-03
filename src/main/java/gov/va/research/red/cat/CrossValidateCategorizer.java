@@ -20,6 +20,7 @@ import gov.va.research.red.CVScore;
 import gov.va.research.red.CVUtils;
 import gov.va.research.red.Snippet;
 import gov.va.research.red.VTTReader;
+import gov.va.research.red.VTTSnippetParser;
 
 import java.io.File;
 import java.io.IOException;
@@ -46,20 +47,20 @@ public class CrossValidateCategorizer {
 		List<Snippet> snippetsYes = new ArrayList<>();
 		for (File vttFile : vttFiles) {
 			for (String label : yesLabels) {
-				snippetsYes.addAll(vttr.readSnippets(vttFile, label, true));
+				snippetsYes.addAll(vttr.readSnippets(vttFile, label, new VTTSnippetParser()));
 			}
 		}
 
 		List<Snippet> snippetsNo = new ArrayList<>();
 		for (File vttFile : vttFiles) {
 			for (String label : noLabels) {
-				snippetsNo.addAll(vttr.readSnippets(vttFile, label, true));
+				snippetsNo.addAll(vttr.readSnippets(vttFile, label, new VTTSnippetParser()));
 			}
 		}
 
 		List<Snippet> snippetsNoLabel = new ArrayList<>();
 		for (File vttFile : vttFiles) {
-			snippetsNoLabel.addAll(vttr.readSnippets(vttFile, true));
+			snippetsNoLabel.addAll(vttr.readSnippets(vttFile, new VTTSnippetParser()));
 		}
 		return crossValidateClassifier(snippetsYes, snippetsNo,
 				snippetsNoLabel, yesLabels, noLabels, folds, biasForRecall);
