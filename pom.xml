@@ -2,7 +2,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>edu.utah.bmi</groupId>
   <artifactId>RED</artifactId>
-  <version>2017.05.1-SNAPSHOT</version>
+  <version>2017.05.1</version>
   <build>
     <plugins>
       <plugin>
@@ -129,7 +129,7 @@
   <scm>
   	<connection>scm:git:http://inlp.bmi.utah.edu/git/RED.git/</connection>
   	<url>http://inlp.bmi.utah.edu/git/RED.git/</url>
-    <tag>HEAD</tag>
+    <tag>RED-2017.05.1</tag>
   </scm>
   <distributionManagement>
 	<repository>
