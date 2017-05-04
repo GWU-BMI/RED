@@ -229,36 +229,6 @@ public class REDExCrossValidator implements CrossValidatable {
 	 * @param labels
 	 *            The labels to train on. All labels in this list are treated as
 	 *            equivalent. Labels not in this list are ignored.
-	 * @param folds
-	 *            Number of folds in the cross validation.
-	 * @param allowOverMatches
-	 *            If <code>false</code> then predicated and actual values must
-	 *            match exactly to be counted as a true positive. If
-	 *            <code>true</code> then if the predicted and actual values
-	 *            overlap but do not match exactly, it is still counted as a
-	 *            true positive.
-	 * @param caseInsensitive
-	 *            If <code>true</code> then all text is converted to lowercase
-	 *            (in order, for example, to make case-insensitive comparisons
-	 *            easier)
-	 * @param holdouts
-	 *            no members of this list will be generalized.
-	 * @param useTier2
-	 *            if <code>false</code> then tier 2 regular expressions will not
-	 *            be used, only tier 1.
-	 * @param generalizeLabeledSegments
-	 *            if <code>true</code> then the labeled segments (i.e. capture
-	 *            groups) will be generalized. Default is <code>true</code>.
-	 * @param stopAfterFirstFold
-	 *            If <code>true</code> then the cross validation quits after the
-	 *            first fold.
-	 * @param shuffle
-	 *            If <code>true</code> then the snippets will be shuffled before
-	 *            cross validation. This will make the cross-validation
-	 *            non-deterministic, having a different result each time.
-	 * @param limit
-	 *            Limit the number of snippets this value. A value &le; 0 means
-	 *            no limit.
 	 * @return The aggregated results of the cross validation, including scores
 	 *         and regular expressions.
 	 * @throws FileNotFoundException
@@ -364,34 +334,6 @@ public class REDExCrossValidator implements CrossValidatable {
 	 * @param labels
 	 *            The labels to train on. All labels in this list are treated as
 	 *            equivalent. Labels not in this list are ignored.
-	 * @param allowOverMatches
-	 *            If <code>false</code> then predicated and actual values must
-	 *            match exactly to be counted as a true positive. If
-	 *            <code>true</code> then if the predicted and actual values
-	 *            overlap but do not match exactly, it is still counted as a
-	 *            true positive.
-	 * @param caseInsensitive
-	 *            If <code>true</code> then all text is converted to lowercase
-	 *            (in order, for example, to make case-insensitive comparisons
-	 *            easier)
-	 * @param holdouts
-	 *            no members of this list will be generalized.
-	 * @param useTier2
-	 *            if <code>false</code> then tier 2 regular expressions will not
-	 *            be used, only tier 1.
-	 * @param generalizeLabeledSegments
-	 *            if <code>true</code> then the labeled segments (i.e. capture
-	 *            groups) will be generalized. Default is <code>true</code>.
-	 * @param stopAfterFirstFold
-	 *            If <code>true</code> then the cross validation quits after the
-	 *            first fold.
-	 * @param shuffle
-	 *            If <code>true</code> then the snippets will be shuffled before
-	 *            cross validation. This will make the cross-validation
-	 *            non-deterministic, having a different result each time.
-	 * @param limit
-	 *            Limit the number of snippets this value. A value &le; 0 means
-	 *            no limit.
 	 * @return The aggregated results of the cross validation, including scores
 	 *         and regular expressions.
 	 * @throws FileNotFoundException

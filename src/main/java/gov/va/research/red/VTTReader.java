@@ -64,6 +64,7 @@ public class VTTReader {
 	 * Reads labeled segment triplets from a VTT file
 	 * @param vttFile The VTT file to extract triplets from.
 	 * @param label The label of the segments to extract.
+	 * @param snippetParser Function to use to parse snippets from <code>vttFile</code>.
 	 * @return Labeled segment triplets (before labeled segment, labeled segment, after labeled segment)
 	 * @throws IOException when a problem occurs reading <code>vttFile</code>.
 	 */
@@ -84,6 +85,7 @@ public class VTTReader {
 	 * Reads snippets from a vtt file.
 	 * @param vttFile The VTT file to extract triplets from.
 	 * @param includeLabel The label of the segments to extract.
+	 * @param snippetParser Function to use to parse snippets from <code>vttFile</code>.
 	 * @return Snippets containing labeled segments for the specified label.
 	 * @throws IOException when a problem occurs reading <code>vttFile</code>.
 	 */
@@ -97,6 +99,7 @@ public class VTTReader {
 	 * Reads snippets from a vtt file.
 	 * @param vttFile The VTT file to extract triplets from.
 	 * @param includeLabels A collection of the labels of the segments to extract.
+ 	 * @param snippetParser Function to use to parse snippets from <code>vttFile</code>.
 	 * @return Snippets containing labeled segments for the specified label.
 	 * @throws IOException when a problem occurs reading <code>vttFile</code>.
 	 */
@@ -157,6 +160,7 @@ public class VTTReader {
 	/**
 	 * Reads snippets from a vtt file
 	 * @param vttFile The VTT file to extract triplets from.
+	 * @param snippetParser Function to use to parse snippets from <code>vttFile</code>.
 	 * @return All snippets in the vtt file.
 	 * @throws IOException when a problem occurs reading <code>vttFile</code>.
 	 */
@@ -193,6 +197,7 @@ public class VTTReader {
 	/**
 	 * Reads snippets from a vtt file
 	 * @param vttFile The VTT file to extract triplets from.
+	 * @param snippetParser Function to use to parse snippets from <code>vttFile</code>.
 	 * @return All snippets in the vtt file.
 	 * @throws IOException when a problem occurs reading <code>vttFile</code>.
 	 */
@@ -250,6 +255,7 @@ public class VTTReader {
 	 * Finds all snippets in a vtt file, adding positive labeled segments for tags those with matching labels, and negative labeled segments for tags without matching labels.
 	 * @param vttFile The VTT file to extract triplets from.
 	 * @param labels Labeled segments with any of these labels will be included with the snippets.
+	 * @param snippetParser Function to use to parse snippets from <code>vttFile</code>.
 	 * @return All snippets in the vtt file, including labeled segments matching the collection of labels.
 	 * @throws IOException when a problem occurs reading <code>vttFile</code>.
 	 */

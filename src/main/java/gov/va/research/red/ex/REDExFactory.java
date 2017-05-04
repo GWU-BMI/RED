@@ -755,10 +755,12 @@ public class REDExFactory {
 	 * @param useTier2
 	 *            if <code>false</code> then tier 2 regular expressions will not
 	 *            be used, only tier 1.
+	 * @param patternAdapterClass The adapter class to use for the chosen regular expression engine.
 	 * @return The cross-validation score.
 	 */
 	public CVScore test(Collection<Snippet> testing, REDExModel ex,
-			boolean allowOverMatches, boolean caseInsensitive, PrintWriter pw, boolean useTier2, Class<? extends PatternAdapter> patternAdapterClass) {
+			boolean allowOverMatches, boolean caseInsensitive, PrintWriter pw, boolean useTier2,
+			Class<? extends PatternAdapter> patternAdapterClass) {
 		PrintWriter tempLocalPW = null;
 		StringWriter sw = null;
 		if (pw != null) {
