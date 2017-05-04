@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -17,6 +18,7 @@ import org.slf4j.LoggerFactory;
 
 import gov.va.research.red.CVResult;
 import gov.va.research.red.VTTSnippetParser;
+import gov.va.research.red.regex.JSEPatternAdapter;
 import junit.framework.Assert;
 
 public class REDExCrossValidatorTest {
@@ -55,7 +57,9 @@ public class REDExCrossValidatorTest {
 			}
 			Assert.assertNotNull(vttFile);
 			Assert.assertTrue(vttFile.exists());
-			REDExCrossValidator rexcv = new REDExCrossValidator();
+			REDExCrossValidator rexcv = new REDExCrossValidator(10, true, true,
+					new ArrayList<String>(), true, true, true, true, 0,
+					JSEPatternAdapter.class);
 			List<CVResult> results = rexcv.crossValidate(
 					Arrays.asList(new File[] { vttFile }),
 					Arrays.asList(new String[] { "weight" }), new VTTSnippetParser());
