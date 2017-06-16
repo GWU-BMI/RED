@@ -1,18 +1,5 @@
 package gov.va.research.red.ex;
 
-import gov.nih.nlm.nls.vtt.model.VttDocument;
-import gov.va.research.red.CVResult;
-import gov.va.research.red.CVScore;
-import gov.va.research.red.CVUtils;
-import gov.va.research.red.CrossValidatable;
-import gov.va.research.red.Snippet;
-import gov.va.research.red.SnippetPosition;
-import gov.va.research.red.VTTReader;
-import gov.va.research.red.VTTSnippetParser;
-import gov.va.research.red.regex.PatternAdapter;
-import gov.va.research.red.regex.RE2JPatternAdapter;
-import gov.va.research.red.regex.JSEPatternAdapter;
-
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
@@ -30,9 +17,21 @@ import java.util.function.Function;
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
-import org.python.google.common.collect.Lists;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import gov.nih.nlm.nls.vtt.model.VttDocument;
+import gov.va.research.red.CVResult;
+import gov.va.research.red.CVScore;
+import gov.va.research.red.CVUtils;
+import gov.va.research.red.CrossValidatable;
+import gov.va.research.red.Snippet;
+import gov.va.research.red.SnippetPosition;
+import gov.va.research.red.VTTReader;
+import gov.va.research.red.VTTSnippetParser;
+import gov.va.research.red.regex.JSEPatternAdapter;
+import gov.va.research.red.regex.PatternAdapter;
+import gov.va.research.red.regex.RE2JPatternAdapter;
 
 public class REDExCrossValidator implements CrossValidatable {
 
@@ -42,7 +41,7 @@ public class REDExCrossValidator implements CrossValidatable {
 	private int folds = 10;
 	private boolean allowOverMatches = true;
 	private boolean caseInsensitive = true;
-	private Collection<String> holdouts = Lists.newArrayList();
+	private Collection<String> holdouts = Collections.emptyList();
 	private boolean useTier2 = true;
 	private boolean generalizeLabeledSegments = true;
 	private boolean stopAfterFirstFold = false;
@@ -61,7 +60,7 @@ public class REDExCrossValidator implements CrossValidatable {
 		this.folds = folds;
 		this.allowOverMatches = allowOverMatches;
 		this.caseInsensitive = caseInsensitive;
-		this.holdouts = holdouts;
+		this.holdouts = holdouts == null ? Collections.emptyList() : holdouts;
 		this.useTier2 = useTier2;
 		this.generalizeLabeledSegments = generalizeLabeledSegments;
 		this.stopAfterFirstFold = stopAfterFirstFold;
@@ -359,7 +358,7 @@ public class REDExCrossValidator implements CrossValidatable {
 	private REDExModel trainExtractor(List<Snippet> training, PrintWriter pw, String outputTag) throws IOException {
 		REDExFactory rexe = new REDExFactory();
 		REDExModel redexModel = rexe.train(training, allowOverMatches, outputTag,
-				caseInsensitive, false, Lists.newArrayList(holdouts), useTier2, generalizeLabeledSegments, patternAdapterClass);
+				caseInsensitive, false, holdouts instanceof List ? (List<String>)holdouts : new ArrayList<>(holdouts), useTier2, generalizeLabeledSegments, patternAdapterClass);
 		if (pw != null) {
 			List<Snippet> labelled = new ArrayList<>();
 			List<Snippet> unlabelled = new ArrayList<>();
@@ -429,7 +428,7 @@ public class REDExCrossValidator implements CrossValidatable {
 	}
 
 	public void setHoldouts(Collection<String> holdouts) {
-		this.holdouts = holdouts;
+		this.holdouts = holdouts == null ? Collections.emptyList() : holdouts;
 	}
 
 	public boolean isUseTier2() {
