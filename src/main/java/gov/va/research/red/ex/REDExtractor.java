@@ -2,13 +2,11 @@ package gov.va.research.red.ex;
 
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.io.Reader;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.StandardOpenOption;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -24,7 +22,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Scanner;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentMap;
@@ -38,8 +35,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Consumer;
 import java.util.function.Function;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import javax.security.auth.login.LoginException;
@@ -55,8 +50,6 @@ import org.apache.commons.cli.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.gson.Gson;
-
 import bioc.BioCAnnotation;
 import bioc.BioCCollection;
 import bioc.BioCDocument;
@@ -66,10 +59,10 @@ import bioc.io.BioCFactory;
 import gov.va.research.red.CSVReader;
 import gov.va.research.red.MatchedElement;
 import gov.va.research.red.SnippetData;
+import gov.va.research.red.regex.JSEPatternAdapter;
 import gov.va.research.red.regex.MatcherAdapter;
 import gov.va.research.red.regex.PatternAdapter;
 import gov.va.research.red.regex.RE2JPatternAdapter;
-import gov.va.research.red.regex.JSEPatternAdapter;
 import gov.va.vinci.krb.KrbConnectionFactory;
 
 public class REDExtractor implements Extractor, RegexTiers {
@@ -90,7 +83,7 @@ public class REDExtractor implements Extractor, RegexTiers {
 		}
 	});
 
-	private List<Collection<WeightedRegEx/*SnippetRegEx*/>> rankedSnippetRegExs;
+	private List<Collection<WeightedRegEx>> rankedSnippetRegExs;
 	private String metadata;
 	private boolean caseInsensitive;
 	private boolean useTier2;

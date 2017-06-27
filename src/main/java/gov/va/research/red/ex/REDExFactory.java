@@ -14,7 +14,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Deque;
@@ -26,7 +25,6 @@ import java.util.ListIterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ForkJoinPool;
-import java.util.regex.Matcher;
 
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.ConfigurationException;
@@ -46,10 +44,10 @@ import gov.va.research.red.TokenType;
 import gov.va.research.red.VTTReader;
 import gov.va.research.red.VTTSnippetParser;
 import gov.va.research.red.ex.SnippetRegEx.TokenFreq;
+import gov.va.research.red.regex.JSEPatternAdapter;
 import gov.va.research.red.regex.MatcherAdapter;
 import gov.va.research.red.regex.PatternAdapter;
 import gov.va.research.red.regex.RE2JPatternAdapter;
-import gov.va.research.red.regex.JSEPatternAdapter;
 
 public class REDExFactory {
 
@@ -64,6 +62,9 @@ public class REDExFactory {
 			final List<String> holdouts, final boolean useTier2,
 			final boolean generalizeLabeledSegments, Class<? extends PatternAdapter> patternAdapterClass)
 			throws IOException {
+		if (!caseInsensitive) {
+			LOG.warn("caseInsensitive is set to false, which does not work correctly in many cases.");
+		}
 		// Set up snippet-to-regex map and regex history stacks
 		Map<Snippet, Deque<SnippetRegEx>> snippet2regex = new HashMap<>(
 				snippets.size());
@@ -109,10 +110,15 @@ public class REDExFactory {
 		singleWeightedRegex.add(null);
 		List<Collection<WeightedRegEx>> singleTierWeightedRegex = new ArrayList<>(1);
 		singleTierWeightedRegex.add(singleWeightedRegex);
+
+		// Don't test for true or false positives here because line separators mess up the match before whitespace is generalized.
+		
+		// replace the white space with regular expressions.
+		replaceWhiteSpace(sreStacks, caseInsensitive);
 		for (Deque<SnippetRegEx> sreStack : sreStacks) {
 			SnippetRegEx sre = sreStack.peek();
 			boolean tps = checkForTruePositives(snippets, new REDExtractor(sre,
-					caseInsensitive), allowOverMatches, caseInsensitive, useTier2, patternAdapterClass);
+				caseInsensitive), allowOverMatches, caseInsensitive, useTier2, patternAdapterClass);
 			if (!tps) {
 				LOG.warn(outputTag
 						+ ": No tps for regex before generalizing, should be at least one: "
@@ -127,9 +133,7 @@ public class REDExFactory {
 						+ sre.toString());
 			}
 		}
-		
-		// replace the white space with regular expressions.
-		replaceWhiteSpace(sreStacks, caseInsensitive);
+
 		// Check for false positives. Each ls3 should have at least one true
 		// positive, matching the snippet it originated from.
 		for (Deque<SnippetRegEx> sreStack : sreStacks) {
