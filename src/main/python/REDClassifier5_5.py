@@ -82,6 +82,38 @@ class REDClassifier(IREDClassifier):
                 pred = labelU
             preds.append(pred)
         return preds
+
+    def getStrictRegexs(self,label):
+        print 'getting  strict regexes for  '
+        regexs = []
+        for i in self._cls2idStrictSorted[label]:
+            regex = self._viewRegex(self._cls2strictTokenstrs[label][i])
+            regexs.append(regex)
+        return regexs
+        
+    def getLessStrictRegexs(self,label):
+        print 'getting less strict regexes for '
+        regexs = []
+        for cls,i in self._clsIdOverSorted:
+            if cls!=label:
+                continue
+            regex = self._viewRegex(self._cls2overTokenstrs[cls][i])
+            regexs.append(regex)
+        return regexs
+        
+    def getLeastStrictRegexs(self,label=0):
+        print ('getting least strict regexes for ', label)
+        regexs = []
+        print (' the number of stuff = ' , len( self._clsIdOver30Sorted ) )
+        for cls,i in self._clsIdOver30Sorted:
+            if cls!=label:
+                print( cls, i, "continue")
+                continue
+            regex = self._viewRegex(self._cls2over30Tokenstrs[cls][i])
+            print('the current regex ', regex)
+            regexs.append(regex)
+        return regexs
+    
     
     def _preprocess(self,snippets,segspans,labels):
         def fixSpan(snippet,start,end):

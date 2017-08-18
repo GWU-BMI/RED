@@ -39,9 +39,11 @@ import java.util.Set;
  */
 public class CrossValidateCategorizer {
 
-	public List<CVScore> crossValidateClassifier(List<File> vttFiles,
-			List<String> yesLabels, List<String> noLabels, int folds,
-			boolean biasForRecall) throws IOException, URISyntaxException {
+	public List<CVScore> crossValidateClassifier(	List<File> vttFiles,
+													List<String> yesLabels, 
+													List<String> noLabels, 
+													int folds,
+													boolean biasForRecall) throws IOException, URISyntaxException {
 		VTTReader vttr = new VTTReader();
 		// get snippets
 		List<Snippet> snippetsYes = new ArrayList<>();
@@ -54,7 +56,8 @@ public class CrossValidateCategorizer {
 		List<Snippet> snippetsNo = new ArrayList<>();
 		for (File vttFile : vttFiles) {
 			for (String label : noLabels) {
-				snippetsNo.addAll(vttr.readSnippets(vttFile, label, new VTTSnippetParser()));
+				Collection<Snippet> snippets = vttr.readSnippets(vttFile, label, new VTTSnippetParser());
+				snippetsNo.addAll( snippets);
 			}
 		}
 
@@ -62,15 +65,18 @@ public class CrossValidateCategorizer {
 		for (File vttFile : vttFiles) {
 			snippetsNoLabel.addAll(vttr.readSnippets(vttFile, new VTTSnippetParser()));
 		}
-		return crossValidateClassifier(snippetsYes, snippetsNo,
-				snippetsNoLabel, yesLabels, noLabels, folds, biasForRecall);
+		List<CVScore> returnVal = crossValidateClassifier(snippetsYes, snippetsNo,snippetsNoLabel, yesLabels, noLabels, folds, biasForRecall);
+		return returnVal; 
+		
 	}
 
-	public List<CVScore> crossValidateClassifier(List<Snippet> snippetsYes,
-			List<Snippet> snippetsNo, List<Snippet> snippetsNoLabel,
-			Collection<String> yesLabels, Collection<String> noLabels,
-			int folds, boolean biasForRecall) throws IOException,
-			URISyntaxException {
+	public List<CVScore> crossValidateClassifier(List<Snippet> snippetsYes,	
+			                                     List<Snippet> snippetsNo, 
+			                                     List<Snippet> snippetsNoLabel,
+			                                     Collection<String> yesLabels, 
+			                                     Collection<String> noLabels,
+			                                     int folds, 
+			                                     boolean biasForRecall) throws IOException, URISyntaxException {
 		// randomize the order of the snippets
 		if (biasForRecall) {
 			snippetsYes.addAll(snippetsNoLabel);
@@ -81,10 +87,8 @@ public class CrossValidateCategorizer {
 		Collections.shuffle(snippetsNo, new Random(2));
 
 		// partition snippets into one partition per fold
-		List<List<Snippet>> partitionsYes = CVUtils.partitionSnippets(folds,
-				snippetsYes);
-		List<List<Snippet>> partitionsNo = CVUtils.partitionSnippets(folds,
-				snippetsNo);
+		List<List<Snippet>> partitionsYes = CVUtils.partitionSnippets(folds, snippetsYes);
+		List<List<Snippet>> partitionsNo = CVUtils.partitionSnippets(folds, snippetsNo);
 
 		// Run evaluations, "folds" number of times, alternating which partition
 		// is being used for testing.
@@ -132,7 +136,8 @@ public class CrossValidateCategorizer {
 			}
 			for (Snippet snip : trainingNo) {
 				if (snip.getNegLabeledSegments().size() == 0)
-					continue;
+				continue;
+					
 				String text = snip.getText();
 				String ls = snip.getNegLabeledStrings().get(0);
 				int start = text.indexOf(ls);
@@ -148,10 +153,15 @@ public class CrossValidateCategorizer {
 			IREDClassifier redc = REDClassifierFactory.createModel();
 			System.out.println("##### FOLD " + (i + 1) + " #####");
 
+			try {
 			validateForFit(snippetsTrain, segspansTrain, labelsTrain);
-
+			
 			redc.fit(snippetsTrain, segspansTrain, labelsTrain);
-
+			} catch (Exception e) {
+				e.printStackTrace();
+				System.err.println("Here " + e.toString());
+			}
+			
 			List<String> snippetsTest = new ArrayList<>();
 			List<Integer> actualLabels = new ArrayList<>();
 			for (Snippet snip : testingYes) {
@@ -187,14 +197,24 @@ public class CrossValidateCategorizer {
 					throw new IllegalArgumentException("Bad classes when comparing actual and predicted: " + actualLabel + ", " + predLabel);
 			}
 			results.add(score);
+		
+			
+				List<String> strictRegexes = redc.getLeastStrictRegexs(0);
+				for ( String buff : strictRegexes ) {
+					System.out.print( buff + "\n");
+				}
+			
 		}
 		// pw.close();
 		System.out.println("Done with " + folds + "-fold cross validation.");
+		
+		
+		
+		
 		return results;
 	}
 
-	private boolean validateForFit(List<String> snippetsTrain,
-			List<List<Integer>> segspansTrain, Collection<Integer> labelsTrain) {
+	private boolean validateForFit(List<String> snippetsTrain, List<List<Integer>> segspansTrain, Collection<Integer> labelsTrain) {
 		boolean valid = true;
 		if (snippetsTrain.size() != segspansTrain.size()
 				|| segspansTrain.size() != labelsTrain.size()) {
