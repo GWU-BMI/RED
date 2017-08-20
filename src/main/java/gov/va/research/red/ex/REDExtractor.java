@@ -83,7 +83,7 @@ public class REDExtractor implements Extractor, RegexTiers {
 		}
 	});
 
-	private List<Collection<WeightedRegEx>> rankedSnippetRegExs;
+	private List<Collection<? extends WeightedRegEx/*SnippetRegEx*/>> rankedSnippetRegExs;
 	private String metadata;
 	private boolean caseInsensitive;
 	private boolean useTier2;
@@ -93,24 +93,24 @@ public class REDExtractor implements Extractor, RegexTiers {
 		return super.toString() + " [metadata=" + metadata + "]";
 	}
 
-	public REDExtractor(Collection<WeightedRegEx> sres, boolean caseInsensitive) {
-		List<Collection<WeightedRegEx>> rankedSnippetRegExs = new ArrayList<>(1);
+	public REDExtractor(Collection<? extends WeightedRegEx> sres, boolean caseInsensitive) {
+		List<Collection<? extends WeightedRegEx>> rankedSnippetRegExs = new ArrayList<>(1);
 		rankedSnippetRegExs.add(sres);
 		init(rankedSnippetRegExs, null, caseInsensitive, false);
 	}
 
 	public REDExtractor(SnippetRegEx snippetRegEx, boolean caseInsensitive) {
-		List<Collection<WeightedRegEx>> rankedSnippetRegExs = new ArrayList<>(1);
+		List<Collection<? extends WeightedRegEx>> rankedSnippetRegExs = new ArrayList<>(1);
 		rankedSnippetRegExs.add(Arrays.asList(new SnippetRegEx[] { snippetRegEx }));
 		init(rankedSnippetRegExs, null, caseInsensitive, false);
 	}
 	
-	public REDExtractor(List<Collection<WeightedRegEx>> rankedSres, String metadata, boolean caseInsensitive,
+	public REDExtractor(List<Collection<? extends WeightedRegEx>> rankedSres, String metadata, boolean caseInsensitive,
 			boolean useTier2) {
 		init(rankedSres, metadata, caseInsensitive, useTier2);
 	}
 	
-	public void init(List<Collection<WeightedRegEx>> rankedSres, String metadata, boolean caseInsensitive,
+	public void init(List<Collection<? extends WeightedRegEx>> rankedSres, String metadata, boolean caseInsensitive,
 			boolean useTier2) {
 		this.rankedSnippetRegExs = rankedSres;
 		this.metadata = metadata;
@@ -118,7 +118,7 @@ public class REDExtractor implements Extractor, RegexTiers {
 		this.useTier2 = useTier2;
 	}
 
-	public static Set<MatchedElement> extract(List<Collection<WeightedRegEx>> regexeTierList, String target, boolean useTier2, Class<? extends PatternAdapter> patternAdapterClass) {
+	public static Set<MatchedElement> extract(List<Collection<? extends WeightedRegEx>> regexeTierList, String target, boolean useTier2, Class<? extends PatternAdapter> patternAdapterClass) {
 		if (target == null || target.length() == 0) {
 			return null;
 		}
@@ -126,7 +126,7 @@ public class REDExtractor implements Extractor, RegexTiers {
 		boolean tier1 = true;
 		ConcurrentSkipListSet<WeightedRegEx> reject = new ConcurrentSkipListSet<>();
 
-		for (Collection<WeightedRegEx> regexTier : regexeTierList) {
+		for (Collection<? extends WeightedRegEx> regexTier : regexeTierList) {
 			if ((useTier2 || tier1) && regexTier != null && !regexTier.isEmpty()) {
 				returnMap = regexTier.parallelStream().flatMap((wrx) -> {
 					MatchFinder mf = new MatchFinder(wrx, target, patternAdapterClass);
@@ -172,7 +172,7 @@ public class REDExtractor implements Extractor, RegexTiers {
 						}));
 			}
 		}
-		for (Collection<WeightedRegEx> wregexs : regexeTierList) {
+		for (Collection<? extends WeightedRegEx> wregexs : regexeTierList) {
 			if ((useTier2 || tier1) && wregexs != null && !wregexs.isEmpty()) {
 				returnMap = wregexs.parallelStream().flatMap((wrx) -> {
 					MatchFinder mf = new MatchFinder(wrx, target, patternAdapterClass);
@@ -258,11 +258,11 @@ public class REDExtractor implements Extractor, RegexTiers {
 
 	}
 
-	public List<Collection<WeightedRegEx>> getRankedSnippetRegExs() {
+	public List<Collection<? extends WeightedRegEx>> getRankedSnippetRegExs() {
 		return this.rankedSnippetRegExs;
 	}
 
-	public void setRankedSnippetRegExs(List<Collection<WeightedRegEx>> rankedSnippetRegExs) {
+	public void setRankedSnippetRegExs(List<Collection<? extends WeightedRegEx>> rankedSnippetRegExs) {
 		this.rankedSnippetRegExs = rankedSnippetRegExs;
 	}
 
@@ -731,7 +731,7 @@ public class REDExtractor implements Extractor, RegexTiers {
 	}
 
 	@Override
-	public List<Collection<WeightedRegEx>> getRegexTiers() {
+	public List<Collection<? extends WeightedRegEx>> getRegexTiers() {
 		return this.rankedSnippetRegExs;
 	}
 }

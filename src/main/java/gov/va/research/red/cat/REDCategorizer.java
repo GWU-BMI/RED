@@ -54,24 +54,24 @@ public class REDCategorizer {
 		VTTReader vttr = new VTTReader();
 		List<Snippet> snippetsYes = new ArrayList<>();
 		for (String yesLabel : yesLabels) {
-			snippetsYes.addAll(vttr.readSnippets(vttFile, yesLabel, new VTTSnippetParser()));
+			snippetsYes.addAll(vttr.readSnippets(vttFile, yesLabel, true, new VTTSnippetParser()));
 		}
 		List<Snippet> snippetsNo = new ArrayList<>();
 		for (String noLabel : noLabels) {
-			snippetsNo.addAll(vttr.readSnippets(vttFile, noLabel, new VTTSnippetParser()));
+			snippetsNo.addAll(vttr.readSnippets(vttFile, noLabel, false, new VTTSnippetParser()));
 		}
-		List<Snippet> snippetsNoLabel = new ArrayList<Snippet>();
-		snippetsNoLabel.addAll(vttr.readSnippets(vttFile, new VTTSnippetParser()));
+		List<Snippet> snippetsUnlabeled = new ArrayList<Snippet>();
+		snippetsUnlabeled.addAll(vttr.readSnippets(vttFile, new VTTSnippetParser()));
 		System.out.println("snippetsYes.size = "+snippetsYes.size());
 		System.out.println("snippetsNo.size = "+snippetsNo.size());
-		System.out.println("snippetsNoLabel.size = "+snippetsNoLabel.size());
-		List<Snippet>snippetsYesAndUnlabeled = new ArrayList<>(snippetsYes.size() + snippetsNoLabel.size());
+		System.out.println("snippetsUnlabeled.size = "+snippetsUnlabeled.size());
+		List<Snippet>snippetsYesAndUnlabeled = new ArrayList<>(snippetsYes.size() + snippetsUnlabeled.size());
 		snippetsYesAndUnlabeled.addAll(snippetsYes);
-		snippetsYesAndUnlabeled.addAll(snippetsNoLabel);
-		List<Snippet> snippetsNoAndUnlabeled = new ArrayList<>(snippetsNo.size() + snippetsNoLabel.size());
+		snippetsYesAndUnlabeled.addAll(snippetsUnlabeled);
+		List<Snippet> snippetsNoAndUnlabeled = new ArrayList<>(snippetsNo.size() + snippetsUnlabeled.size());
 		snippetsNoAndUnlabeled.addAll(snippetsNo);
-		snippetsNoAndUnlabeled.addAll(snippetsNoLabel);
-		Map<String, Collection<RegEx>> rtMap =  generateRegexClassifications(snippetsYes, snippetsNo, snippetsNoLabel, yesLabels, noLabels);
+		snippetsNoAndUnlabeled.addAll(snippetsUnlabeled);
+		Map<String, Collection<RegEx>> rtMap =  generateRegexClassifications(snippetsYes, snippetsNo, snippetsUnlabeled, yesLabels, noLabels);
 
 		return rtMap;
 	}
@@ -80,15 +80,15 @@ public class REDCategorizer {
 	 * Create regular expressions for classification of positive and negative snippets
 	 * @param snippetsYesM Positive snippets.
 	 * @param snippetsNoM Negative snippets.
-	 * @param snippetsNoLabelM Snippets that are neither positive or negative.
+	 * @param snippetsUnlabeledM Snippets that are neither positive or negative.
 	 * @param yesLabelsM Labels considered positive.
 	 * @param noLabelsM Labels considered negative
 	 * @return A two entry map containing collections of regular expressions, one collection matching positive snippets and one collection matching negative snippets.
 	 */
-	public Map<String, Collection<RegEx>> generateRegexClassifications(List<Snippet> snippetsYesM, List<Snippet> snippetsNoM, List<Snippet> snippetsNoLabelM, Collection<String> yesLabelsM, Collection<String> noLabelsM) {
+	public Map<String, Collection<RegEx>> generateRegexClassifications(List<Snippet> snippetsYesM, List<Snippet> snippetsNoM, List<Snippet> snippetsUnlabeledM, Collection<String> yesLabelsM, Collection<String> noLabelsM) {
 		List<Snippet> snippetsYes = snippetsYesM;
 		List<Snippet> snippetsNo = snippetsNoM;
-		List<Snippet> snippetsNoLabel = snippetsNoLabelM;
+		List<Snippet> snippetsNoLabel = snippetsUnlabeledM;
 		Collection<String> yesLabels = yesLabelsM;
 		Collection<String> noLabels = noLabelsM;
 		List<Snippet> snippetsYesAndUnlabeled = new ArrayList<>(snippetsYes.size() + snippetsNoLabel.size());
@@ -118,8 +118,8 @@ public class REDCategorizer {
 		}
 
 		// Remove any duplicates
-		initialPositiveRegExs = removeDuplicates(initialPositiveRegExs);
-		initialNegativeRegExs = removeDuplicates(initialNegativeRegExs);
+		initialPositiveRegExs = removeDuplicatesAndEmpties(initialPositiveRegExs);
+		initialNegativeRegExs = removeDuplicatesAndEmpties(initialNegativeRegExs);
 
 		// Remove any regexes that have false positives initially
 		Iterator<RegEx> it = initialPositiveRegExs.iterator();
@@ -146,16 +146,16 @@ public class REDCategorizer {
 		Map<String,Integer> wordFreqMapNeg = createFrequencyMap(initialNegativeRegExs);
 		removeLeastFrequent4(initialPositiveRegExs, snippetsNoAndUnlabeled, yesLabels, wordFreqMapPos, rlf2init);
 		removeLeastFrequent4(initialNegativeRegExs, snippetsYesAndUnlabeled, noLabels, wordFreqMapNeg, null);
-		initialPositiveRegExs = removeDuplicates(initialPositiveRegExs);
-		initialNegativeRegExs = removeDuplicates(initialNegativeRegExs);
+		initialPositiveRegExs = removeDuplicatesAndEmpties(initialPositiveRegExs);
+		initialNegativeRegExs = removeDuplicatesAndEmpties(initialNegativeRegExs);
 		//System.out.println(rlf2init.size()+" = "+initialPositiveRegExs.size()+" ?");
 		
 		Map<String,List<String>> clps2rlf = new HashMap<String,List<String>>();
 		collapse(initialPositiveRegExs, yesLabels, snippetsNoAndUnlabeled, clps2rlf);
 		collapse(initialNegativeRegExs, noLabels, snippetsYesAndUnlabeled, null);
 		
-		initialPositiveRegExs = removeDuplicates(initialPositiveRegExs);
-		initialNegativeRegExs = removeDuplicates(initialNegativeRegExs);
+		initialPositiveRegExs = removeDuplicatesAndEmpties(initialPositiveRegExs);
+		initialNegativeRegExs = removeDuplicatesAndEmpties(initialNegativeRegExs);
 		
 		Map<String,List<String>> trim2clps = new HashMap<String,List<String>>();
 		if (PERFORM_TRIMMING_OVERALL) {
@@ -170,8 +170,8 @@ public class REDCategorizer {
 		//collapse(initialNegativeRegExs, noLabels, snippetsYesAndUnlabeled);
 		
 		// Remove duplicates
-		initialPositiveRegExs = removeDuplicates(initialPositiveRegExs);
-		initialNegativeRegExs = removeDuplicates(initialNegativeRegExs);
+		initialPositiveRegExs = removeDuplicatesAndEmpties(initialPositiveRegExs);
+		initialNegativeRegExs = removeDuplicatesAndEmpties(initialNegativeRegExs);
 		
 		/*int n = 0;
 		for (String trim: trim2clps.keySet()) {
@@ -318,8 +318,14 @@ public class REDCategorizer {
 		writer.close();
 	}
 	
-	private Collection<RegEx> removeDuplicates(Collection<RegEx> regExes) {
-		return new HashSet<RegEx>(regExes);
+	private Collection<RegEx> removeDuplicatesAndEmpties(Collection<RegEx> regExes) {
+		Set<RegEx> set = new HashSet<>(regExes.size());
+		for (RegEx re : regExes) {
+			if (re.getRegEx() != null && re.getRegEx().trim().length() > 0) {
+				set.add(re);
+			}
+		}
+		return set;
 	}
 	
 	private List<RegEx> initialize(Collection<Snippet> snippets, Collection<String> labels, List<String> segs, List<String> inits) {
@@ -607,7 +613,7 @@ public class REDCategorizer {
 			while (true) {
 				if (frontTrim) {
 					RegEx frontTrimRegEx = frontTrim(regEx);
-					if (frontTrimRegEx == null) {
+					if (frontTrimRegEx == null || frontTrimRegEx.getRegEx().length() == 0) {
 						frontTrim = false;
 					} else {
 						if (SnippetRegexMatcher.anyMatches(frontTrimRegEx, negSnippets, posLabels)) {
@@ -619,7 +625,7 @@ public class REDCategorizer {
 				}
 				if (backTrim) {
 					RegEx backTrimRegEx = backTrim(regEx);
-					if (backTrimRegEx == null) {
+					if (backTrimRegEx == null || backTrimRegEx.getRegEx().length() == 0) {
 						backTrim = false;
 					} else {
 						if (SnippetRegexMatcher.anyMatches(backTrimRegEx, negSnippets, posLabels)) {

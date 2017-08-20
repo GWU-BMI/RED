@@ -20,7 +20,7 @@ import org.apache.commons.configuration.PropertiesConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import gov.nih.nlm.nls.vtt.model.VttDocument;
+import gov.nih.nlm.nls.vtt.model.VttDocumentDelegate;
 import gov.va.research.red.CVResult;
 import gov.va.research.red.CVScore;
 import gov.va.research.red.CVUtils;
@@ -41,7 +41,7 @@ public class REDExCrossValidator implements CrossValidatable {
 	private int folds = 10;
 	private boolean allowOverMatches = true;
 	private boolean caseInsensitive = true;
-	private Collection<String> holdouts = Collections.emptyList();
+	private Collection<String> holdouts = new ArrayList<>(0);
 	private boolean useTier2 = true;
 	private boolean generalizeLabeledSegments = true;
 	private boolean stopAfterFirstFold = false;
@@ -60,7 +60,7 @@ public class REDExCrossValidator implements CrossValidatable {
 		this.folds = folds;
 		this.allowOverMatches = allowOverMatches;
 		this.caseInsensitive = caseInsensitive;
-		this.holdouts = holdouts == null ? Collections.emptyList() : holdouts;
+		this.holdouts = holdouts == null ? new ArrayList<>(0) : holdouts;
 		this.useTier2 = useTier2;
 		this.generalizeLabeledSegments = generalizeLabeledSegments;
 		this.stopAfterFirstFold = stopAfterFirstFold;
@@ -201,7 +201,7 @@ public class REDExCrossValidator implements CrossValidatable {
 	 * @throws IOException
 	 * @throws FileNotFoundException
 	 */
-	List<CVResult> crossValidate(List<File> vttFiles, Collection<String> labels, Function<VttDocument, TreeMap<SnippetPosition, Snippet>> snippetParser)
+	List<CVResult> crossValidate(List<File> vttFiles, Collection<String> labels, Function<VttDocumentDelegate, TreeMap<SnippetPosition, Snippet>> snippetParser)
 			throws IOException, FileNotFoundException {
 		VTTReader vttr = new VTTReader();
 		// get snippets
@@ -300,9 +300,9 @@ public class REDExCrossValidator implements CrossValidatable {
 							REDExFactory rexe = new REDExFactory();
 							score = rexe.test(testing, ex, allowOverMatches,
 									caseInsensitive, pw, useTier2, patternAdapterClass);
-							List<Collection<WeightedRegEx>> tieredRegexes = ex.getRegexTiers();
+							List<Collection<? extends WeightedRegEx>> tieredRegexes = ex.getRegexTiers();
 							regExes = new ArrayList<>();
-							for (Collection<WeightedRegEx> tierRegexs : tieredRegexes) {
+							for (Collection<? extends WeightedRegEx> tierRegexs : tieredRegexes) {
 								regExes.addAll(tierRegexs);
 							}
 						}
@@ -386,7 +386,7 @@ public class REDExCrossValidator implements CrossValidatable {
 			if (redexModel == null) {
 				pw.println("null REDExModel");
 			} else {
-				for (Collection<WeightedRegEx> tier : redexModel.getRegexTiers()) {
+				for (Collection<? extends WeightedRegEx> tier : redexModel.getRegexTiers()) {
 					pw.println("--- Rank " + rank);
 					for (WeightedRegEx trainedSre : tier) {
 						pw.println(trainedSre.toString());
@@ -428,7 +428,7 @@ public class REDExCrossValidator implements CrossValidatable {
 	}
 
 	public void setHoldouts(Collection<String> holdouts) {
-		this.holdouts = holdouts == null ? Collections.emptyList() : holdouts;
+		this.holdouts = holdouts == null ? new ArrayList<>(0) : holdouts;
 	}
 
 	public boolean isUseTier2() {

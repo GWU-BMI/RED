@@ -18,7 +18,7 @@ package gov.va.research.red;
 
 import gov.nih.nlm.nls.vtt.model.Markup;
 import gov.nih.nlm.nls.vtt.model.Tags;
-import gov.nih.nlm.nls.vtt.model.VttDocument;
+import gov.nih.nlm.nls.vtt.model.VttDocumentDelegate;
 
 import java.io.File;
 import java.io.IOException;
@@ -29,7 +29,6 @@ import java.util.List;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeMap;
-//import java.util.regex.Pattern;
 import java.util.function.Function;
 
 import org.slf4j.Logger;
@@ -51,8 +50,8 @@ public class VTTReader {
 	 * @return A VTT document representation of the VTT file.
 	 * @throws IOException when <code>vttFile</code> is not valid.
 	 */
-	public VttDocument read(final File vttFile) throws IOException {
-		VttDocument vttDoc = new VttDocument();
+	public VttDocumentDelegate read(final File vttFile) throws IOException {
+		VttDocumentDelegate vttDoc = new VttDocumentDelegate();
 		boolean valid = vttDoc.readFromFile(null, vttFile);
 		if (!valid) {
 			throw new IOException("Not a valid VTT file: " + vttFile);
@@ -64,15 +63,16 @@ public class VTTReader {
 	 * Reads labeled segment triplets from a VTT file
 	 * @param vttFile The VTT file to extract triplets from.
 	 * @param label The label of the segments to extract.
+	 * @param labelIsPositive Indicates if the label is positively asserting or negative asserting (e.g. Yes rather than No).
 	 * @param snippetParser Function to use to parse snippets from <code>vttFile</code>.
 	 * @return Labeled segment triplets (before labeled segment, labeled segment, after labeled segment)
 	 * @throws IOException when a problem occurs reading <code>vttFile</code>.
 	 */
-	public List<LSTriplet> readLSTriplets(final File vttFile, final String label, Function<VttDocument, TreeMap<SnippetPosition, Snippet>> snippetParser) throws IOException {
-		Collection<Snippet> snippets = readSnippets(vttFile, label, snippetParser);
+	public List<LSTriplet> readLSTriplets(final File vttFile, final String label, final boolean labelIsPositive, Function<VttDocumentDelegate, TreeMap<SnippetPosition, Snippet>> snippetParser) throws IOException {
+		Collection<Snippet> snippets = readSnippets(vttFile, label, labelIsPositive, snippetParser);
 		List<LSTriplet> ls3list = new ArrayList<>(snippets.size());
 		for (Snippet snippet : snippets) {
-			for (LabeledSegment ls : snippet.getPosLabeledSegments()) {
+			for (LabeledSegment ls : labelIsPositive ? snippet.getPosLabeledSegments() : snippet.getNegLabeledSegments()) {
 				if (label.equals(ls.getLabel())) {
 					ls3list.add(LSTriplet.valueOf(snippet.getText(), ls));
 				}
@@ -85,28 +85,30 @@ public class VTTReader {
 	 * Reads snippets from a vtt file.
 	 * @param vttFile The VTT file to extract triplets from.
 	 * @param includeLabel The label of the segments to extract.
+	 * @param labelIsPositive Indicates if the label is positively asserting or negative asserting (e.g. Yes rather than No).
 	 * @param snippetParser Function to use to parse snippets from <code>vttFile</code>.
 	 * @return Snippets containing labeled segments for the specified label.
 	 * @throws IOException when a problem occurs reading <code>vttFile</code>.
 	 */
-	public Collection<Snippet> readSnippets(final File vttFile, final String includeLabel, Function<VttDocument, TreeMap<SnippetPosition, Snippet>> snippetParser) throws IOException {
+	public Collection<Snippet> readSnippets(final File vttFile, final String includeLabel, final boolean labelIsPositive, Function<VttDocumentDelegate, TreeMap<SnippetPosition, Snippet>> snippetParser) throws IOException {
 		Collection<String> includeLabels = new ArrayList<>(1);
 		includeLabels.add(includeLabel);
-		return readSnippets(vttFile, includeLabels, snippetParser);
+		return readSnippets(vttFile, includeLabels, labelIsPositive, snippetParser);
 	}
 
 	/**
 	 * Reads snippets from a vtt file.
 	 * @param vttFile The VTT file to extract triplets from.
 	 * @param includeLabels A collection of the labels of the segments to extract.
+	 * @param labelsArePositive Indicates if the labels are positively asserting or negative asserting (e.g. Yes rather than No).
  	 * @param snippetParser Function to use to parse snippets from <code>vttFile</code>.
 	 * @return Snippets containing labeled segments for the specified label.
 	 * @throws IOException when a problem occurs reading <code>vttFile</code>.
 	 */
-	public Collection<Snippet> readSnippets(final File vttFile, final Collection<String> includeLabels,
-			final Function<VttDocument, TreeMap<SnippetPosition, Snippet>> snippetParser)
+	public Collection<Snippet> readSnippets(final File vttFile, final Collection<String> includeLabels, final boolean labelsArePositive,
+			final Function<VttDocumentDelegate, TreeMap<SnippetPosition, Snippet>> snippetParser)
 			throws IOException {
-		VttDocument vttDoc = read(vttFile);
+		VttDocumentDelegate vttDoc = read(vttFile);
 		String docText = vttDoc.getText();
 		TreeMap<SnippetPosition, Snippet> pos2snips = snippetParser.apply(vttDoc);// findSnippetPositions(vttDoc);
 		Set<Snippet> snippets = new HashSet<>();
@@ -142,15 +144,17 @@ public class VTTReader {
 					}
 					LabeledSegment ls = new LabeledSegment(markup.getTagName().toLowerCase(), labStr, labeledOffset - p2s.getKey().start, labeledLength);
 					Snippet snippet = p2s.getValue();
-					List<LabeledSegment> labeledSegments = snippet.getPosLabeledSegments();
+					List<LabeledSegment> labeledSegments = labelsArePositive ? snippet.getPosLabeledSegments() : snippet.getNegLabeledSegments();
 					if (labeledSegments == null) {
 						labeledSegments = new ArrayList<LabeledSegment>();
-						snippet.setPosLabeledSegments(labeledSegments);
+						if (labelsArePositive) {
+							snippet.setPosLabeledSegments(labeledSegments);
+						} else {
+							snippet.setNegLabeledSegments(labeledSegments);
+						}
 					}
 					labeledSegments.add(ls);
-					if (!snippets.contains(snippet)) {
-						snippets.add(snippet);
-					}
+					snippets.add(snippet);
 				}
 			}
 		}
@@ -164,9 +168,9 @@ public class VTTReader {
 	 * @return All snippets in the vtt file.
 	 * @throws IOException when a problem occurs reading <code>vttFile</code>.
 	 */
-	public Collection<Snippet> readSnippets(final File vttFile, Function<VttDocument, TreeMap<SnippetPosition, Snippet>> snippetParser)
+	public Collection<Snippet> readSnippets(final File vttFile, Function<VttDocumentDelegate, TreeMap<SnippetPosition, Snippet>> snippetParser)
 			throws IOException {
-		VttDocument vttDoc = read(vttFile);
+		VttDocumentDelegate vttDoc = read(vttFile);
 		TreeMap<SnippetPosition, Snippet> pos2snips = snippetParser.apply(vttDoc);
 
 		for (Markup markup : vttDoc.getMarkups().getMarkups()) {
@@ -201,9 +205,9 @@ public class VTTReader {
 	 * @return All snippets in the vtt file.
 	 * @throws IOException when a problem occurs reading <code>vttFile</code>.
 	 */
-	public Collection<Snippet> readSnippetsAll(final File vttFile, Function<VttDocument, TreeMap<SnippetPosition, Snippet>> snippetParser)
+	public Collection<Snippet> readSnippetsAll(final File vttFile, Function<VttDocumentDelegate, TreeMap<SnippetPosition, Snippet>> snippetParser)
 			throws IOException {
-		VttDocument vttDoc = read(vttFile);
+		VttDocumentDelegate vttDoc = read(vttFile);
 		String docText = vttDoc.getText();
 		TreeMap<SnippetPosition, Snippet> pos2snips = snippetParser.apply(vttDoc);
 		
@@ -259,9 +263,9 @@ public class VTTReader {
 	 * @return All snippets in the vtt file, including labeled segments matching the collection of labels.
 	 * @throws IOException when a problem occurs reading <code>vttFile</code>.
 	 */
-	public Collection<Snippet> findSnippets(final File vttFile, final Collection<String> labels, Function<VttDocument, TreeMap<SnippetPosition, Snippet>> snippetParser)
+	public Collection<Snippet> findSnippets(final File vttFile, final Collection<String> labels, Function<VttDocumentDelegate, TreeMap<SnippetPosition, Snippet>> snippetParser)
 			throws IOException {
-		VttDocument vttDoc = read(vttFile);
+		VttDocumentDelegate vttDoc = read(vttFile);
 
 		TreeMap<SnippetPosition, Snippet> pos2snips = snippetParser.apply(vttDoc);
 		

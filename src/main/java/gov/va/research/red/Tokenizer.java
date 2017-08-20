@@ -28,9 +28,9 @@ import java.util.regex.Pattern;
  */
 public class Tokenizer {
 	private static Map<String,Token> cache = new HashMap<>();
-	private static Pattern INTEGER_PATTERN = Pattern.compile("\\d+");
-	private static Pattern PUNCTUATION_PATTERN = Pattern.compile("(\\p{Punct})\\1*");
-	private static Pattern WHITESPACE_PATTERN = Pattern.compile("\\s+");
+	public static Pattern INTEGER_PATTERN = Pattern.compile("\\d+");
+	public static Pattern PUNCTUATION_PATTERN = Pattern.compile("(\\p{Punct})\\1*");
+	public static Pattern WHITESPACE_PATTERN = Pattern.compile("\\s+");
 
 //	private static Pattern BRACKET_PATTERN = Pattern.compile("[()<>\\[\\]{}]");
 //	private static Pattern MARK_PATTERN = Pattern.compile("[\\+\\-\\*]");

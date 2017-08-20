@@ -33,11 +33,16 @@ import java.util.List;
 import java.util.Random;
 import java.util.Set;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * @author doug
  *
  */
 public class CrossValidateCategorizer {
+	
+	private static Logger LOG = LoggerFactory.getLogger("CrossValidateCategorizer");
 
 	public List<CVScore> crossValidateClassifier(List<File> vttFiles,
 			List<String> yesLabels, List<String> noLabels, int folds,
@@ -47,38 +52,38 @@ public class CrossValidateCategorizer {
 		List<Snippet> snippetsYes = new ArrayList<>();
 		for (File vttFile : vttFiles) {
 			for (String label : yesLabels) {
-				snippetsYes.addAll(vttr.readSnippets(vttFile, label, new VTTSnippetParser()));
+				snippetsYes.addAll(vttr.readSnippets(vttFile, label, true, new VTTSnippetParser()));
 			}
 		}
 
 		List<Snippet> snippetsNo = new ArrayList<>();
 		for (File vttFile : vttFiles) {
 			for (String label : noLabels) {
-				snippetsNo.addAll(vttr.readSnippets(vttFile, label, new VTTSnippetParser()));
+				snippetsNo.addAll(vttr.readSnippets(vttFile, label, false, new VTTSnippetParser()));
 			}
 		}
 
-		List<Snippet> snippetsNoLabel = new ArrayList<>();
+		List<Snippet> snippetsUnlabeled = new ArrayList<>();
 		for (File vttFile : vttFiles) {
-			snippetsNoLabel.addAll(vttr.readSnippets(vttFile, new VTTSnippetParser()));
+			snippetsUnlabeled.addAll(vttr.readSnippets(vttFile, new VTTSnippetParser()));
 		}
 		return crossValidateClassifier(snippetsYes, snippetsNo,
-				snippetsNoLabel, yesLabels, noLabels, folds, biasForRecall);
+				snippetsUnlabeled, yesLabels, noLabels, folds, biasForRecall);
 	}
 
 	public List<CVScore> crossValidateClassifier(List<Snippet> snippetsYes,
-			List<Snippet> snippetsNo, List<Snippet> snippetsNoLabel,
+			List<Snippet> snippetsNo, List<Snippet> snippetsUnlabeled,
 			Collection<String> yesLabels, Collection<String> noLabels,
 			int folds, boolean biasForRecall) throws IOException,
 			URISyntaxException {
 		// randomize the order of the snippets
 		if (biasForRecall) {
-			snippetsYes.addAll(snippetsNoLabel);
+			snippetsYes.addAll(snippetsUnlabeled);
 		} else {
-			snippetsNo.addAll(snippetsNoLabel);
+			snippetsNo.addAll(snippetsUnlabeled);
 		}
-		Collections.shuffle(snippetsYes, new Random(1));
-		Collections.shuffle(snippetsNo, new Random(2));
+		Collections.shuffle(snippetsYes);
+		Collections.shuffle(snippetsNo);
 
 		// partition snippets into one partition per fold
 		List<List<Snippet>> partitionsYes = CVUtils.partitionSnippets(folds,
@@ -94,7 +99,7 @@ public class CrossValidateCategorizer {
 		// int fold = 0;
 		System.out.println("Estimating performance with " + folds
 				+ "-fold cross validation:");
-		for (int i = 3; i < folds; i++) {
+		for (int i = 0; i < folds; i++) {
 			List<Snippet> testingYes = partitionsYes.get(i);
 			List<Snippet> testingNo = partitionsNo.get(i);
 			// set up training and testing sets for this fold
@@ -115,6 +120,7 @@ public class CrossValidateCategorizer {
 			List<String> snippetsTrain = new ArrayList<>();
 			List<List<Integer>> segspansTrain = new ArrayList<>();
 			List<Integer> labelsTrain = new ArrayList<>();
+			int numYes = 0;
 			for (Snippet snip : trainingYes) {
 				if (snip.getPosLabeledSegments().size() == 0)
 					continue;
@@ -129,7 +135,9 @@ public class CrossValidateCategorizer {
 				span.add(start + ls.length());
 				segspansTrain.add(span);
 				labelsTrain.add(1);
+				numYes++;
 			}
+			int numNo = 0;
 			for (Snippet snip : trainingNo) {
 				if (snip.getNegLabeledSegments().size() == 0)
 					continue;
@@ -144,10 +152,14 @@ public class CrossValidateCategorizer {
 				span.add(start + ls.length());
 				segspansTrain.add(span);
 				labelsTrain.add(-1);
+				numNo++;
 			}
 			IREDClassifier redc = REDClassifierFactory.createModel();
-			System.out.println("##### FOLD " + (i + 1) + " #####");
-
+			LOG.info(
+					System.lineSeparator()
+					+ "##### FOLD " + (i + 1) + " #####" + System.lineSeparator()
+					+ "# positive snippets = " + numYes + System.lineSeparator()
+					+ "# negative snippets = " + numNo);
 			validateForFit(snippetsTrain, segspansTrain, labelsTrain);
 
 			redc.fit(snippetsTrain, segspansTrain, labelsTrain);

@@ -65,7 +65,7 @@ public class REDExModel implements RegexTiers {
 	}
 
 	@Override
-	public List<Collection<WeightedRegEx>> getRegexTiers() {
+	public List<Collection<? extends WeightedRegEx>> getRegexTiers() {
 		return Collections.unmodifiableList(regexTiers);
 	}
 	

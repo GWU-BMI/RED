@@ -99,7 +99,7 @@ public class REDExtractorTest {
 		VTTReader vttr = new VTTReader();
 		REDExFactory regExt = new REDExFactory();
 		try {
-			Collection<Snippet> snippets = vttr.readSnippets(new File(TEST_VTT_URI), "weight", new VTTSnippetParser());
+			Collection<Snippet> snippets = vttr.readSnippets(new File(TEST_VTT_URI), "weight", true, new VTTSnippetParser());
 			regExt.train(snippets, true, "test", true, true, new ArrayList<>(0), Boolean.TRUE, Boolean.TRUE, PATTERN_ADAPTER_CLASS);
 		} catch (IOException e) {
 			throw new AssertionError("Failed extract 'weight' labeled regular expressions from VTT file: " + TEST_VTT_URI, e);
@@ -148,14 +148,14 @@ public class REDExtractorTest {
 		List<Snippet> snippets = new ArrayList<Snippet>();
 		VTTReader vttr = new VTTReader();
 		File vttFile = new File(TEST_VTT_URI);
-		snippets.addAll(vttr.readSnippets(vttFile, "weight", new VTTSnippetParser()));
+		snippets.addAll(vttr.readSnippets(vttFile, "weight", true, new VTTSnippetParser()));
 		REDExFactory regExt = new REDExFactory();
 		REDExModel ex = regExt.train(snippets, true, "test", true, true, new ArrayList<>(0), Boolean.TRUE, Boolean.TRUE, PATTERN_ADAPTER_CLASS);
-		List<Collection<WeightedRegEx>> snippetRegExs = ex.getRegexTiers();
+		List<Collection<? extends WeightedRegEx>> snippetRegExs = ex.getRegexTiers();
 		List<RegEx> yesRegExs = null;
 		if(snippetRegExs != null) {
 			yesRegExs = new ArrayList<RegEx>();
-			for (Collection<WeightedRegEx> sres : ex.getRegexTiers()) {
+			for (Collection<? extends WeightedRegEx> sres : ex.getRegexTiers()) {
 				for(WeightedRegEx snippetRegEx : sres) {
 					yesRegExs.add(new RegEx(snippetRegEx.toString()));
 				}

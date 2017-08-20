@@ -30,6 +30,7 @@ import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Test;
 
 import gov.va.research.red.CVScore;
 import gov.va.research.red.RegEx;
@@ -92,13 +93,13 @@ public class RegExCategorizerTest {
 		REDCategorizer crex = new REDCategorizer();
 		try {
 			List<String> yesLabels = new ArrayList<>();
-			yesLabels.add("yes");
+			yesLabels.add("Yes");
 			List<String> noLabels = new ArrayList<>();
-			noLabels.add("no");
-			Map<String, Collection<RegEx>> retMap = crex.findRegexesAndOutputResults(new File(CLASSIFIER_TEST_URI), yesLabels, noLabels);
-			System.out.println("# of positive regexs = "+retMap.get("true").size());
-			System.out.println("# of negative regexs = "+retMap.get("false").size());
-			System.out.println("Pos regex");
+			noLabels.add("No");
+//			Map<String, Collection<RegEx>> retMap = crex.findRegexesAndOutputResults(new File(CLASSIFIER_TEST_URI), yesLabels, noLabels);
+//			System.out.println("# of positive regexs = "+retMap.get("true").size());
+//			System.out.println("# of negative regexs = "+retMap.get("false").size());
+//			System.out.println("Pos regex");
 			/*int n = 0;
 			for (RegEx regEx : retMap.get("true")) {
 				n++;
@@ -140,10 +141,7 @@ public class RegExCategorizerTest {
 		yesLabels.add(YES);
 		List<String> noLabels = new ArrayList<>();
 		noLabels.add(NO);
-		List<Snippet> snippets = new ArrayList<Snippet>();
-		VTTReader vttr = new VTTReader();
 		File vttFile = new File(CLASSIFIER_TEST_URI);
-		snippets.addAll(vttr.readSnippets(vttFile, "", new VTTSnippetParser()));
 		REDCategorizer regExCategorizer = new REDCategorizer();
 		regExCategorizer.findRegexesAndOutputResults(vttFile, yesLabels, noLabels);
 	}

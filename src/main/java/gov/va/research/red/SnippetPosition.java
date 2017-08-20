@@ -35,13 +35,6 @@ public class SnippetPosition  implements Comparable<SnippetPosition> {
 		if (start > o.start){
 			return 1;
 		}
-		if (end < o.end) {
-			return -1;
-		}
-		if (end > o.end){
-			return 1;
-		}
-		
 		return 0;
 	}
 }
