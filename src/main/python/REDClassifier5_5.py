@@ -62,7 +62,7 @@ class REDClassifier(IREDClassifier):
         self._generalize30()
         self._sortOver30()
         
-    def predict(self,snippets,labelU=None):
+    def predict(self,snippets,labelForUndecided):
         print 'predicting...'
         preds0 = self._predict0(snippets)
         preds1 = self._predict1(snippets)
@@ -79,9 +79,34 @@ class REDClassifier(IREDClassifier):
             elif pred3 is not None:
                 pred = pred3
             else:
-                pred = labelU
+                pred = labelForUndecided
             preds.append(pred)
         return preds
+        
+    def getStrictRegexs(self,label):
+        regexs = []
+        for i in self._cls2idStrictSorted[label]:
+            regex = self._getRegex(self._cls2strictTokenstrs[label][i])
+            regexs.append(regex)
+        return regexs
+        
+    def getLessStrictRegexs(self,label):
+        regexs = []
+        for cls,i in self._clsIdOverSorted:
+            if cls!=label:
+                continue
+            regex = self._getRegex(self._cls2overTokenstrs[cls][i])
+            regexs.append(regex)
+        return regexs
+        
+    def getLeastStrictRegexs(self,label):
+        regexs = []
+        for cls,i in self._clsIdOver30Sorted:
+            if cls!=label:
+                continue
+            regex = self._getRegex(self._cls2over30Tokenstrs[cls][i])
+            regexs.append(regex)
+        return regexs
     
     def _preprocess(self,snippets,segspans,labels):
         def fixSpan(snippet,start,end):
@@ -135,6 +160,8 @@ class REDClassifier(IREDClassifier):
                         if m:
                             tokens.append(token[:m.end()])
                             ttypes.append(1)
+                            if maxNumberLen < m.end():
+                                maxNumberLen = m.end()
                             token = token[m.end():]
                         ttypes.append(2)
                         if maxWordLen < len(token):
@@ -572,15 +599,11 @@ class REDClassifier(IREDClassifier):
             for i in self._cls2idOver2cls2count[cls]:
                 cls2count = self._cls2idOver2cls2count[cls][i]
                 likelyhood = cls2count[cls]*1.0/lenCls
-                likelyhoodOpp = sum(cls2count[c] for 
-                            c in cls2snip_spans if c!=cls)*1.0/lenOpp
-                if sum(cls2count[c] for 
-                            c in cls2snip_spans if c!=cls)==0:
-                    print cls, i
-                if likelyhoodOpp==0.0:
-                    print 'likelyhoodOpp == 0.0'
-                else:
-                    clsid2lhratio[(cls,i)] = likelyhood/likelyhoodOpp
+                countOpp = sum(cls2count[c] for c in cls2snip_spans if c!=cls)
+                if countOpp==0:
+                    countOpp = 1 #solution for the moment. need to be fixed.
+                likelyhoodOpp = countOpp*1.0/lenOpp
+                clsid2lhratio[(cls,i)] = likelyhood/likelyhoodOpp
         self._clsIdOverSorted = sorted(clsid2lhratio,key=lambda ci:-clsid2lhratio[ci])
         
     def _generalize30(self):
@@ -628,8 +651,10 @@ class REDClassifier(IREDClassifier):
             for i in self._cls2idOver302cls2count[cls]:
                 cls2count = self._cls2idOver302cls2count[cls][i]
                 likelyhood = cls2count[cls]*1.0/lenCls
-                likelyhoodOpp = sum(cls2count[c] for 
-                            c in cls2snip_spans if c!=cls)*1.0/lenOpp
+                countOpp = sum(cls2count[c] for c in cls2snip_spans if c!=cls)
+                if countOpp==0:
+                    countOpp = 1 #solution for the moment. needs to be fixed.
+                likelyhoodOpp = countOpp*1.0/lenOpp
                 clsid2lhratio[(cls,i)] = likelyhood/likelyhoodOpp
         self._clsIdOver30Sorted = sorted(clsid2lhratio,key=lambda ci:-clsid2lhratio[ci])
      
@@ -697,8 +722,10 @@ class REDClassifier(IREDClassifier):
                             c in cls2snip_spans if c!=cls)
             cls2count = self._cls2idOver2cls2count[cls][i]
             lh = cls2count[cls]*1.0/lenCls
-            lhOpp = sum(cls2count[c] for 
-                            c in cls2snip_spans if c!=cls)*1.0/lenOpp
+            ctOpp = sum(cls2count[c] for c in cls2snip_spans if c!=cls)
+            if ctOpp==0:
+                ctOpp = 1 #solution for the moment. needs to be fixed.
+            lhOpp = ctOpp*1.0/lenOpp
             lhratio = lh/lhOpp
             regex = self._getRegex(self._cls2overTokenstrs[cls][i])
             ptn = re.compile(regex,re.I)
@@ -730,8 +757,10 @@ class REDClassifier(IREDClassifier):
                             c in cls2snip_spans if c!=cls)
             cls2count = self._cls2idOver302cls2count[cls][i]
             lh = cls2count[cls]*1.0/lenCls
-            lhOpp = sum(cls2count[c] for 
-                            c in cls2snip_spans if c!=cls)*1.0/lenOpp
+            ctOpp = sum(cls2count[c] for c in cls2snip_spans if c!=cls)
+            if ctOpp==0:
+                ctOpp = 1 #solution for the moment. needs to be fixed.
+            lhOpp = ctOpp*1.0/lenOpp
             lhratio = lh/lhOpp
             regex = self._getRegex(self._cls2over30Tokenstrs[cls][i])
             ptn = re.compile(regex,re.I)
