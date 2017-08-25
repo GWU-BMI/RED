@@ -125,6 +125,11 @@
         <artifactId>re2j</artifactId>
         <version>1.1</version>
     </dependency>
+	<dependency>
+		<groupId>gov.va.vinci.nlp.framework</groupId>
+		<artifactId>utils.general</artifactId>
+		<version>2017.07.2</version>
+	</dependency>
   </dependencies>
   <scm>
   	<connection>scm:git:http://inlp.bmi.utah.edu/git/RED.git/</connection>

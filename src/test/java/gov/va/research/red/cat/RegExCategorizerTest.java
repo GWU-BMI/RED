@@ -88,7 +88,7 @@ public class RegExCategorizerTest {
 	public void tearDown() throws Exception {
 	}
 
-//	@Test
+	@Test
 	public void testExtractClassifier(){
 		REDCategorizer crex = new REDCategorizer();
 		try {
