@@ -1,5 +1,5 @@
 /*
- *  Copyright 2014 United States Department of Veterans Affairs,
+ *  Copyright 2014,2017 United States Department of Veterans Affairs,
  *		Health Services Research & Development Service
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,27 +16,20 @@
  */
 package gov.va.research.red.cat;
 
-import gov.va.research.red.CVScore;
-import gov.va.research.red.CVUtils;
+import java.io.File;
+import java.io.PrintWriter;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import gov.va.research.red.Snippet;
 import gov.va.research.red.VTTReader;
 import gov.va.research.red.VTTSnippetParser;
 import gov.va.vinci.nlp.framework.utils.U;
-
-import java.io.File;
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.net.URISyntaxException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Random;
-import java.util.Set;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * @author doug
@@ -45,37 +38,103 @@ import org.slf4j.LoggerFactory;
 public class RedCatModelCreator {
 	
 	private static Logger LOG = LoggerFactory.getLogger("CrossValidateCategorizer");
+	
+	public static String DELIMITER = "~";
 
-	public void  createModel(List<File>   vttFiles, 
+	
+	/**
+   * createModel 
+   * 
+   * @param pVTTFiles
+   * @param pKeyWordFile
+   * @param pOutputDir
+   * @param yesLabels  
+   * @param noLabels  
+   * @param biasForRecall
+   * @throws Exception 
+   */
+	public void  createModel(List<File>   pVTTFiles, 
+	                     String       pKeywordsFile,
 			                 String       pOutputDir,
 			                 List<String> yesLabels, 
 			                 List<String> noLabels, 
 			                 boolean      biasForRecall) throws Exception {
 		
 		VTTReader vttr = new VTTReader();
+		
+		String[] keywords = null;
+		if ( pKeywordsFile != null && !pKeywordsFile.isEmpty() ) {
+		  keywords = U.readFileIntoStringArray(pKeywordsFile);
+		  keywords = normalizeKeywords( keywords );
+		}
+		
 		// get snippets
 		List<Snippet> snippetsYes = new ArrayList<>();
-		for (File vttFile : vttFiles) {
+		for (File vttFile : pVTTFiles) {
 			for (String label : yesLabels) {
 				snippetsYes.addAll(vttr.readSnippets(vttFile, label, true, new VTTSnippetParser()));
 			}
 		}
 
 		List<Snippet> snippetsNo = new ArrayList<>();
-		for (File vttFile : vttFiles) {
+		for (File vttFile : pVTTFiles) {
 			for (String label : noLabels) {
 				snippetsNo.addAll(vttr.readSnippets(vttFile, label, false, new VTTSnippetParser()));
 			}
 		}
 
 		List<Snippet> snippetsUnlabeled = new ArrayList<>();
-		for (File vttFile : vttFiles) {
+		for (File vttFile : pVTTFiles) {
 			snippetsUnlabeled.addAll(vttr.readSnippets(vttFile, new VTTSnippetParser()));
 		}
-		createModel(pOutputDir, snippetsYes, snippetsNo,snippetsUnlabeled, yesLabels, noLabels, biasForRecall);
-	}
+		createModel(pOutputDir, keywords, snippetsYes, snippetsNo,snippetsUnlabeled, yesLabels, noLabels, biasForRecall);
+	} // end Method create Model() =================
 
-	public void createModel(String pOutputDir, 
+	
+	// =======================================================
+   /**
+    * normalizeKeywords lowercases the keywords, and throws out
+    *  keywords that have been commented out (with a leading #)
+    * 
+    * @param pKeywords
+    * @return String []
+    *
+    */
+   // ======================================================	
+  private String[] normalizeKeywords(String[] pKeywords) {
+   
+    String returnVal[] = null;
+    ArrayList<String> keys = null ; 
+    
+    
+    if ( pKeywords != null && pKeywords.length > 0 ) {
+      keys = new ArrayList<String>( pKeywords.length);
+      for ( String key: pKeywords ){
+        if ( key != null && key.length() > 0  && !key.startsWith("#"))
+          keys.add( key.toLowerCase().trim());
+      } // end loop thru keywords
+    }
+          
+    return returnVal;
+    } // End Method normalizeKeywords ============
+   
+
+
+  /**
+  * createModel 
+  * 
+  * @param pVTTFiles
+  * @param pKeyWords
+  * @param snipptsYes
+  * @param snippetsNo 
+  * @param snippetsUnlabeled
+  * @param yesLabels
+  * @param noLabels
+  * @param biasForRecall
+  * @throws Exception 
+  */
+	public void createModel(String pOutputDir,
+	                   String[] keyWords,
 			                List<Snippet> snippetsYes,
 				            List<Snippet> snippetsNo, 
 				            List<Snippet> snippetsUnlabeled,
@@ -143,29 +202,30 @@ public class RedCatModelCreator {
 			int positive = 1;
 			int negative = -1;
 		
-			printRegexFile( pOutputDir, redc.getStrictRegexs(positive), "strictRegexes", "Positive");
-			printRegexFile( pOutputDir, redc.getStrictRegexs(negative),  "strictRegexes", "Negative");
+			printRegexFileWithKeyWordFilter( pOutputDir, keyWords, redc.getStrictRegexs(positive), "strictRegexes", "Positive");
+			printRegexFileWithKeyWordFilter( pOutputDir, keyWords, redc.getStrictRegexs(negative),  "strictRegexes", "Negative");
 			
-			printRegexFile( pOutputDir, redc.getLessStrictRegexs(positive), "lessStrictRegexes", "Positive");
-			printRegexFile( pOutputDir, redc.getLessStrictRegexs(negative),  "lessStrictRegexes", "Negative");
+			printRegexFileWithKeyWordFilter( pOutputDir, keyWords, redc.getLessStrictRegexs(positive), "lessStrictRegexes", "Positive");
+			printRegexFileWithKeyWordFilter( pOutputDir, keyWords, redc.getLessStrictRegexs(negative),  "lessStrictRegexes", "Negative");
 			
-			printRegexFile( pOutputDir, redc.getLeastStrictRegexs(positive), "leastStrictRegexes", "Positive");
-			printRegexFile( pOutputDir, redc.getLeastStrictRegexs(negative),  "leastStrictRegexes", "Negative");
+			printRegexFileWithKeyWordFilter( pOutputDir, keyWords, redc.getLeastStrictRegexs(positive), "leastStrictRegexes", "Positive");
+			printRegexFileWithKeyWordFilter( pOutputDir, keyWords, redc.getLeastStrictRegexs(negative),  "leastStrictRegexes", "Negative");
 			
 		
 		
 	} // end Method createModel() -------------------------------------
 	
 	/**
-	 * printRegexFile 
+	 * printRegexFileWithKeyWordFilter 
 	 * 
 	 * @param pOutputDir
+	 * @param pKeyWords
 	 * @param pRegexes    
 	 * @param pRegexType   (Strict/LessStrict/LeastStrict )
 	 * @param pLabelType   (Positive/Negative, Yes/No,  True/False ... )
 	 * @throws Exception 
 	 */
-	public static void printRegexFile(String pOutputDir, List<String> pListOfRegexes, String pRegexType, String pLabelType) throws Exception {
+	public static void printRegexFileWithKeyWordFilter(String pOutputDir, String[] pKeyWords, List<String> pListOfRegexes, String pRegexType, String pLabelType) throws Exception {
 
 		String outputFileName = pOutputDir + "/" + pRegexType + "_" + pLabelType + ".regex";
 		try {
@@ -183,7 +243,9 @@ public class RedCatModelCreator {
 
 			PrintWriter out = new PrintWriter(outputFileName);
 			for (String regex : pListOfRegexes) {
-				out.print(regex);
+			  
+			  String markedRegularExpression = markRegularExpressionsWithKeyword( pKeyWords, regex);
+				out.print(markedRegularExpression);
 				out.print('\n');
 			}
 			out.close();
@@ -195,5 +257,61 @@ public class RedCatModelCreator {
 		}
 	} // end Method printRegexFile() --------------------------------
 
+  // =======================================================
+   /**
+    * markRegularExpressionsWithKeyword marks regular expression with a leading # if
+    * the regular expression does not contain one of the keywords passed in.
+    * 
+    * It creates a group around each instance of a keyword found, and returns
+    * the number of keywords in the regex pattern in a field 
+    * 
+    *    So the output is this:
+    *       # some regular expression that doesn't have a keyword
+    *       1|regEx(keyword)regEx2  
+    * 
+    * @param pKeyWords
+    * @param pRegex
+    * @return String
+    *
+    */
+   // ======================================================	
+  private static String markRegularExpressionsWithKeyword(String[] pKeyWords, String pRegex) {
+
+    String buff = pRegex;
+    String returnVal = buff;
+    try {
+      int regexFound = 0;
+      int p = 0;
+      if (pKeyWords == null || pKeyWords.length == 0) {
+        ;
+      } else {
+        for (String keyWord : pKeyWords) {
+          if (p <= buff.length()) 
+            p = buff.indexOf(keyWord, p + 1);
+
+          if (p > -1) {
+            regexFound++;
+            buff = buff.substring(0, p) + "(" + keyWord + ")" + buff.substring(p + keyWord.length());
+            p = p + keyWord.length() + 2;
+          } else break;
+        } // end loop thru keyWords
+        if (regexFound == 0)
+          returnVal = "#" + DELIMITER + pRegex;
+        else {
+          returnVal = regexFound + DELIMITER + buff;
+        }
+
+      } // end if there are any keywords
+    } catch (Exception e) {
+      e.printStackTrace();
+      System.err.println("Issue within method markRegularExpressionsWithKeyword " + e.getMessage());
+      throw e;
+    }
+
+    return returnVal;
+  } // End Method markRegularExpressionsWithKeyword ============
+    
+  } // end Class RedCatModelCreator() -------------------------
+
 	
-}
+
