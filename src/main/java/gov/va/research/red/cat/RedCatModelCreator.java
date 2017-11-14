@@ -125,7 +125,7 @@ public class RedCatModelCreator {
   * 
   * @param pOutputDir Output directory for the model.
   * @param keyWords Keywords required to be in regular expressions.
-  * @param snipptsYes Positive snippets.
+  * @param snippetsYes Positive snippets.
   * @param snippetsNo Negative snippets.
   * @param snippetsUnlabeled Unlabeled snippets.
   * @param yesLabels Positive labels.
@@ -197,7 +197,7 @@ public class RedCatModelCreator {
 	 * 
 	 * @param pOutputDir Output directory for regexes.
 	 * @param pKeyWords Keywords to use for filtering regexes.
-	 * @param pRegexes Regular expressions.
+	 * @param pListOfRegexes Regular expressions.
 	 * @param pRegexType   (Strict/LessStrict/LeastStrict )
 	 * @param pLabelType   (Positive/Negative, Yes/No,  True/False ... )
 	 * @throws Exception When an exception occurs.
