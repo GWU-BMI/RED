@@ -26,7 +26,7 @@ import gov.va.research.red.CVScore;
 import gov.va.research.red.CVUtils;
 import gov.va.research.red.CrossValidatable;
 import gov.va.research.red.Snippet;
-import gov.va.research.red.SnippetPosition;
+import gov.va.research.red.Position;
 import gov.va.research.red.VTTReader;
 import gov.va.research.red.VTTSnippetParser;
 import gov.va.research.red.regex.JSEPatternAdapter;
@@ -126,10 +126,10 @@ public class REDExCrossValidator implements CrossValidatable {
 			int i = 0;
 			for (CVResult s : results) {
 				if (s != null && s.getScore() != null) {
-					LOG.info("\n--- Run " + (i++) + " ---\n"
+					LOG.info("\n--- Run " + (++i) + " ---\n"
 							+ s.getScore().getEvaluation());
 				} else {
-					LOG.info("\n--- Run " + (i++) + " ---\nnull score");
+					LOG.info("\n--- Run " + (++i) + " ---\nnull score");
 				}
 			}
 			CVResult aggregate = CVResult.aggregate(results);
@@ -149,66 +149,27 @@ public class REDExCrossValidator implements CrossValidatable {
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see gov.va.research.red.CrossValidatable#crossValidate(java.util.List,
-	 * java.lang.String, int)
-	 */
-	@Override
-	public List<CVResult> crossValidate(List<File> vttFiles, String label,
-			int folds, boolean shuffle, int limit, Class<? extends PatternAdapter> patternAdapterClass) throws IOException {
-		return crossValidate(vttFiles, label);
-	}
-
-	public List<CVResult> crossValidate(List<File> vttFiles, String label)
-			throws IOException {
-		Collection<String> labels = new ArrayList<>(1);
-		labels.add(label);
-		return crossValidate(vttFiles, label);
-	}
-
 	/**
 	 * @param vttFiles
 	 *            List of vtt files for training/testing.
 	 * @param labels
 	 *            The labels to train on. All labels in this list are treated as
 	 *            equivalent. Labels not in this list are ignored.
-	 * @param folds
-	 *            Number of folds in the cross validation.
-	 * @param allowOverMatches
-	 *            If <code>false</code> then predicated and actual values must
-	 *            match exactly to be counted as a true positive. If
-	 *            <code>true</code> then if the predicted and actual values
-	 *            overlap but do not match exactly, it is still counted as a
-	 *            true positive.
-	 * @param caseInsensitive
-	 *            If <code>true</code> then all text is converted to lowercase
-	 *            (in order, for example, to make case-insensitive comparisons
-	 *            easier)
-	 * @param stopAfterFirstFold
-	 *            If <code>true</code> then the cross validation quits after the
-	 *            first fold.
-	 * @param shuffle
-	 *            If <code>true</code> then the snippets will be shuffled before
-	 *            cross validation. This will make the cross-validation
-	 *            non-deterministic, having a different result each time.
-	 * @param limit
-	 *            Limit the number of snippets this value. A value <= 0 means no
-	 *            limit.
 	 * @return The aggregated results of the cross validation, including scores
 	 *         and regular expressions.
 	 * @throws IOException
 	 * @throws FileNotFoundException
 	 */
-	List<CVResult> crossValidate(List<File> vttFiles, Collection<String> labels, Function<VttDocumentDelegate, TreeMap<SnippetPosition, Snippet>> snippetParser)
+	@Override
+	public List<CVResult> crossValidate(List<File> vttFiles, Collection<String> labels,
+			Function<VttDocumentDelegate, TreeMap<Position, Snippet>> snippetParser)
 			throws IOException, FileNotFoundException {
 		VTTReader vttr = new VTTReader();
 		// get snippets
 		List<Snippet> snippets = new ArrayList<>();
 		for (File vttFile : vttFiles) {
 			Collection<Snippet> fileSnippets = vttr.findSnippets(vttFile,
-					labels, snippetParser);
+					labels, caseInsensitive, snippetParser);
 			snippets.addAll(fileSnippets);
 		}
 		LOG.info("Cross validating " + snippets.size() + " snippets from "
@@ -299,7 +260,7 @@ public class REDExCrossValidator implements CrossValidatable {
 							// Test
 							REDExFactory rexe = new REDExFactory();
 							score = rexe.test(testing, ex, allowOverMatches,
-									caseInsensitive, pw, useTier2, patternAdapterClass);
+									pw, useTier2, patternAdapterClass);
 							List<Collection<? extends WeightedRegEx>> tieredRegexes = ex.getRegexTiers();
 							regExes = new ArrayList<>();
 							for (Collection<? extends WeightedRegEx> tierRegexs : tieredRegexes) {
@@ -363,7 +324,7 @@ public class REDExCrossValidator implements CrossValidatable {
 			List<Snippet> labelled = new ArrayList<>();
 			List<Snippet> unlabelled = new ArrayList<>();
 			for (Snippet trainingSnippet : training) {
-				boolean isLabelled = trainingSnippet.getPosLabeledSegments()
+				boolean isLabelled = trainingSnippet.getLabeledSegments()
 						.size() > 0;
 				if (isLabelled) {
 					labelled.add(trainingSnippet);

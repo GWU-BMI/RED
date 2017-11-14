@@ -18,9 +18,12 @@ package gov.va.research.red;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Collection;
 import java.util.List;
+import java.util.TreeMap;
+import java.util.function.Function;
 
-import gov.va.research.red.regex.PatternAdapter;
+import gov.nih.nlm.nls.vtt.model.VttDocumentDelegate;
 
 /**
  * @author vhaislreddd
@@ -28,6 +31,7 @@ import gov.va.research.red.regex.PatternAdapter;
  */
 public interface CrossValidatable {
 
-	public List<CVResult> crossValidate(List<File> vttFiles, String label, int folds, boolean shuffle, int limit, Class<? extends PatternAdapter> patternAdapterClass) throws IOException;
+	public List<CVResult> crossValidate(List<File> vttFiles, Collection<String> labels,
+			Function<VttDocumentDelegate, TreeMap<Position, Snippet>> snippetParser) throws IOException;
 
 }

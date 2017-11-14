@@ -70,13 +70,13 @@ public class REDExFactory {
 				snippets.size());
 		List<Deque<SnippetRegEx>> sreStacks = new ArrayList<>(snippets.size());
 		for (Snippet snippet : snippets) {
-			if (snippet.getPosLabeledSegments() == null
-					|| snippet.getPosLabeledSegments().size() == 0) {
+			if (snippet.getLabeledSegments() == null
+					|| snippet.getLabeledSegments().size() == 0) {
 				snippet2regex.put(snippet, null);
 			} else {
 				// Create one snippet regex per positive labeled segment
 				ListIterator<LabeledSegment> li = snippet
-						.getPosLabeledSegments().listIterator();
+						.getLabeledSegments().listIterator();
 				while (li.hasNext()) {
 					LabeledSegment pls = li.next();
 					if (pls.getLabeledString().trim().length() > 0) {
@@ -84,8 +84,7 @@ public class REDExFactory {
 						List<LabeledSegment> plslist = new ArrayList<>(1);
 						plslist.add(pls);
 						Deque<SnippetRegEx> snipStack = new ArrayDeque<>();
-						snippet = new Snippet(snippet.getText(), plslist,
-								snippet.getNegLabeledSegments());
+						snippet = new Snippet(snippet.getText(), plslist);
 						snipStack.push(new SnippetRegEx(snippet, caseInsensitive));
 						sreStacks.add(snipStack);
 						snippet2regex.put(snippet, snipStack);
@@ -106,53 +105,22 @@ public class REDExFactory {
 		// positive, matching the snippet it originated from. Any false positives
 		// indicate inconsistent annotation.
 		
-		List<WeightedRegEx> singleWeightedRegex = new ArrayList<>(1);
-		singleWeightedRegex.add(null);
-		List<Collection<WeightedRegEx>> singleTierWeightedRegex = new ArrayList<>(1);
-		singleTierWeightedRegex.add(singleWeightedRegex);
-
 		// Don't test for true or false positives here because line separators mess up the match before whitespace is generalized.
 		
 		// replace the white space with regular expressions.
 		replaceWhiteSpace(sreStacks, caseInsensitive);
 		for (Deque<SnippetRegEx> sreStack : sreStacks) {
 			SnippetRegEx sre = sreStack.peek();
-			boolean tps = checkForTruePositives(snippets, new REDExtractor(sre,
-				caseInsensitive), allowOverMatches, caseInsensitive, useTier2, patternAdapterClass);
-			if (!tps) {
-				LOG.warn(outputTag
-						+ ": No tps for regex before generalizing, should be at least one: "
-						+ sre.toString());
-			}
-			singleWeightedRegex.set(0, sre);
-			boolean fps = (0 == noFalsePositives.score(snippets,
-					new REDExModel(singleTierWeightedRegex), allowOverMatches,
-					caseInsensitive, useTier2, patternAdapterClass));
-			if (fps) {
-				LOG.warn("Inconsistent annotataion? : fps for regex before generalizing: "
-						+ sre.toString());
-			}
+			checkConsistency(snippets, allowOverMatches, outputTag, caseInsensitive, useTier2, patternAdapterClass,
+					noFalsePositives, sre);
 		}
 
 		// Check for false positives. Each ls3 should have at least one true
 		// positive, matching the snippet it originated from.
 		for (Deque<SnippetRegEx> sreStack : sreStacks) {
 			SnippetRegEx sre = sreStack.peek();
-			boolean tps = checkForTruePositives(snippets, new REDExtractor(sre,
-					caseInsensitive), allowOverMatches, caseInsensitive, useTier2, patternAdapterClass);
-			if (!tps) {
-				LOG.warn(outputTag
-						+ ": No tps for regex, should be at least one: "
-						+ sre.toString());
-			}
-			singleWeightedRegex.set(0, sre);
-			boolean fps = (0 == noFalsePositives.score(snippets,
-					new REDExModel(singleTierWeightedRegex), allowOverMatches,
-					caseInsensitive, useTier2, patternAdapterClass));
-			if (fps) {
-				LOG.warn("Inconsistent annotataion? : fps for regex: "
-						+ sre.toString());
-			}
+			checkConsistency(snippets, allowOverMatches, outputTag, caseInsensitive, useTier2, patternAdapterClass,
+					noFalsePositives, sre);
 		}
 
 		// replace all the digits with their regular expressions.
@@ -164,20 +132,8 @@ public class REDExFactory {
 		// positive, matching the snippet it originated from.
 		for (Deque<SnippetRegEx> sreStack : sreStacks) {
 			SnippetRegEx sre = sreStack.peek();
-			boolean tps = checkForTruePositives(snippets, new REDExtractor(sre,
-					caseInsensitive), allowOverMatches, caseInsensitive, useTier2, patternAdapterClass);
-			if (!tps) {
-				LOG.warn("No tps for regex, should be at least one: "
-						+ sre.toString());
-			}
-			singleWeightedRegex.set(0, sre);
-			boolean fps = (0 == noFalsePositives.score(snippets,
-					new REDExModel(singleTierWeightedRegex), allowOverMatches,
-					caseInsensitive, useTier2, patternAdapterClass));
-			if (fps) {
-				LOG.warn("Inconsistent annotataion? : fps for regex: "
-						+ sre.toString());
-			}
+			checkConsistency(snippets, allowOverMatches, outputTag, caseInsensitive, useTier2, patternAdapterClass,
+					noFalsePositives, sre);
 		}
 
 		sreStacks = removeDuplicates(sreStacks);
@@ -257,6 +213,41 @@ public class REDExFactory {
 //				new REDExtractor(returnList, "# snippets = " + snippets.size()
 //				+ "\nallowOverMatches = " + allowOverMatches, caseInsensitive,
 //				useTier2);
+	}
+
+	private void checkConsistency(final Collection<Snippet> snippets, final boolean allowOverMatches,
+			final String outputTag, final boolean caseInsensitive, final boolean useTier2,
+			Class<? extends PatternAdapter> patternAdapterClass, NoFalsePositives noFalsePositives,
+			SnippetRegEx sre) {
+		boolean tps = checkForTruePositives(snippets, new REDExtractor(sre,
+			caseInsensitive), allowOverMatches, caseInsensitive, useTier2, patternAdapterClass);
+		if (!tps) {
+			LOG.warn(outputTag
+					+ ": No tps for regex, should be at least one: "
+					+ sre.toString());
+		}
+		List<WeightedRegEx> singleWeightedRegex = new ArrayList<>(1);
+		singleWeightedRegex.add(null);
+		List<Collection<WeightedRegEx>> singleTierWeightedRegex = new ArrayList<>(1);
+		singleTierWeightedRegex.add(singleWeightedRegex);
+
+		singleWeightedRegex.set(0, sre);
+		REDExModel rxm = new REDExModel(singleTierWeightedRegex);
+		boolean fps = (0 == noFalsePositives.score(snippets,
+				rxm, allowOverMatches,
+				caseInsensitive, useTier2, patternAdapterClass));
+		if (fps) {
+			LOG.warn("Inconsistent annotataion? : fps for regex: "
+					+ sre.toString());
+			for (Snippet s : snippets) {
+				CVScore cvs = testREDExOnSnippet(rxm,
+						allowOverMatches, null,
+						s, useTier2, true, patternAdapterClass);
+				if (cvs.getFp() > 0) {
+					LOG.warn("<FPSnippet>" + s + "</FPSnippet>");
+				}
+			}
+		}
 	}
 
 	private List<Deque<SnippetRegEx>> abstractIteratively(
@@ -751,9 +742,6 @@ public class REDExFactory {
 	 *            <code>true</code> then if the predicted and actual values
 	 *            overlap but do not match exactly, it is still counted as a
 	 *            true positive.
-	 * @param caseInsensitive
-	 *            If <code>true</code> then comparisons will be done in a
-	 *            case-insensitive manner.
 	 * @param pw
 	 *            A PrintWriter for recording output. May be <code>null</code>.
 	 * @param useTier2
@@ -763,7 +751,7 @@ public class REDExFactory {
 	 * @return The cross-validation score.
 	 */
 	public CVScore test(Collection<Snippet> testing, REDExModel ex,
-			boolean allowOverMatches, boolean caseInsensitive, PrintWriter pw, boolean useTier2,
+			boolean allowOverMatches, PrintWriter pw, boolean useTier2,
 			Class<? extends PatternAdapter> patternAdapterClass) {
 		PrintWriter tempLocalPW = null;
 		StringWriter sw = null;
@@ -776,7 +764,7 @@ public class REDExFactory {
 				.parallelStream()
 				.map((snippet) -> {
 					return testREDExOnSnippet(ex, allowOverMatches,
-							caseInsensitive, localPW, snippet, useTier2, patternAdapterClass);
+							localPW, snippet, useTier2, false, patternAdapterClass);
 				}).reduce(new CVScore(), (s, r) -> {
 					s.add(r);
 					return s;
@@ -800,96 +788,39 @@ public class REDExFactory {
 	}
 
 	CVScore testREDExOnSnippet(REDExModel ex, boolean allowOverMatches,
-			boolean caseInsensitive, final PrintWriter localPW, Snippet snippet, boolean useTier2, Class<? extends PatternAdapter> patternAdapterClass) {
+			final PrintWriter localPW, Snippet snippet, boolean useTier2, boolean breakOnFP, Class<? extends PatternAdapter> patternAdapterClass) {
 		Set<MatchedElement> predictions = REDExtractor.extract(ex.getRegexTiers(), snippet.getText(), useTier2, patternAdapterClass);
-		List<String> actual = snippet.getPosLabeledStrings();
+		List<String> actual = snippet.getLabeledStrings();
 
-		// if case insensitive, convert all predictions to lower case
-		if (caseInsensitive) {
-			for (MatchedElement me : predictions) {
-				me.setMatch(me.getMatch().toLowerCase());
-			}
-		}
-		Set<Integer> candPosMatchIndexes = new HashSet<>();
-		Set<Integer> plsMatchIndexes = new HashSet<>();
-		Set<Integer> candNegMatchIndexes = new HashSet<>();
-		Set<Integer> nlsMatchIndexes = new HashSet<>();
+		Set<Integer> candMatchIndexes = new HashSet<>();
+		Set<Integer> lsMatchIndexes = new HashSet<>();
 		List<MatchedElement> candidateList = new ArrayList<>(predictions);
 		for (int c = 0; c < candidateList.size(); c++) {
 			MatchedElement candidate = candidateList.get(c);
 			if (allowOverMatches) {
-				for (int p = 0; p < snippet.getPosLabeledSegments().size(); p++) {
-					LabeledSegment pls = snippet.getPosLabeledSegments().get(p);
-					if (caseInsensitive) {
-						pls.setLabeledString(pls.getLabeledString()
-								.toLowerCase());
-					}
+				for (int p = 0; p < snippet.getLabeledSegments().size(); p++) {
+					LabeledSegment pls = snippet.getLabeledSegments().get(p);
 					if (rangesOverlap(pls.getStart(),
 							pls.getStart() + pls.getLength(),
 							candidate.getStartPos(), candidate.getEndPos())
 							&& stringsOverlap(pls.getLabeledString(),
 									candidate.getMatch())) {
-						candPosMatchIndexes.add(c);
-						plsMatchIndexes.add(p);
-					}
-				}
-				for (int n = 0; n < snippet.getNegLabeledSegments().size(); n++) {
-					LabeledSegment nls = snippet.getNegLabeledSegments().get(n);
-					if (caseInsensitive) {
-						nls.setLabeledString(nls.getLabeledString()
-								.toLowerCase());
-					}
-					if (rangesOverlap(nls.getStart(),
-							nls.getStart() + nls.getLength(),
-							candidate.getStartPos(), candidate.getEndPos())
-							&& stringsOverlap(nls.getLabeledString(),
-									candidate.getMatch())) {
-						candNegMatchIndexes.add(c);
-						nlsMatchIndexes.add(n);
+						candMatchIndexes.add(c);
+						lsMatchIndexes.add(p);
 					}
 				}
 			} else {
-				for (int p = 0; p < snippet.getPosLabeledSegments().size(); p++) {
-					LabeledSegment ls = snippet.getPosLabeledSegments().get(p);
+				for (int p = 0; p < snippet.getLabeledSegments().size(); p++) {
+					LabeledSegment ls = snippet.getLabeledSegments().get(p);
 					if (ls.getStart() == candidate.getStartPos()
 							&& ls.getStart() + ls.getLength() == candidate
 									.getEndPos()
 							&& ls.getLabeledString().equals(
 									candidate.getMatch())) {
-						if (caseInsensitive) {
-							if (ls.getLabeledString().equalsIgnoreCase(
-									candidate.getMatch())) {
-								candPosMatchIndexes.add(c);
-								plsMatchIndexes.add(p);
-							}
-						} else {
-							if (ls.getLabeledString().equals(
-									candidate.getMatch())) {
-								candPosMatchIndexes.add(c);
-								plsMatchIndexes.add(p);
-							}
-						}
-					}
-				}
-				for (int n = 0; n < snippet.getNegLabeledSegments().size(); n++) {
-					LabeledSegment nls = snippet.getNegLabeledSegments().get(n);
-					if (nls.getStart() == candidate.getStartPos()
-							&& nls.getStart() + nls.getLength() == candidate
-									.getEndPos()
-							&& nls.getLabeledString().equals(
-									candidate.getMatch())) {
-						if (caseInsensitive) {
-							if (nls.getLabeledString().equalsIgnoreCase(
-									candidate.getMatch())) {
-								candNegMatchIndexes.add(c);
-								nlsMatchIndexes.add(n);
-							}
-						} else {
-							if (nls.getLabeledString().equals(
-									candidate.getMatch())) {
-								candNegMatchIndexes.add(c);
-								nlsMatchIndexes.add(n);
-							}
+						if (ls.getLabeledString().equals(
+								candidate.getMatch())) {
+							candMatchIndexes.add(c);
+							lsMatchIndexes.add(p);
 						}
 					}
 				}
@@ -901,48 +832,40 @@ public class REDExFactory {
 		int tn = 0;
 		int fn = 0;
 		// See if each positive labeled segment was matched
-		for (int p = 0; p < snippet.getPosLabeledSegments().size(); p++) {
-			if (plsMatchIndexes.contains(p)) {
+		for (int p = 0; (p < snippet.getLabeledSegments().size() && !(breakOnFP && fp != 0)); p++) {
+			if (lsMatchIndexes.contains(p)) {
 				tp++;
 			} else {
 				fn++;
 			}
 		}
-		// See if any negative labeled segments were matched
-		for (int n = 0; n < snippet.getNegLabeledSegments().size(); n++) {
-			if (nlsMatchIndexes.contains(n)) {
-				fp++;
-			} else {
-				tn++;
-			}
-		}
 		// Account for any candidates that were incorrect
-		for (int c = 0; c < candidateList.size(); c++) {
-			if (!(candPosMatchIndexes.contains(c) || candNegMatchIndexes
-					.contains(c))) {
+		for (int c = 0; (c < candidateList.size() && !(breakOnFP && fp != 0)); c++) {
+			if (!(candMatchIndexes.contains(c))) {
 				fp++;
 			}
 		}
 		// If there were no positive annotation, and there were no predictions,
 		// then count it as a true negative
-		if (predictions.size() == 0
-				&& snippet.getPosLabeledSegments().size() == 0) {
+		if (candidateList.size() == 0
+				&& snippet.getLabeledSegments().size() == 0) {
 			tn++;
 		}
 
+		// Output false positives if a non-null writer is available
 		if (localPW != null && fp > 0) {
-			StringBuilder sbP = new StringBuilder();
+			StringBuilder sbP = new StringBuilder("[");
 			StringBuilder sbRe = new StringBuilder();
-			for (int n = 0; n < snippet.getNegLabeledSegments().size(); n++) {
-				boolean first = true;
-				if (candNegMatchIndexes.contains(n)) {
-					MatchedElement cand = candidateList.get(n);
+			boolean first = true;
+			for (int c = 0; c < candidateList.size(); c++) {
+				if (!candMatchIndexes.contains(c)) {
+					MatchedElement cand = candidateList.get(c);
 					if (first) {
 						first = false;
-						sbP.append("[" + cand.getMatch());
 					} else {
-						sbP.append(", " + cand.getMatch());
+						sbP.append(", ");
 					}
+					sbP.append(cand.getMatch());
 					sbRe.append(cand.getMatchingRegexs()).append("\n");
 				}
 			}
@@ -971,7 +894,7 @@ public class REDExFactory {
 				.map((snippet) -> {
 					Set<MatchedElement> candidates = REDExtractor.extract(ex.getRankedSnippetRegExs(), snippet
 							.getText(), useTier2, patternAdapterClass);
-					List<String> actual = snippet.getPosLabeledStrings();
+					List<String> actual = snippet.getLabeledStrings();
 
 					if (candidates == null || candidates.size() == 0) {
 						return Boolean.FALSE;
@@ -989,9 +912,9 @@ public class REDExFactory {
 							MatchedElement candidate = candidateList.get(c);
 							if (allowOverMatches) {
 								for (int p = 0; p < snippet
-										.getPosLabeledSegments().size(); p++) {
+										.getLabeledSegments().size(); p++) {
 									LabeledSegment ls = snippet
-											.getPosLabeledSegments().get(p);
+											.getLabeledSegments().get(p);
 									if (caseInsensitive) {
 										ls.setLabeledString(ls
 												.getLabeledString()
@@ -1009,9 +932,9 @@ public class REDExFactory {
 								}
 							} else {
 								for (int p = 0; p < snippet
-										.getPosLabeledSegments().size(); p++) {
+										.getLabeledSegments().size(); p++) {
 									LabeledSegment ls = snippet
-											.getPosLabeledSegments().get(p);
+											.getLabeledSegments().get(p);
 									if (ls.getStart() == candidate
 											.getStartPos()
 											&& ls.getStart() + ls.getLength() == candidate
@@ -1077,11 +1000,8 @@ public class REDExFactory {
 					.parallelStream()
 					.map((snippet) -> {
 						CVScore cvs = rexFactory.testREDExOnSnippet(ex,
-								allowOverMatches, caseInsensitive, null,
-								snippet, useTier2, patternAdapterClass);
-						if (cvs.getFp() > 0) {
-							LOG.debug("FP on snippet: " + snippet.toString());
-						}
+								allowOverMatches, null,
+								snippet, useTier2, true, patternAdapterClass);
 						return Boolean.valueOf(cvs.getFp() > 0);
 					}).anyMatch((fp) -> {
 						return fp;
@@ -1098,7 +1018,7 @@ public class REDExFactory {
 		public float score(Collection<Snippet> testing, REDExModel ex,
 				boolean allowOverMatches, boolean caseInsensitive, boolean useTier2, Class<? extends PatternAdapter> patternAdapterClass) {
 			CVScore score = test(testing, ex, allowOverMatches,
-					caseInsensitive, null, useTier2, patternAdapterClass);
+					null, useTier2, patternAdapterClass);
 			return (float) (score.getTp() - score.getFp());
 		}
 	}
@@ -1111,7 +1031,7 @@ public class REDExFactory {
 		@Override
 		public float score(Collection<Snippet> testing, REDExModel ex,
 				boolean allowOverMatches, boolean caseInsensitive, boolean useTier2, Class<? extends PatternAdapter> patternAdapterClass) {
-			CVScore cvs = test(testing, ex, allowOverMatches, caseInsensitive,
+			CVScore cvs = test(testing, ex, allowOverMatches,
 					null, useTier2, patternAdapterClass);
 			float f1 = ((float) (2 * cvs.getTp()))
 					/ ((2 * cvs.getTp()) + cvs.getFp() + cvs.getFn());
@@ -1144,6 +1064,7 @@ public class REDExFactory {
 		System.setProperty("java.util.concurrent.ForkJoinPool.common.parallelism", "" + useProcessors);
 		System.out.println("Using " + pctproc + "% of the available processors. Available = " + processors + ", using " + useProcessors);
 		String propFilename = args[2];
+		LOG.info("Using properties from: " + propFilename);
 		Configuration conf = new PropertiesConfiguration(propFilename);
 		List<Object> vttfileObjs = conf.getList("vtt.file");
 		List<File> vttfiles = new ArrayList<>(vttfileObjs.size());
@@ -1199,26 +1120,23 @@ public class REDExFactory {
 			PrintStream newOut = new PrintStream(new TeeOutputStream(System.out, ps));
 			System.setOut(newOut);
 		}
-
+		if (!("crossvalidate".equalsIgnoreCase(op) || "buildmodel".equalsIgnoreCase(op))) {
+			throw new IllegalArgumentException("Operation "
+								+ op
+								+ " not recognized. Must be buildmodel or crossvalidate.");
+		}
 		if ("crossvalidate".equalsIgnoreCase(op)) {
 			REDExCrossValidator rexcv = new REDExCrossValidator(folds, allowOvermatches, caseInsensitive, holdouts, useTier2, generalizeCaptureGroups, stopAfterFirstFold, shuffle, limit, patternAdapterClass);
 			List<CVResult> results = rexcv.crossValidate(vttfiles, labels, new VTTSnippetParser());
 
-			// Display results
-			int i = 0;
-			for (CVResult s : results) {
-				if (s != null) {
-					LOG.info("\n--- Run " + (i++) + " ---\n"
-							+ s.getScore().getEvaluation());
-				}
-			}
+			// Display aggregate results
 			CVResult aggregate = CVResult.aggregate(results);
 			LOG.info("\n--- Aggregate ---\n"
 					+ aggregate.getScore().getEvaluation());
 			LOG.info("# Regexes Discovered: "
 					+ aggregate.getRegExes().size());
 			String regexOutputFile = conf.getString("regex.output.file");
-			if (regexOutputFile != null) {
+			if (regexOutputFile != null && regexOutputFile.trim().length() > 0) {
 				try (FileWriter fw = new FileWriter(regexOutputFile)) {
 					try (PrintWriter pw = new PrintWriter(fw)) {
 						for (WeightedRegEx regex : aggregate.getRegExes()) {
@@ -1235,7 +1153,7 @@ public class REDExFactory {
 			List<Snippet> snippets = new ArrayList<>();
 			for (File vttFile : vttfiles) {
 				Collection<Snippet> fileSnippets = vttr.findSnippets(
-						vttFile, labels, new VTTSnippetParser());
+						vttFile, labels, caseInsensitive, new VTTSnippetParser());
 				snippets.addAll(fileSnippets);
 			}
 			LOG.info("Building model using " + snippets.size()
@@ -1275,11 +1193,6 @@ public class REDExFactory {
 			}
 			REDExModel.dump(rex, modelFilePath);
 			LOG.info("... wrote model file to " + modelOutputFile);
-		} else {
-			System.out
-					.println("Operation "
-							+ op
-							+ " not recognized. Must be buildmodel or crossvalidate.");
 		}
 		ForkJoinPool.commonPool().shutdown();
 		if (oldSystemOut != null) {

@@ -3,7 +3,6 @@ package gov.va.research.red;
 import gov.va.research.v3nlp.common.util.ASCII;
 
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashSet;
@@ -47,7 +46,7 @@ public class SnippetSplitter {
 			// matched next snippet
 			String snippetText = noHeaderFileContents.substring(offset,
 					m.start());
-			Snippet s = new Snippet(snippetText, null, null);
+			Snippet s = new Snippet(snippetText, null);
 			Snippet prevEntry = snippets.put(offset, s);
 			if (prevEntry != null) {
 				throw new IllegalArgumentException(
@@ -74,7 +73,7 @@ public class SnippetSplitter {
 		if (snippetText.endsWith("\"")) {
 			snippetText = snippetText.substring(0, snippetText.length() - 1);
 		}
-		Snippet s = new Snippet(snippetText, null, null);
+		Snippet s = new Snippet(snippetText, null);
 		Snippet prevEntry = snippets.put(offset, s);
 		if (prevEntry != null) {
 			throw new IllegalArgumentException(
@@ -116,9 +115,8 @@ public class SnippetSplitter {
 			LabeledSegment ls = new LabeledSegment(tag, labeledText,
 					offsetFromBeginningOfSnippet, length);
 			if (CVUtils.containsCI(posLabels, tag)) {
-				snippetForTag.getPosLabeledSegments().add(ls);
+				snippetForTag.getLabeledSegments().add(ls);
 			} else {
-				snippetForTag.getNegLabeledSegments().add(ls);
 				extraLabels.add(tag);
 			}
 		}

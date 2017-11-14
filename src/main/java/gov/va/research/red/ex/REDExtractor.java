@@ -8,6 +8,7 @@ import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.sql.Connection;
+import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -23,6 +24,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.Spliterator;
+import java.util.Spliterators;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ConcurrentSkipListSet;
@@ -33,9 +36,12 @@ import java.util.concurrent.Future;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 import javax.security.auth.login.LoginException;
 import javax.xml.stream.XMLStreamException;
@@ -45,6 +51,7 @@ import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;
+import org.apache.commons.cli.OptionGroup;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.slf4j.Logger;
@@ -399,8 +406,10 @@ public class REDExtractor implements Extractor, RegexTiers {
 	 *             if a problem occurs with the output xml file.
 	 * @throws ParseException
 	 *             if command line options could not be parsed.
+	 * @throws ClassNotFoundException if database driver class could not be found.
+	 * @throws SQLException if a database error occurs.
 	 */
-	public static void main(String[] args) throws IOException, XMLStreamException, ParseException {
+	public static void main(String[] args) throws IOException, XMLStreamException, ParseException, ClassNotFoundException, SQLException {
 		Options options = buildOptions();
 		CommandLineParser parser = new DefaultParser();
 		CommandLine cl = null;
@@ -418,13 +427,12 @@ public class REDExtractor implements Extractor, RegexTiers {
 		for (int i = 0; i < modelFiles.length; i++) {
 			models[i] = FileSystems.getDefault().getPath(modelFiles[i]);
 		}
-		Path outputFile = FileSystems.getDefault().getPath(cl.getOptionValue("o"));
 		boolean useTier2 = !cl.hasOption("p");
 
 		String fileDirStr = cl.getOptionValue("d");
 		String jdbcURL = cl.getOptionValue("j");
 		boolean re2j = cl.hasOption("r");
-		Class<? extends PatternAdapter> patternAdapterClass = re2j ? JSEPatternAdapter.class : RE2JPatternAdapter.class;
+		Class<? extends PatternAdapter> patternAdapterClass = re2j ? RE2JPatternAdapter.class : JSEPatternAdapter.class;
 
 		if ((fileDirStr == null && jdbcURL == null) || (fileDirStr != null && jdbcURL != null)) {
 			LOG.error("Exactly one of the options 'd' or 'j' must be specified");
@@ -432,56 +440,107 @@ public class REDExtractor implements Extractor, RegexTiers {
 			hf.printHelp("REDExtractor", options);
 			return;
 		}
+		String outputFileStr = cl.getOptionValue("o");		
 		if (fileDirStr != null) {
 			String[] fileStrs = cl.getOptionValues("f");
+			Path outputFile = FileSystems.getDefault().getPath(outputFileStr);
 			extractFromFiles(models, outputFile, fileDirStr, fileStrs, useTier2, patternAdapterClass);
 		} else {
 			String query = cl.getOptionValue('q');
-			extractFromDB(models, jdbcURL, query, outputFile, useTier2, patternAdapterClass);
+			if (outputFileStr != null && outputFileStr.trim().length() > 0) {
+				Path outputFile = FileSystems.getDefault().getPath(outputFileStr);
+				extractFromDBtoBioC(models, jdbcURL, query, outputFile, useTier2, patternAdapterClass);
+			} else {
+				String outTable = cl.getOptionValue('t');
+				extractFromDBtoDB(models, jdbcURL, query, outTable, useTier2, patternAdapterClass);
+			}
 		}
 	}
 
-	static void extractFromDB(Path[] models, String jdbcURLStr, String query, Path outputFile, boolean useTier2, Class<? extends PatternAdapter> patternAdapterClass) throws IOException, XMLStreamException {
+	static void extractFromDBtoBioC(Path[] models, String jdbcURLStr, String query, Path outputFile, boolean useTier2, Class<? extends PatternAdapter> patternAdapterClass) throws IOException, XMLStreamException, ClassNotFoundException, SQLException {
+		Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
+		try (	Connection conn = DriverManager.getConnection(jdbcURLStr);
+				PreparedStatement ps = conn.prepareStatement(query);
+				ResultSet rs = ps.executeQuery();
+				Stream<DocMatches> stream = buildFetchStream(models, useTier2, patternAdapterClass, rs);
+		) {
+			Map<String, Collection<MatchedElement>> docMatches = stream.collect(Collectors.toMap((dm) -> dm.getDocumentId(), (dm) -> dm.getMatchedElements()));
+			writeBioC(outputFile, docMatches);
+		}
+	}
+	
+	static void extractFromDBtoDB(Path[] models, String jdbcURLStr, String query, String outputTableName, boolean useTier2, Class<? extends PatternAdapter> patternAdapterClass) throws IOException, XMLStreamException, ClassNotFoundException, SQLException {
+		Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
+		try (	Connection conn = DriverManager.getConnection(jdbcURLStr);
+				PreparedStatement ps = conn.prepareStatement(query);
+				ResultSet rs = ps.executeQuery();
+				PreparedStatement psInsDM = conn.prepareStatement("INSERT INTO " + outputTableName + " (documentId, startPos, endPos, value) VALUES (?, ?, ?, ?)");
+				Stream<DocMatches> stream = buildFetchStream(models, useTier2, patternAdapterClass, rs);
+		) {
+			conn.createStatement().execute("CREATE TABLE " + outputTableName + " (documentId varchar(50), startPos int, endPos int, value varchar(max))");
+			AtomicInteger batchSize = new AtomicInteger(0);
+			stream.forEach((dm) -> {
+				for (MatchedElement me : dm.matchedElements) {
+					try {
+						psInsDM.setString(1, dm.documentId);
+						psInsDM.setInt(2, me.getStartPos());
+						psInsDM.setInt(3, me.getEndPos());
+						psInsDM.setString(4, me.getMatch());
+						psInsDM.addBatch();
+						if (batchSize.incrementAndGet() > 1000) {
+							psInsDM.executeBatch();
+							batchSize.set(0);
+						}
+					} catch (SQLException e) {
+						throw new RuntimeException(e);
+					}
+				}
+			});
+			if (batchSize.get() > 0) {
+				psInsDM.executeBatch();
+			}
+		}
+	}
+
+	static Stream<DocMatches> buildFetchStream(Path[] models, boolean useTier2, Class<? extends PatternAdapter> patternAdapterClass, ResultSet rs) throws IOException {
 		for (Path model : models) {
 			if (!Files.exists(model)) {
 				throw new RuntimeException("Model file '" + model + "' was not found");
 			}
-		}
-//		URL loginConfURL = REDExtractor.class.getClassLoader().getResource("login.conf");
-//		URL krb5IniURL = REDExtractor.class.getClassLoader().getResource("krb5.ini");
-		KrbConnectionFactory kcf = new KrbConnectionFactory("login.conf", "krb5.ini", "ADContext",
-				"com.microsoft.sqlserver.jdbc.SQLServerDriver", jdbcURLStr, true);
-		Map<String,String> docId2Text = new HashMap<>();
-		try (Connection conn = kcf.getConnection();
-				PreparedStatement ps = conn.prepareStatement(query);
-				ResultSet rs = ps.executeQuery()) {
-			while (rs.next()) {
-				String docId = rs.getString(1);
-				String docText = rs.getString(2);
-				docId2Text.put(docId, docText);
-			}
-		} catch (LoginException | IOException | SQLException e) {
-			throw new RuntimeException(e);
 		}
 		List<REDExModel> redexs = new ArrayList<>(models.length);
 		for (Path model : models) {
 			REDExModel redexModel = REDExModel.load(model);
 			redexs.add(redexModel);
 		}
-		Map<String, Collection<MatchedElement>> docMatches = docId2Text.entrySet().parallelStream().map((entry) -> {
-			DocMatches dm = new DocMatches(entry.getKey(), new HashSet<MatchedElement>());
+		Stream<DocMatches> stream = StreamSupport.stream(new Spliterators.AbstractSpliterator<List<String>>(Long.MAX_VALUE, Spliterator.ORDERED) {
+			@Override
+			public boolean tryAdvance(Consumer<? super List<String>> consumer) {
+				try {
+					if (rs.next()) {
+						List<String> result = new ArrayList<>(2);
+						result.add(rs.getString(1));
+						result.add(rs.getString(2));
+						consumer.accept(result);
+						return true;
+					} else {
+						return false;
+					}
+				} catch (SQLException e) {
+					throw new RuntimeException(e);
+				}
+			}
+		}, false).map((result) -> {
+			DocMatches dm = new DocMatches(result.get(0), new HashSet<MatchedElement>());
 			for (REDExModel redex : redexs) {
-				Set<MatchedElement> mes = REDExtractor.extract(redex.getRegexTiers(), entry.getValue(), useTier2, patternAdapterClass);
+				Set<MatchedElement> mes = REDExtractor.extract(redex.getRegexTiers(), result.get(1), useTier2, patternAdapterClass);
 				if (mes != null && mes.size() > 0) {
 					dm.getMatchedElements().addAll(mes);
 				}
 			}
 			return dm;
-		}).collect(Collectors.toMap((dm) -> dm.getDocumentId(), (dm) -> dm.getMatchedElements()));
-		// allow memory to be reclaimed
-		docId2Text = null;
-		
-		writeBioC(outputFile, docMatches);
+		});
+		return stream;
 	}
 
 	/**
@@ -672,9 +731,18 @@ public class REDExtractor implements Extractor, RegexTiers {
 		Option model = new Option("m", "model-file", true, "REDEx model file. May be specified multiple times in order to use multiple models, in which case order is important. Priority decreases for each model listed. For example, if two models are given, the second one will only be used if there is no result from the first model.");
 		model.setRequired(true);
 		model.setArgs(Option.UNLIMITED_VALUES);
+		
 		Option outFile = new Option("o", "output-file", true, "File where output will be written");
 		outFile.setRequired(true);
 
+		Option outTable = new Option("t", "output-table", true, "Name of the table that will be created and hold the output");
+		outFile.setRequired(true);
+
+		OptionGroup outputOG = new OptionGroup();
+		outputOG.addOption(outTable);
+		outputOG.addOption(outFile);
+		outputOG.setRequired(true);
+		
 		// for file processing
 		Option fileDir = new Option("d", "file-directory", true, "Directory containing files to process.");
 		Option file = new Option("f", "file(s)", true,
@@ -703,7 +771,6 @@ public class REDExtractor implements Extractor, RegexTiers {
 
 		Options options = new Options();
 		options.addOption(model);
-		options.addOption(outFile);
 		options.addOption(fileDir);
 		options.addOption(file);
 		options.addOption(jdbcURL);
@@ -711,6 +778,7 @@ public class REDExtractor implements Extractor, RegexTiers {
 		options.addOption(precisionBias);
 		options.addOption(fractionOfProcessors);
 		options.addOption(regexLib);
+		options.addOptionGroup(outputOG);
 		return options;
 	}
 

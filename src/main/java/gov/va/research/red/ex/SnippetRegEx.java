@@ -65,9 +65,9 @@ public class SnippetRegEx implements WeightedRegEx {
 	 */
 	public SnippetRegEx(Snippet snippet, boolean caseInsensitive) {
 		this.caseInsensitive = caseInsensitive;
-		segments = new ArrayList<Segment>(snippet.getPosLabeledSegments().size() + 2);
+		segments = new ArrayList<Segment>(snippet.getLabeledSegments().size() + 2);
 		int prevEnd = 0;
-		for (LabeledSegment ls : snippet.getPosLabeledSegments()) {
+		for (LabeledSegment ls : snippet.getLabeledSegments()) {
 			if (ls.getStart() < prevEnd) {
 				LOG.debug("Overlapping labeled segments found, skipping all but the first.");
 				continue;

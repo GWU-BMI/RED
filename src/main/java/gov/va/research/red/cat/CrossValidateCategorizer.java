@@ -16,12 +16,6 @@
  */
 package gov.va.research.red.cat;
 
-import gov.va.research.red.CVScore;
-import gov.va.research.red.CVUtils;
-import gov.va.research.red.Snippet;
-import gov.va.research.red.VTTReader;
-import gov.va.research.red.VTTSnippetParser;
-
 import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
@@ -30,11 +24,16 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Random;
 import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import gov.va.research.red.CVScore;
+import gov.va.research.red.CVUtils;
+import gov.va.research.red.Snippet;
+import gov.va.research.red.VTTReader;
+import gov.va.research.red.VTTSnippetParser;
 
 /**
  * @author doug
@@ -52,14 +51,14 @@ public class CrossValidateCategorizer {
 		List<Snippet> snippetsYes = new ArrayList<>();
 		for (File vttFile : vttFiles) {
 			for (String label : yesLabels) {
-				snippetsYes.addAll(vttr.readSnippets(vttFile, label, true, new VTTSnippetParser()));
+				snippetsYes.addAll(vttr.readSnippets(vttFile, label, new VTTSnippetParser()));
 			}
 		}
 
 		List<Snippet> snippetsNo = new ArrayList<>();
 		for (File vttFile : vttFiles) {
 			for (String label : noLabels) {
-				snippetsNo.addAll(vttr.readSnippets(vttFile, label, false, new VTTSnippetParser()));
+				snippetsNo.addAll(vttr.readSnippets(vttFile, label, new VTTSnippetParser()));
 			}
 		}
 
@@ -122,10 +121,10 @@ public class CrossValidateCategorizer {
 			List<Integer> labelsTrain = new ArrayList<>();
 			int numYes = 0;
 			for (Snippet snip : trainingYes) {
-				if (snip.getPosLabeledSegments().size() == 0)
+				if (snip.getLabeledSegments().size() == 0)
 					continue;
 				String text = snip.getText();
-				String ls = snip.getPosLabeledStrings().get(0);
+				String ls = snip.getLabeledStrings().get(0);
 				int start = text.indexOf(ls);
 				if (start == 1)
 					continue;
@@ -139,10 +138,10 @@ public class CrossValidateCategorizer {
 			}
 			int numNo = 0;
 			for (Snippet snip : trainingNo) {
-				if (snip.getNegLabeledSegments().size() == 0)
+				if (snip.getLabeledSegments().size() == 0)
 					continue;
 				String text = snip.getText();
-				String ls = snip.getNegLabeledStrings().get(0);
+				String ls = snip.getLabeledStrings().get(0);
 				int start = text.indexOf(ls);
 				if (start == 1)
 					continue;

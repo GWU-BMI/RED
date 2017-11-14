@@ -1,10 +1,10 @@
 package gov.va.research.red;
 
-public class SnippetPosition  implements Comparable<SnippetPosition> {
+public class Position  implements Comparable<Position> {
 
 	public final int start;
 	public final int end;
-	public SnippetPosition(final int start, final int end) {
+	public Position(final int start, final int end) {
 		this.start = start;
 		this.end = end;
 	}
@@ -17,10 +17,10 @@ public class SnippetPosition  implements Comparable<SnippetPosition> {
 	}
 	@Override
 	public boolean equals(Object obj) {
-		if (!(obj instanceof SnippetPosition)) {
+		if (!(obj instanceof Position)) {
 			return false;
 		}
-		SnippetPosition sp = (SnippetPosition)obj;
+		Position sp = (Position)obj;
 		return sp.start == start && sp.end == end;
 	}
 	@Override
@@ -28,7 +28,7 @@ public class SnippetPosition  implements Comparable<SnippetPosition> {
 		return "" + start + "-" + end;
 	}
 	@Override
-	public int compareTo(SnippetPosition o) {
+	public int compareTo(Position o) {
 		if (start < o.start) {
 			return -1;
 		}
@@ -36,5 +36,16 @@ public class SnippetPosition  implements Comparable<SnippetPosition> {
 			return 1;
 		}
 		return 0;
+	}
+	
+	public boolean overlaps(Position other) {
+		if (
+				(this.start >= other.start && this.start <= other.end)
+				||
+				(this.end >= other.start && this.end <= other.end)
+			) {
+			return true;
+		}
+		return false;
 	}
 }

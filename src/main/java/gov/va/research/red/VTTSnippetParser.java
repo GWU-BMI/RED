@@ -7,10 +7,10 @@ import gov.nih.nlm.nls.vtt.model.Markup;
 import gov.nih.nlm.nls.vtt.model.VttDocumentDelegate;
 
 public 
-class VTTSnippetParser implements Function<VttDocumentDelegate, TreeMap<SnippetPosition, Snippet>> {
+class VTTSnippetParser implements Function<VttDocumentDelegate, TreeMap<Position, Snippet>> {
 	@Override
-	public TreeMap<SnippetPosition, Snippet> apply(VttDocumentDelegate vttDoc) {
-		TreeMap<SnippetPosition, Snippet> pos2snips = new TreeMap<>();
+	public TreeMap<Position, Snippet> apply(VttDocumentDelegate vttDoc) {
+		TreeMap<Position, Snippet> pos2snips = new TreeMap<>();
 		String docText = vttDoc.getText();
 		for (Markup markup : vttDoc.getMarkups().getMarkups()) {
 			if ("SnippetColumn".equals(markup.getTagName())) {
@@ -31,8 +31,8 @@ class VTTSnippetParser implements Function<VttDocumentDelegate, TreeMap<SnippetP
 						snippetEnd++;
 					}
 					String snippet = docText.substring(snippetOffset, snippetEnd).toLowerCase();
-					SnippetPosition snipPos = new SnippetPosition(snippetOffset, snippetEnd);
-					pos2snips.put(snipPos, new Snippet(snippet, null, null));
+					Position snipPos = new Position(snippetOffset, snippetEnd);
+					pos2snips.put(snipPos, new Snippet(snippet, null));
 				}
 			}
 		}
