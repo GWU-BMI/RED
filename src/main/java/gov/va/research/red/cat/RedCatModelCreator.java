@@ -45,13 +45,13 @@ public class RedCatModelCreator {
 	/**
    * createModel 
    * 
-   * @param pVTTFiles
-   * @param pKeyWordFile
-   * @param pOutputDir
-   * @param yesLabels  
-   * @param noLabels  
-   * @param biasForRecall
-   * @throws Exception 
+   * @param pVTTFiles List of VTT files for use in creating the model.
+   * @param pKeyWordFile Keywords required to be in regular expressions.
+   * @param pOutputDir Output directory.
+   * @param yesLabels Positive labels.
+   * @param noLabels Negative labels.
+   * @param biasForRecall If true then model will be biased toward recall. If false then bias will be toward precision.
+   * @throws Exception When an exception occurs.
    */
 	public void  createModel(List<File>   pVTTFiles, 
 	                     String       pKeywordsFile,
@@ -96,7 +96,7 @@ public class RedCatModelCreator {
     * normalizeKeywords lowercases the keywords, and throws out
     *  keywords that have been commented out (with a leading #)
     * 
-    * @param pKeywords
+    * @param pKeywords Keywords to normalize
     * @return String []
     *
     */
@@ -123,15 +123,15 @@ public class RedCatModelCreator {
   /**
   * createModel 
   * 
-  * @param pVTTFiles
-  * @param pKeyWords
-  * @param snipptsYes
-  * @param snippetsNo 
-  * @param snippetsUnlabeled
-  * @param yesLabels
-  * @param noLabels
-  * @param biasForRecall
-  * @throws Exception 
+  * @param pOutputDir Output directory for the model.
+  * @param pKeyWords Keywords required to be in regular expressions.
+  * @param snipptsYes Positive snippets.
+  * @param snippetsNo Negative snippets.
+  * @param snippetsUnlabeled Unlabeled snippets.
+  * @param yesLabels Positive labels.
+  * @param noLabels Negative labels.
+  * @param biasForRecall If true then model will be biased toward recall. If false then bias will be toward precision.
+  * @throws Exception When an exception occurs.
   */
 	public void createModel(String pOutputDir,
 	                   String[] keyWords,
@@ -195,12 +195,12 @@ public class RedCatModelCreator {
 	/**
 	 * printRegexFileWithKeyWordFilter 
 	 * 
-	 * @param pOutputDir
-	 * @param pKeyWords
-	 * @param pRegexes    
+	 * @param pOutputDir Output directory for regexes.
+	 * @param pKeyWords Keywords to use for filtering regexes.
+	 * @param pRegexes Regular expressions.
 	 * @param pRegexType   (Strict/LessStrict/LeastStrict )
 	 * @param pLabelType   (Positive/Negative, Yes/No,  True/False ... )
-	 * @throws Exception 
+	 * @throws Exception When an exception occurs.
 	 */
 	public static void printRegexFileWithKeyWordFilter(String pOutputDir, String[] pKeyWords, List<String> pListOfRegexes, String pRegexType, String pLabelType) throws Exception {
 
@@ -246,8 +246,8 @@ public class RedCatModelCreator {
     *       # some regular expression that doesn't have a keyword
     *       1|regEx(keyword)regEx2  
     * 
-    * @param pKeyWords
-    * @param pRegex
+    * @param pKeyWords Keywords to use for filtering regular expression.
+    * @param pRegex Regular expression to filter.
     * @return String
     *
     */

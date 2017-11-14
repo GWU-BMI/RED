@@ -83,7 +83,7 @@ public class RedCat {
 	  /**
 	   * getInputFiles
 	   * 
-	   * @param pInputDir
+	   * @param pInputDir Directory containing input files
 	   * @return List<File>
 	   */
 	  // ------------------------------------------
@@ -117,7 +117,7 @@ public class RedCat {
 	  /**
 	   * setArgs takes command line args, which override
 	   *         default args set here
-	   * 
+	   * @param pArgs Array of command line arguments
 	   * 
 	   * @return String
 	   */
