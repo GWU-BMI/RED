@@ -157,8 +157,8 @@ public class REDExCrossValidator implements CrossValidatable {
 	 *            equivalent. Labels not in this list are ignored.
 	 * @return The aggregated results of the cross validation, including scores
 	 *         and regular expressions.
-	 * @throws IOException
-	 * @throws FileNotFoundException
+	 * @throws IOException If there is an exception when reading vtt files.
+	 * @throws FileNotFoundException If one fo the vtt files is not found.
 	 */
 	@Override
 	public List<CVResult> crossValidate(List<File> vttFiles, Collection<String> labels,

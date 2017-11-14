@@ -46,7 +46,7 @@ public class RedCatModelCreator {
    * createModel 
    * 
    * @param pVTTFiles List of VTT files for use in creating the model.
-   * @param pKeyWordFile Keywords required to be in regular expressions.
+   * @param pKeywordsFile Keywords required to be in regular expressions.
    * @param pOutputDir Output directory.
    * @param yesLabels Positive labels.
    * @param noLabels Negative labels.
@@ -124,7 +124,7 @@ public class RedCatModelCreator {
   * createModel 
   * 
   * @param pOutputDir Output directory for the model.
-  * @param pKeyWords Keywords required to be in regular expressions.
+  * @param keyWords Keywords required to be in regular expressions.
   * @param snipptsYes Positive snippets.
   * @param snippetsNo Negative snippets.
   * @param snippetsUnlabeled Unlabeled snippets.

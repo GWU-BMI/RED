@@ -84,7 +84,7 @@ public class RedCat {
 	   * getInputFiles
 	   * 
 	   * @param pInputDir Directory containing input files
-	   * @return List<File>
+	   * @return List of input files.
 	   */
 	  // ------------------------------------------
 	  public static List<File> getInputFiles(String pInputDir) {
