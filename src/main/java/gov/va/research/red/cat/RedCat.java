@@ -26,7 +26,8 @@ public class RedCat {
 		
 			String       inputDir =                       U.getOption(args, "--inputDir=",  "./data");
 			String      outputDir =                       U.getOption(args, "--outputDir=", "./regExes"); 
-			int             folds = Integer.parseInt(     U.getOption(args,  "--folds=", "10" ));
+			String   keywordsFile =                       U.getOption(args, "--keywordsFile=", ""); 
+			int             folds = Integer.parseInt(     U.getOption(args, "--folds=", "10" ));
 			boolean biasForRecall = Boolean.parseBoolean( U.getOption(args, "--biasForRecall=", "false"));
 			List<File>     inputFiles = getInputFiles( inputDir);
 			
@@ -57,7 +58,7 @@ public class RedCat {
 			System.out.println("............... Building the model using all the data ");
 			
 			RedCatModelCreator redCati = new RedCatModelCreator();
-			redCati.createModel(inputFiles, outputDir, yesLabels,  noLabels,  biasForRecall);
+			redCati.createModel(inputFiles, keywordsFile, outputDir, yesLabels,  noLabels,  biasForRecall);
 			
 			System.out.println("............... Finished, - look in " + outputDir  + "for regex files ");
 			
@@ -131,19 +132,21 @@ public class RedCat {
 	    // -------------------------------------
 	    // Input and Output
 
-	    String     drive = U.getOption(pArgs,  "--drive=", "d:");
-	    String  inputDir = U.getOption(pArgs,  "--inputDir=",  drive + "/utah/branches/RED/target/data");
-	    String outputDir = U.getOption(pArgs,  "--outputDir=", drive + "/utah/branches/RED/target/regExes_" + dateStamp);
+	    String        drive = U.getOption(pArgs,  "--drive=", "d:");
+	    String     inputDir = U.getOption(pArgs,  "--inputDir=",  drive + "/utah/branches/RED/target/data");
+	    String    outputDir = U.getOption(pArgs,  "--outputDir=", drive + "/utah/branches/RED/target/regExes_" + dateStamp);
+	    String keywordsFile = U.getOption(pArgs,  "--keywordsFile=", ""); 
 	    
 	    String    logDir = outputDir + "/logs"; 
-	    String     folds = U.getOption(pArgs,  "--folds=", "1" );
-		String biasForRecall = U.getOption(pArgs, "--biasForRecall=", "true");
+	    String     folds = U.getOption(pArgs,  "--folds=", "4" );
+		String biasForRecall = U.getOption(pArgs, "--biasForRecall=", "false");
 	    
 	   
 	    String args[] = {
 	       
 	        "--inputDir=" + inputDir,
 	        "--outputDir=" + outputDir,
+	        "--keywordsFile=" + keywordsFile,
 	        "--logDir="    + logDir,
 	        "--folds="     + folds,
 	        "--biasForRecall=" + biasForRecall
