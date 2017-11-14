@@ -72,14 +72,14 @@ public class RedCatModelCreator {
 		List<Snippet> snippetsYes = new ArrayList<>();
 		for (File vttFile : pVTTFiles) {
 			for (String label : yesLabels) {
-				snippetsYes.addAll(vttr.readSnippets(vttFile, label, true, new VTTSnippetParser()));
+				snippetsYes.addAll(vttr.readSnippets(vttFile, label, new VTTSnippetParser()));
 			}
 		}
 
 		List<Snippet> snippetsNo = new ArrayList<>();
 		for (File vttFile : pVTTFiles) {
 			for (String label : noLabels) {
-				snippetsNo.addAll(vttr.readSnippets(vttFile, label, false, new VTTSnippetParser()));
+				snippetsNo.addAll(vttr.readSnippets(vttFile, label, new VTTSnippetParser()));
 			}
 		}
 
@@ -152,21 +152,18 @@ public class RedCatModelCreator {
 		Collections.shuffle(snippetsYes);
 		Collections.shuffle(snippetsNo);
 
-
 		// set up training and testing sets for this fold
 		List<Snippet> trainingYes = snippetsYes;
-		List<Snippet> trainingNo  = snippetsNo;
 		
 		
 		List<String> snippetsTrain = new ArrayList<>();
 		List<List<Integer>> segspansTrain = new ArrayList<>();
 		List<Integer> labelsTrain = new ArrayList<>();
-		int numYes = 0;
 		for (Snippet snip : trainingYes) {
-			if (snip.getPosLabeledSegments().size() == 0)
+			if (snip.getLabeledSegments().size() == 0)
 				continue;
 			String text = snip.getText();
-			String ls = snip.getPosLabeledStrings().get(0);
+			String ls = snip.getLabeledStrings().get(0);
 			int start = text.indexOf(ls);
 			if (start == 1)
 				continue;
@@ -176,42 +173,22 @@ public class RedCatModelCreator {
 			span.add(start + ls.length());
 			segspansTrain.add(span);
 			labelsTrain.add(1);
-			numYes++;
-		}
-		int numNo = 0;
-		for (Snippet snip : trainingNo) {
-			if (snip.getNegLabeledSegments().size() == 0)
-				continue;
-			String text = snip.getText();
-			String ls = snip.getNegLabeledStrings().get(0);
-			int start = text.indexOf(ls);
-			if (start == 1)
-				continue;
-			snippetsTrain.add(text);
-			List<Integer> span = new ArrayList<>();
-			span.add(start);
-			span.add(start + ls.length());
-			segspansTrain.add(span);
-			labelsTrain.add(-1);
-			numNo++;
 		}
 		
-			IREDClassifier redc = REDClassifierFactory.createModel();
-			
-			redc.fit(snippetsTrain, segspansTrain, labelsTrain);
-			int positive = 1;
-			int negative = -1;
+		IREDClassifier redc = REDClassifierFactory.createModel();
 		
-			printRegexFileWithKeyWordFilter( pOutputDir, keyWords, redc.getStrictRegexs(positive), "strictRegexes", "Positive");
-			printRegexFileWithKeyWordFilter( pOutputDir, keyWords, redc.getStrictRegexs(negative),  "strictRegexes", "Negative");
-			
-			printRegexFileWithKeyWordFilter( pOutputDir, keyWords, redc.getLessStrictRegexs(positive), "lessStrictRegexes", "Positive");
-			printRegexFileWithKeyWordFilter( pOutputDir, keyWords, redc.getLessStrictRegexs(negative),  "lessStrictRegexes", "Negative");
-			
-			printRegexFileWithKeyWordFilter( pOutputDir, keyWords, redc.getLeastStrictRegexs(positive), "leastStrictRegexes", "Positive");
-			printRegexFileWithKeyWordFilter( pOutputDir, keyWords, redc.getLeastStrictRegexs(negative),  "leastStrictRegexes", "Negative");
-			
+		redc.fit(snippetsTrain, segspansTrain, labelsTrain);
+		int positive = 1;
+		int negative = -1;
+	
+		printRegexFileWithKeyWordFilter( pOutputDir, keyWords, redc.getStrictRegexs(positive), "strictRegexes", "Positive");
+		printRegexFileWithKeyWordFilter( pOutputDir, keyWords, redc.getStrictRegexs(negative),  "strictRegexes", "Negative");
 		
+		printRegexFileWithKeyWordFilter( pOutputDir, keyWords, redc.getLessStrictRegexs(positive), "lessStrictRegexes", "Positive");
+		printRegexFileWithKeyWordFilter( pOutputDir, keyWords, redc.getLessStrictRegexs(negative),  "lessStrictRegexes", "Negative");
+		
+		printRegexFileWithKeyWordFilter( pOutputDir, keyWords, redc.getLeastStrictRegexs(positive), "leastStrictRegexes", "Positive");
+		printRegexFileWithKeyWordFilter( pOutputDir, keyWords, redc.getLeastStrictRegexs(negative),  "leastStrictRegexes", "Negative");
 		
 	} // end Method createModel() -------------------------------------
 	

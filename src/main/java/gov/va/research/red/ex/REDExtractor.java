@@ -19,7 +19,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -43,7 +42,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
-import javax.security.auth.login.LoginException;
 import javax.xml.stream.XMLStreamException;
 
 import org.apache.commons.cli.CommandLine;
@@ -70,7 +68,6 @@ import gov.va.research.red.regex.JSEPatternAdapter;
 import gov.va.research.red.regex.MatcherAdapter;
 import gov.va.research.red.regex.PatternAdapter;
 import gov.va.research.red.regex.RE2JPatternAdapter;
-import gov.va.vinci.krb.KrbConnectionFactory;
 
 public class REDExtractor implements Extractor, RegexTiers {
 	private static transient final Logger LOG = LoggerFactory.getLogger(REDExtractor.class);
