@@ -139,22 +139,22 @@
 	</dependency>
   </dependencies>
   <scm>
-  	<connection>scm:git:http://inlp.bmi.utah.edu/git/RED.git/</connection>
-  	<url>http://inlp.bmi.utah.edu/git/RED.git/</url>
+  	<connection>scm:git:https://github.com/GWU-BMI/RED.git</connection>
+  	<url>https://github.com/GWU-BMI/RED.git</url>
     <tag>RED-2017.11.0</tag>
   </scm>
   <distributionManagement>
 	<repository>
 		<id>nexus</id>
-		<name>Nexus Staging Repo</name>
-		<url>http://inlp.bmi.utah.edu/nexus/content/repositories/releases</url>
+		<name>Nexus Releases Repo</name>
+		<url>https://qtzeng.smhs.gwu.edu/nexus/repository/maven-releases</url>
 	</repository>
   </distributionManagement>
   <repositories>
   	<repository>
       <id>nexus</id>
-	  <name>Nexus Staging Repo</name>
-	  <url>http://inlp.bmi.utah.edu/nexus/content/groups/public</url>
+	  <name>Nexus Releases Repo</name>
+	  <url>https://qtzeng.smhs.gwu.edu/nexus/repository/releases</url>
 	</repository>
   </repositories>
 </project>
